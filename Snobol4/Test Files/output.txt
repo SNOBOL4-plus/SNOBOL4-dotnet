@@ -1,0 +1,11 @@
+Snobol4.NET - Version DEV Multi-platform 4/21/2024 7:48:35 PM
+Copyright (C) 2024 Jeffrey A. Cooper. Covered by MIT License https://opensource.org/license/mit
+0001 0001 -LIST
+0002 0002     A = B C
+0003 0003     A = B C
+0004 0004     A = B C
+0005 0005     A = B C
+0006 0006     A = B C
+0007 0007     A = B C
+0008 0008 end
+read source time     00:00:00.0378426

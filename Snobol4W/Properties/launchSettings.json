@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Snobol4W": {
+      "commandName": "Project",
+      "commandLineArgs": "test.sno > test.lst",
+      "workingDirectory": "C:\\Users\\jcooper\\Documents\\Visual Studio 2022\\Snobol4\\TestSnobol4"
+    }
+  }
+}

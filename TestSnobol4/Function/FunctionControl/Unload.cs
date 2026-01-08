@@ -1,0 +1,32 @@
+using Snobol4.Common;
+using Test.TestLexer;
+
+namespace Test.FunctionControl;
+
+[TestClass]
+public class Unload
+{
+
+    [TestMethod]
+    public void TEST_Unload_001()
+    {
+        var dllName = @"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\CustomFunction\bin\Debug\net9.0\AreaLibrary.dll";
+        if (SetupTests.IsLinux)
+            dllName = @"/mnt/c/Users/jcooper/Documents/Visual Studio 2022/Snobol4.Net/CustomFunction/bin/Debug/net9.0/AreaLibrary.dll";
+        var s = $"""
+
+                         load('{dllName}', 'AreaFunction.Area')
+                         r1 = 'Area of circle with radius ' 4.5 ' is ' AreaOfCircle(4.5)
+                         r2 = 'Area of square with side  ' 15.9 ' is ' AreaOfSquare(15.9)
+                         unload('{dllName}')
+                 end
+                 """;
+        const string directives = "-b -f";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("Area of circle with radius 4.5 is 63.61725123519331", ((StringVar)build.Execute!.IdentifierTable["r1"]).Data);
+        Assert.AreEqual("Area of square with side  15.9 is 252.81", ((StringVar)build.Execute!.IdentifierTable["r2"]).Data);
+    }
+
+
+}

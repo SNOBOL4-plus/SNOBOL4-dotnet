@@ -1,0 +1,9 @@
+Snobol4.NET - Version DEV Multi-platform 4/21/2024 7:53:25 PM
+Copyright (C) 2024 Jeffrey A. Cooper. Covered by MIT License https://opensource.org/license/mit
+0001 0001 -LIST
+0002 0002 	DATE() ? LEN(2) . MTH LEN(1) LEN(2) . DAY LEN(1) LEN(2) . YEAR
+0006 0006 -LIST
+0007 0007 	DATE() ? LEN(2) . MTH LEN(1) LEN(2) . DAY LEN(1) LEN(2) . YEAR
+0012 0012 -LIST
+0013 0013 	DATE() ? LEN(2) . MTH LEN(1) LEN(2) . DAY LEN(1) LEN(2) . YEAR
+0014 0014 END

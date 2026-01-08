@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="CTest_CODE0_NTest_CODE0.cs" />
+    <Compile Remove="Test0.Test.cs" />
+    <Compile Remove="Test_CODE1.Test.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CTest_CODE0_NTest_CODE0.cs" />
+    <None Include="Function\StringComparison\LGe.cs" />
+    <None Include="Function\Operator\Unary\Minus. %28-%29.cs" />
+    <None Include="Function\Pattern\ArbNo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.6.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.6.0" />
+    <PackageReference Include="Throw" Version="1.4.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Snobol4.Common\Snobol4.Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Function\ProgramControl\" />
+    <Folder Include="Function\ObjectCreation\" />
+    <Folder Include="Function\ProgramDefinedDataType\" />
+    <Folder Include="Function\Pattern\Fence\" />
+    <Folder Include="Function\Pattern\BreakX\" />
+  </ItemGroup>
+</Project>

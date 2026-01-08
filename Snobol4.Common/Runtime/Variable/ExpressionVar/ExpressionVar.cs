@@ -1,0 +1,120 @@
+﻿using System.Diagnostics;
+
+namespace Snobol4.Common;
+
+[DebuggerDisplay("{DebugString()}")]
+public class ExpressionVar : Var
+{
+    #region Data
+
+    public Executive.DeferredCode FunctionName;
+
+    #endregion
+
+    #region Strategy Instances (Lazy-loaded singletons for performance)
+
+    private static readonly ExpressionArithmeticStrategy _arithmeticStrategy = new();
+    private static readonly ExpressionComparisonStrategy _comparisonStrategy = new();
+    private static readonly ExpressionConversionStrategy _conversionStrategy = new();
+    private static readonly ExpressionCloningStrategy _cloningStrategy = new();
+    private static readonly ExpressionFormattingStrategy _formattingStrategy = new();
+
+    protected override IArithmeticStrategy ArithmeticStrategy => _arithmeticStrategy;
+    protected override IComparisonStrategy ComparisonStrategy => _comparisonStrategy;
+    protected override IConversionStrategy ConversionStrategy => _conversionStrategy;
+    protected override ICloningStrategy CloningStrategy => _cloningStrategy;
+    protected override IFormattingStrategy FormattingStrategy => _formattingStrategy;
+
+    #endregion
+
+    #region Constructors
+
+    internal ExpressionVar(Executive.DeferredCode functionName)
+    {
+        FunctionName = functionName;
+    }
+
+    internal ExpressionVar(ExpressionVar template)
+    {
+        OutputChannel = template.OutputChannel;
+        InputChannel = template.InputChannel;
+        Symbol = template.Symbol;
+        FunctionName = template.FunctionName;
+    }
+
+    #endregion
+
+    #region Expression-Specific Methods
+
+    /// <summary>
+    /// Evaluate this expression in the context of the executive
+    /// </summary>
+    public void Evaluate(Executive executive)
+    {
+        FunctionName(executive);
+    }
+
+    /// <summary>
+    /// Get the delegate representing this expression
+    /// </summary>
+    public Executive.DeferredCode GetDelegate()
+    {
+        return FunctionName;
+    }
+
+    #endregion
+
+    #region Double Dispatch Methods
+
+    // Expressions don't support arithmetic operations with other types
+
+    protected internal override Var AddInteger(IntegerVar left, Executive executive)
+    {
+        executive.LogRuntimeException(2); // Right operand of + is not numeric
+        return StringVar.Null();
+    }
+
+    protected internal override Var AddReal(RealVar left, Executive executive)
+    {
+        executive.LogRuntimeException(2); // Right operand of + is not numeric
+        return StringVar.Null();
+    }
+
+    protected internal override Var SubtractInteger(IntegerVar left, Executive executive)
+    {
+        executive.LogRuntimeException(33); // Right operand of - is not numeric
+        return StringVar.Null();
+    }
+
+    protected internal override Var SubtractReal(RealVar left, Executive executive)
+    {
+        executive.LogRuntimeException(33); // Right operand of - is not numeric
+        return StringVar.Null();
+    }
+
+    protected internal override Var MultiplyInteger(IntegerVar left, Executive executive)
+    {
+        executive.LogRuntimeException(27); // Right operand of * is not numeric
+        return StringVar.Null();
+    }
+
+    protected internal override Var MultiplyReal(RealVar left, Executive executive)
+    {
+        executive.LogRuntimeException(27); // Right operand of * is not numeric
+        return StringVar.Null();
+    }
+
+    protected internal override Var DivideInteger(IntegerVar left, Executive executive)
+    {
+        executive.LogRuntimeException(13); // Right operand of / is not numeric
+        return StringVar.Null();
+    }
+
+    protected internal override Var DivideReal(RealVar left, Executive executive)
+    {
+        executive.LogRuntimeException(13); // Right operand of / is not numeric
+        return StringVar.Null();
+    }
+
+    #endregion
+}

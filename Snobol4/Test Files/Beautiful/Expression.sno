@@ -1,0 +1,243 @@
+*//---------------------------------------------------------------------------------------------------------
+*// $Workfile: Beautiful.sno $ $Revision: 5 $ $Date: 3/10/05 11:42a $ 
+*//---------------------------------------------------------------------------------------------------------
+*//
+*// Program:       SNOBOL4 Beautifier
+*// Author:        Lon Cherryholmes
+*// First Created: 2002/12/10
+*// Last Modified: 2005/01/16
+*// Version:       0.25
+*//
+START             
+-INCLUDE 'C:\\Users\\jcooper\\Downloads\\Beautiful\\global.inc'
+-INCLUDE 'C:\Users\jcooper\Downloads\Beautiful\is.inc'
+-INCLUDE 'C:\Users\jcooper\Downloads\Beautiful\FENCE.inc'
+-INCLUDE 'C:\Users\jcooper\Downloads\Beautiful\io.inc'
+-INCLUDE 'C:\Users\jcooper\Downloads\Beautiful\case.inc'
+-INCLUDE 'C:\Users\jcooper\Downloads\Beautiful\assign.inc'
+-INCLUDE 'C:\Users\jcooper\Downloads\Beautiful\match.inc'
+-INCLUDE 'C:\Users\jcooper\Downloads\Beautiful\counter.inc'
+-INCLUDE 'C:\Users\jcooper\Downloads\Beautiful\stack.inc'
+-INCLUDE 'C:\Users\jcooper\Downloads\Beautiful\tree.inc'
+-INCLUDE 'C:\Users\jcooper\Downloads\Beautiful\ShiftReduce.inc'
+-INCLUDE 'C:\Users\jcooper\Downloads\Beautiful\TDump.inc'
+-INCLUDE 'C:\Users\jcooper\Downloads\Beautiful\Gen.inc'
+-INCLUDE 'C:\Users\jcooper\Downloads\Beautiful\Qize.inc'
+-INCLUDE 'C:\Users\jcooper\Downloads\Beautiful\ReadWrite.inc'
+-INCLUDE 'C:\Users\jcooper\Downloads\Beautiful\XDump.inc'
+-INCLUDE 'C:\Users\jcooper\Downloads\Beautiful\semantic.inc'
+-INCLUDE 'C:\Users\jcooper\Downloads\Beautiful\omega.inc'
+-INCLUDE 'C:\Users\jcooper\Downloads\Beautiful\trace.inc'
+
+ 			   &FULLSCAN      =  1
+                  &MAXLNGTH      =  524288
+*//
+*//               Four tab-stops defined for the pretty-print routine.
+*//               ppStop[1] - subject
+*//               ppStop[2] - pattern or =
+*//               ppStop[3] - object of assignment
+*//               ppStop[4] - goto field
+*//               ppSmBump - the amount of extra space when within multi-line nesting
+*//               ppLgBump - the amount of extra space when no goto field is present
+*//
+                  ppStop         =  ARRAY('1:4')
+                  ppStop[1]      =  18 ;*// 11
+                  ppStop[2]      =  33 ;*// 28
+                  ppStop[3]      =  36 ;*// 31
+                  ppStop[4]      =  81 ;*// 66
+                  ppSmBump       =  6
+                  ppLgBump       =  21
+*//-------------- -------------- -- ----------------------------------------------- ------------------------
+*//               Parser patterns:
+*//
+                  snoInteger     =  SPAN(digits)
+                  snoDQ          =  '"' BREAK('"' nl) '"'
+                  snoSQ          =  "'" BREAK("'" nl) "'"
+                  snoString      =  *snoSQ | *snoDQ
+                  snoReal        =  (  SPAN(digits)
++                                      ('.' FENCE(SPAN(digits) | epsilon) | epsilon)
++                                      ('E' | 'e')
++                                      ('+' | '-' | epsilon)
++                                      SPAN(digits)
++                                   |  SPAN(digits) '.' FENCE(SPAN(digits) | epsilon)
++                                   )
+                  snoId          =  ANY(&UCASE &LCASE)
++                                   FENCE(SPAN('.' digits &UCASE '_' &LCASE) | epsilon)
+                  snoFunction    =  SPAN('.' digits &UCASE '_' &LCASE)
++                                $  tx $ *match(snoFunctions, snoTxInList)
+                  snoBuiltinVar  =  SPAN('.' digits &UCASE '_' &LCASE)
++                                $  tx $ *match(snoBuiltinVars, snoTxInList)
+                  snoSpecialNm   =  SPAN('.' digits &UCASE '_' &LCASE)
++                                $  tx $ *match(snoSpecialNms, snoTxInList)
+                  snoProtKwd     =  '&' SPAN(&UCASE &LCASE) $ tx $ *match(snoProtKwds, snoTxInList)
+                  snoUnprotKwd   =  '&' SPAN(&UCASE &LCASE) $ tx $ *match(snoUnprotKwds, snoTxInList)
+
+                  snoGray        =  *snoWhite | epsilon
+                  snoWhite       =  (  SPAN(' ' tab)
++                                      FENCE(nl ('+' | '.') FENCE(SPAN(' ' tab) | epsilon) | epsilon)
++                                   |  nl ('+' | '.') FENCE(SPAN(' ' tab) | epsilon)
++                                   )
+
+                  snoTxInList    =  (POS(0) | ' ') *upr(tx) (' ' | RPOS(0))
+                  snoSpecialNms  =  'ABORT CONTINUE END FRETURN NRETURN RETURN SCONTINUE START'
+                  snoBuiltinVars =  'ABORT ARB BAL FAIL FENCE INPUT OUTPUT REM TERMINAL'
+                  snoProtKwds    =  'ABORT ALPHABET ARB BAL FAIL FENCE FILE FNCLEVEL '
++                                   'LASTFILE LASTLINE LASTNO LCASE LINE REM RTNTYPE '
++                                   'STCOUNT STNO SUCCEED UCASE'
+                  snoUnprotKwds  =  'ABEND ANCHOR CASE CODE COMPARE DUMP ERRLIMIT '
++                                   'ERRTEXT ERRTYPE FTRACE INPUT MAXLNGTH OUTPUT '
++                                   'PROFILE STLIMIT TRACE TRIM FULLSCAN'
+                  snoFunctions   =  'ANY APPLY ARBNO ARG ARRAY ATAN BACKSPACE BREAK BREAKX '
++                                   'CHAR CHOP CLEAR CODE COLLECT CONVERT COPY COS DATA '
++                                   'DATATYPE DATE DEFINE DETACH DIFFER DUMP DUPL EJECT '
++                                   'ENDFILE EQ EVAL EXIT EXP FENCE FIELD GE GT HOST '
++                                   'IDENT INPUT INTEGER ITEM LE LEN LEQ LGE LGT LLE '
++                                   'LLT LN LNE LOAD LOCAL LPAD LT NE NOTANY OPSYN OUTPUT '
++                                   'POS PROTOTYPE REMDR REPLACE REVERSE REWIND RPAD RPOS '
++                                   'RSORT RTAB SET SETEXIT SIN SIZE SORT SPAN SQRT STOPTR '
++                                   'SUBSTR TAB TABLE TAN TIME TRACE TRIM UNLOAD'
+
+                  $'='           =  *snoWhite '=' *snoWhite
+                  $'?'           =  *snoWhite '?' *snoWhite
+                  $'|'           =  *snoWhite '|' *snoWhite
+                  $'+'           =  *snoWhite '+' *snoWhite
+                  $'-'           =  *snoWhite '-' *snoWhite
+                  $'/'           =  *snoWhite '/' *snoWhite
+                  $'*'           =  *snoWhite '*' *snoWhite
+                  $'^'           =  *snoWhite '^' *snoWhite
+                  $'!'           =  *snoWhite '!' *snoWhite
+                  $'**'          =  *snoWhite '**' *snoWhite
+                  $'$'           =  *snoWhite '$' *snoWhite
+                  $'.'           =  *snoWhite '.' *snoWhite
+                  $'&'           =  *snoWhite '&' *snoWhite
+                  $'@'           =  *snoWhite '@' *snoWhite
+                  $'#'           =  *snoWhite '#' *snoWhite
+                  $'%'           =  *snoWhite '%' *snoWhite
+                  $'~'           =  *snoWhite '~' *snoWhite
+                  $','           =  *snoGray ',' *snoGray
+                  $'('           =  '(' *snoGray
+                  $'['           =  '[' *snoGray
+                  $'<'           =  '<' *snoGray
+                  $')'           =  *snoGray ')'
+                  $']'           =  *snoGray ']'
+                  $'>'           =  *snoGray '>'
+
+                  snoExprList    =  nPush()
++                                   *snoXList
++                                   ("'snoExprList'" & '*(GT(nTop(), 1) nTop())')
++                                   nPop()
+                  snoXList       =  nInc() (*snoExpr | epsilon ~ '') FENCE($',' *snoXList | epsilon)
+                  snoExpr        =  *snoExpr0
+                  snoExpr0       =  *snoExpr1 FENCE($'=' *snoExpr0 ("'='" & 2) | epsilon)
+                  snoExpr1       =  *snoExpr2 FENCE($'?' *snoExpr1 ("'?'" & 2) | epsilon)
+                  snoExpr2       =  *snoExpr3 FENCE($'&' *snoExpr2 ("'&'" & 2) | epsilon)
+                  snoExpr3       =  nPush() *snoX3 ("'|'" & '*(GT(nTop(), 1) nTop())') nPop()
+                  snoX3          =  nInc() *snoExpr4 FENCE($'|' *snoX3 | epsilon)
+                  snoExpr4       =  nPush() *snoX4 ("'..'" & '*(GT(nTop(), 1) nTop())') nPop()
+                  snoX4          =  nInc() *snoExpr5 FENCE(*snoWhite *snoX4 | epsilon)
+                  snoExpr5       =  *snoExpr6 FENCE($'@' *snoExpr5 ("'@'" & 2) | epsilon)
+                  snoExpr6       =  *snoExpr7
++                                   FENCE(
++                                      $'+' *snoExpr6 ("'+'" & 2) | $'-' *snoExpr6 ("'-'" & 2) | epsilon
++                                   )
+                  snoExpr7       =  *snoExpr8 FENCE($'#' *snoExpr7 ("'#'" & 2) | epsilon)
+                  snoExpr8       =  *snoExpr9 FENCE($'/' *snoExpr8 ("'/'" & 2) | epsilon)
+                  snoExpr9       =  *snoExpr10 FENCE($'*' *snoExpr9 ("'*'" & 2) | epsilon)
+                  snoExpr10      =  *snoExpr11 FENCE($'%' *snoExpr10 ("'%'" & 2) | epsilon)
+                  snoExpr11      =  *snoExpr12
++                                   FENCE(($'^' | $'!' | $'**') *snoExpr11 ("'^'" & 2) | epsilon)
+                  snoExpr12      =  *snoExpr13
++                                   FENCE(
++                                      $'$' *snoExpr12 ("'$'" & 2)
++                                   |  $'.' *snoExpr12 ("'.'" & 2)
++                                   |  epsilon
++                                   )
+                  snoExpr13      =  *snoExpr14 FENCE($'~' *snoExpr13 ("'~'" & 2) | epsilon)
+                  snoExpr14      =  '@' *snoExpr14 ("'@'" & 1)
++                                |  '~' *snoExpr14 ("'~'" & 1)
++                                |  '?' *snoExpr14 ("'?'" & 1)
++                                |  *snoProtKwd ~ 'snoProtKwd'
++                                |  *snoUnprotKwd ~ 'snoUnprotKwd'
++                                |  '&' *snoExpr14 ("'&'" & 1)
++                                |  '+' *snoExpr14 ("'+'" & 1)
++                                |  '-' *snoExpr14 ("'-'" & 1)
++                                |  '*' *snoExpr14 ("'*'" & 1)
++                                |  '$' *snoExpr14 ("'$'" & 1)
++                                |  '.' *snoExpr14 ("'.'" & 1)
++                                |  '!' *snoExpr14 ("'!'" & 1)
++                                |  '%' *snoExpr14 ("'%'" & 1)
++                                |  '/' *snoExpr14 ("'/'" & 1)
++                                |  '#' *snoExpr14 ("'#'" & 1)
++                                |  '=' *snoExpr14 ("'='" & 1)
++                                |  '|' *snoExpr14 ("'|'" & 1)
++                                |  *snoExpr15
+                  snoExpr15      =  *snoExpr17
++                                   FENCE(nPush() *snoExpr16 ("'[]'" & 'nTop() + 1') nPop() | epsilon)
+                  snoExpr16      =  nInc()
++                                   ($'[' *snoExprList $']' | $'<' *snoExprList $'>')
++                                   FENCE(*snoExpr16 | epsilon)
+                  snoExpr17      =  FENCE(
++                                      nPush()
++                                      $'('
++                                      *snoExpr
++                                      (  $',' *snoXList ("','" & 'nTop() + 1')
++                                      |  epsilon ("'()'" & 1)
++                                      )
++                                      $')'
++                                      nPop()
++                                   |  *snoFunction ~ 'snoFunction' $'(' *snoExprList $')' ("'snoCall'" & 2)
++                                   |  *snoId ~ 'snoId' $'(' *snoExprList $')' ("'snoCall'" & 2)
++                                   |  *snoBuiltinVar ~ 'snoBuiltinVar'
++                                   |  *snoSpecialNm ~ 'snoSpecialNm'
++                                   |  *snoId ~ 'snoId'
++                                   |  *snoString ~ 'snoString'
++                                   |  *snoReal ~ 'snoReal'
++                                   |  *snoInteger ~ 'snoInteger'
++                                   )
+
+                  snoSGoto       =  ('S' | 's') . *assign(.SorF, *'S')
+                  snoFGoto       =  ('F' | 'f') . *assign(.SorF, *'F')
+                  snoSorF        =  *snoSGoto | *snoFGoto
+                  snoTarget      =  $'(' . *assign(.snoBrackets, *'()') *snoExpr $')'
++                                |  $'<' . *assign(.snoBrackets, *'<>') *snoExpr $'>'
+                  snoGoto        =  *snoGray
++                                   ':'
++                                   *snoGray
++                                   FENCE(
++                                      *snoTarget ("*(':' snoBrackets)" & 1) epsilon ~ ''
++                                   |  *snoSorF
++                                      *snoTarget
++                                      ("*(':' SorF snoBrackets)" & 1)
++                                      FENCE(
++                                         *snoGray *snoSorF *snoTarget ("*(':' SorF snoBrackets)" & 1)
++                                      |  epsilon ~ ''
++                                      )
++                                   )
+                  snoControl     =  '-' BREAK(nl ';')
+                  snoComment     =  '*' BREAK(nl)
+                  snoLabel       =  BREAK(' ' tab nl ';') ~ 'snoLabel'
+                  snoStmt        =  *snoLabel
++                                   (  *snoWhite
++                                      *snoExpr14
++                                      FENCE(
++                                         epsilon ~ ''
++                                         *snoWhite
++                                         ('=' ~ '=' *snoWhite *snoExpr | '=' ~ '=' epsilon ~ '')
++                                      |  ($'?' | *snoWhite)
++                                         *snoExpr1
++                                         FENCE(
++                                            *snoWhite
++                                            ('=' ~ '=' *snoWhite *snoExpr | '=' ~ '=' epsilon ~ '')
++                                         |  epsilon ~ '' epsilon ~ ''
++                                         )
++                                      |  epsilon ~ '' epsilon ~ '' epsilon ~ ''
++                                      )
++                                   |  epsilon ~ '' epsilon ~ '' epsilon ~ '' epsilon ~ ''
++                                   )
++                                   FENCE(*snoGoto | epsilon ~ '' epsilon ~ '')
++                                   *snoGray
+START	LINE = INPUT
+	    LINE (POS(0) snoExpr RPOS(0))			:F(NOTOK)
+		OUTPUT = "Valid SNOBOL4"   :(START)
+NOTOK	OUTPUT = "Syntax ERROR"   :(START)
+END

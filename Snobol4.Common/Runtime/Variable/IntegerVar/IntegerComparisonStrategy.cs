@@ -1,0 +1,35 @@
+﻿using System.Globalization;
+
+namespace Snobol4.Common;
+
+/// <summary>
+/// Comparison strategy for integer variables
+/// </summary>
+public class IntegerComparisonStrategy : IComparisonStrategy
+{
+    public int CompareTo(Var self, Var other)
+    {
+        var intSelf = (IntegerVar)self;
+
+        return other switch
+        {
+            IntegerVar intOther => intSelf.Data.CompareTo(intOther.Data),
+            RealVar realOther => ((double)intSelf.Data).CompareTo(realOther.Data),
+            _ => string.Compare(intSelf.DataType(), other.DataType(), false, CultureInfo.InvariantCulture)
+        };
+    }
+
+    public bool Equals(Var self, Var other)
+    {
+        if (other is not IntegerVar intOther)
+            return false;
+
+        var intSelf = (IntegerVar)self;
+        return intSelf.Data == intOther.Data;
+    }
+
+    public bool IsIdentical(Var self, Var other)
+    {
+        return Equals(self, other);
+    }
+}

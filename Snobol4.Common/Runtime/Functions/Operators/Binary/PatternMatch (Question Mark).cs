@@ -1,0 +1,59 @@
+﻿namespace Snobol4.Common;
+
+public partial class Executive
+{
+    /// <summary>
+    /// Match a string to a pattern. Successful matches are stored
+    /// in a SubjectVar object with information about how to do a
+    /// replacement.
+    /// </summary>
+    public void PatternMatch(List<Var> arguments)
+    {
+        if (Failure)
+            return;
+
+        // arguments[0]: Subject and left operand
+        // arguments[1]: Pattern and right operand
+
+        //while (arguments[0] is ExpressionVar expressionVar1)
+        //    arguments[0] = new PatternVar(new UnevaluatedPattern(expressionVar1.FunctionName));
+
+        while (arguments[1] is ExpressionVar expressionVar1)
+        {
+            expressionVar1.FunctionName(this);
+            arguments[1] = SystemStack.Pop();
+        }
+
+        // Pattern must be a pattern
+        if (!arguments[1].Convert(VarType.PATTERN, out _, out var patternValue, this))
+        {
+            LogRuntimeException(240);
+            return;
+        }
+
+        // Subject must resolve to a string
+        if (!arguments[0].Convert(VarType.STRING, out var subject, out var subjectValue, this))
+        {
+            LogRuntimeException(241);
+            return;
+        }
+
+        // Try the match
+        var anchor = ((IntegerVar)IdentifierTable["&anchor"]).Data;
+        Scanner scanner = new(this);
+        var mr = scanner.PatternMatch((string)subjectValue, (Pattern)patternValue, 0, anchor != 0);
+
+        if (mr.Outcome != MatchResult.Status.SUCCESS)
+        {
+            NonExceptionFailure();
+            return;
+        }
+
+        // Store object reference to save SubjectVar in a symbol table
+        var subjectVar = new SubjectVar((string)subjectValue, mr)
+        {
+            Symbol = subject.Symbol
+        };
+        SystemStack.Push(subjectVar);
+    }
+}

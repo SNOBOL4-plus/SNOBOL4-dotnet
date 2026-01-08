@@ -1,0 +1,532 @@
+﻿using System.Diagnostics;
+using System.Text;
+
+namespace Snobol4.Common;
+
+public class GenerateCSharpCode(Builder parent)
+{
+    private readonly StringBuilder _csharpCode = new();
+    private Builder _parent = parent;
+    private CompileTarget _compileTarget;
+
+    public enum CompileTarget
+    {
+        PROGRAM = 1,
+        CODE = 2,
+        EVAL = 3
+    }
+
+    public string GenerateCSharp(string nameSpace, string className, bool firstInit, CompileTarget compileTarget, Builder parent)
+    {
+        _compileTarget = compileTarget;
+        _parent = parent;
+        GeneratePre(nameSpace, className, firstInit);
+        GenerateStatements();
+        GenerateExpressions();
+        _csharpCode.AppendLine("}");
+        MarkCodeAsCompiled();
+        if (_parent.WriteCSharpCode)
+            WriteCode(className + "_" + nameSpace + ".cs");
+        return _csharpCode.ToString();
+    }
+
+    private void GeneratePre(string nameSpace, string className, bool firstInit)
+    {
+        _csharpCode.AppendLine("// ********************************");
+        _csharpCode.AppendLine("// **** MACHINE GENERATED CODE ****");
+        _csharpCode.AppendLine("// **** DO NOT EDIT            ****");
+        _csharpCode.AppendLine($"// **** {DateTime.Now}   ****");
+        _csharpCode.AppendLine("// ********************************");
+        _csharpCode.AppendLine();
+        _csharpCode.AppendLine("using System;");
+        _csharpCode.AppendLine("using System.Collections;");
+        _csharpCode.AppendLine("using System.Collections.Generic;");
+        _csharpCode.AppendLine("using Snobol4.Common;");
+        _csharpCode.AppendLine();
+        _csharpCode.AppendLine($"namespace {nameSpace};");
+        _csharpCode.AppendLine();
+        _csharpCode.AppendLine($"public class {className}");
+        _csharpCode.AppendLine("{");
+
+        _csharpCode.AppendLine("    delegate int StatementCode(Executive x);");
+        _csharpCode.AppendLine();
+        _csharpCode.AppendLine("    public int Run(Executive x)");
+        _csharpCode.AppendLine("    {");
+
+        if (_compileTarget == CompileTarget.EVAL)
+        {
+            Debug.Assert(_parent.Execute != null, nameof(_parent.Execute) + " != null");
+
+            for (var jStar = _parent.Execute.PreviousStarFunctionCount; jStar < _parent.ExpressionList.Count; ++jStar)
+            {
+                _csharpCode.AppendLine($"// jStar: {jStar}");
+                _csharpCode.AppendLine($"        x.StarFunctionList.Add(Star{jStar:D8});");
+            }
+            _csharpCode.AppendLine();
+
+            _csharpCode.AppendLine("        x.PreviousStarFunctionCount = x.StarFunctionList.Count;");
+            _csharpCode.AppendLine("        return 0;");
+            _csharpCode.AppendLine("    }");
+            return;
+        }
+
+        // Allow setting a breakpoint in the generated code
+        _csharpCode.AppendLine("        Executive.BreakPoint();");
+        _csharpCode.AppendLine();
+
+        // Store initial settings from Builder
+        _csharpCode.AppendLine(
+            $"        x.Parent.SuppressListingHeader = {_parent.SuppressListingHeader.ToString().ToLower()};");
+        _csharpCode.AppendLine($"        x.Parent.FilesToCompile.Add(@\"{_parent.FilesToCompile[^1]}\");");
+        _csharpCode.AppendLine($"        x.Parent.ListFileName = @\"{_parent.ListFileName}\";");
+        _csharpCode.AppendLine($"        x.Parent.ShowExecutionStatistics = {_parent.ShowExecutionStatistics.ToString().ToLower()};");
+        _csharpCode.AppendLine();
+
+        // Make source code file name is available for debugging
+        foreach (var line in _parent.Code.SourceLines)
+        {
+            if (line.Compiled)
+                continue;
+
+            var escapedLine = line.Text.Replace('\t', ' ').Replace("\"", "\"\"");
+            var pathLine = $"{Path.GetFileName(line.PathName)}({line.LineCountFile})\\n";
+            _csharpCode.AppendLine($"        x.SourceCode.Add(\"{pathLine}\" + @\"{escapedLine}\");");
+        }
+
+        _csharpCode.AppendLine();
+
+        // Generate &FILE keyword data
+        foreach (var pathLine in from line in _parent.Code.SourceLines where !line.Compiled select line.PathName)
+            _csharpCode.AppendLine($"        x.SourceFiles.Add(@\"{pathLine}\");");
+        _csharpCode.AppendLine();
+
+        // Generate &LINE keyword data
+        foreach (var line in _parent.Code.SourceLines.Where(line => !line.Compiled))
+        {
+            _csharpCode.AppendLine($"        x.SourceLineNumbers.Add({line.LineCountFile});");
+        }
+
+        _csharpCode.AppendLine();
+
+
+        // Generate &STNO keyword data
+        var statementNumber = _parent.StatementCount;
+
+        foreach (var _ in _parent.Code.SourceLines)
+        {
+            _csharpCode.AppendLine($"        x.SourceStatementNumbers.Add({++statementNumber});");
+        }
+
+        _csharpCode.AppendLine();
+        statementNumber = _parent.StatementCount;
+
+        // Map methods to line numbers
+
+        foreach (var _ in _parent.Code.SourceLines)
+            _csharpCode.AppendLine($"        x.Statements.Add(Statement{statementNumber++:D7});");
+
+        _csharpCode.AppendLine();
+        statementNumber = _parent.StatementCount;
+
+        // Map labels to line numbers
+        foreach (var line in _parent.Code.SourceLines)
+        {
+            if (line.Label != "END" && line.Label != "end" && line.Label.Length > 0 && !line.Compiled)
+                _csharpCode.AppendLine($"        x.Labels.Add(\"{line.Label}\", {statementNumber});");
+            statementNumber++;
+        }
+
+        for (var iStar = _parent.RecordedExpressionCount; iStar < _parent.ExpressionList.Count; ++iStar)
+            _csharpCode.AppendLine($"        x.StarFunctionList.Add(Star{iStar++:D8});");
+
+        _csharpCode.AppendLine();
+        _csharpCode.AppendLine("        x.PreviousStarFunctionCount = x.StarFunctionList.Count;");
+        _csharpCode.AppendLine();
+
+        // TODO: Implement return, sreturn, and freturn
+        if (firstInit)
+        {
+            _csharpCode.AppendLine("        x.Labels.Add(\"end\",-1);");
+            _csharpCode.AppendLine("        x.Labels.Add(\"return\", -2);");
+            _csharpCode.AppendLine("        x.Labels.Add(\"sreturn\", -3);");
+            _csharpCode.AppendLine("        x.Labels.Add(\"freturn\", -4);");
+            _csharpCode.AppendLine("        x.Labels.Add(\"END\",-1);");
+            _csharpCode.AppendLine("        x.Labels.Add(\"RETURN\", -2);");
+            _csharpCode.AppendLine("        x.Labels.Add(\"SRETURN\", -3);");
+            _csharpCode.AppendLine("        x.Labels.Add(\"FRETURN\", -4);");
+            _csharpCode.AppendLine();
+            _csharpCode.AppendLine("        x.ExecuteLoop(0);");
+        }
+
+        _csharpCode.AppendLine();
+        _csharpCode.AppendLine("        return 0;");
+        _csharpCode.AppendLine("    }");
+    }
+
+    private void GenerateStatements()
+    {
+        if (_compileTarget == CompileTarget.EVAL)
+            return;
+
+        var statementNumber = _parent.StatementCount;
+
+        foreach (var line in _parent.Code.SourceLines)
+        {
+            if (line.Compiled)
+            {
+                statementNumber++;
+                continue;
+            }
+
+            var methodName = $"Statement{statementNumber:D7}";
+            ++statementNumber;
+
+            _csharpCode.AppendLine();
+            _csharpCode.AppendLine($"    private int {methodName}(Executive x)");
+            _csharpCode.AppendLine("    {");
+
+            var pathLine = $"{Path.GetFileName(line.PathName)}({line.LineCountTotal}): ";
+
+            var escapedLine = line.Text.Replace('\t', ' ').Replace("\"", "\\\"");
+            _csharpCode.AppendLine($"        // {pathLine}{escapedLine}");
+
+            _csharpCode.AppendLine($"        x.InitializeStatement({statementNumber});");
+
+            if (line.Label is "end" or "END")
+            {
+                _csharpCode.AppendLine("        return -1;");
+                _csharpCode.AppendLine("    }");
+                return;
+            }
+
+            if (line.ParseBody.Count > 0)
+                _csharpCode.Append(ToCSharp(line.ParseBody));
+
+            _csharpCode.AppendLine("        x.FinalizeStatement();");
+
+            switch (line.ParseUnconditionalGoto.Count)
+            {
+                case 0 when line.ParseFailureGoto.Count == 0 && line.ParseSuccessGoto.Count == 0:
+                    _csharpCode.AppendLine($"        return {statementNumber};");
+                    break;
+                case > 0:
+                    {
+                        _csharpCode.AppendLine("        // Process unconditional goto");
+                        _csharpCode.AppendLine("        bool bSaveStatus = x.Failure;");
+                        _csharpCode.AppendLine("        x.Failure = false;");
+                        _csharpCode.Append(ToCSharp(line.ParseUnconditionalGoto));
+                        _csharpCode.AppendLine("        if (x.Failure)");
+                        _csharpCode.AppendLine("            x.LogRuntimeException(20);");
+                        _csharpCode.AppendLine("        x.SaveStatus(bSaveStatus);");
+
+                        if (line.DirectGotoFirst)
+                            DirectGoto();
+                        else
+                            LabelGoto();
+
+                        _csharpCode.AppendLine("        return -1;");
+                        break;
+                    }
+            }
+
+            if (line.ParseSuccessGoto.Count > 0 && line.ParseFailureGoto.Count > 0)
+            {
+                if (line.SuccessFirst)
+                {
+                    _csharpCode.AppendLine("        if (!x.Failure)");
+                    _csharpCode.AppendLine("        {");
+                    _csharpCode.Append(ToCSharp(line.ParseSuccessGoto));
+                    _csharpCode.AppendLine("            if (x.Failure)");
+                    _csharpCode.AppendLine("                x.LogRuntimeException(20);");
+
+                    if (line.DirectGotoFirst)
+                        DirectGoto();
+                    else
+                        LabelGoto();
+
+                    _csharpCode.AppendLine("            return -1;");
+                    _csharpCode.AppendLine("        }");
+                    _csharpCode.AppendLine("        x.Failure = false;");
+                    _csharpCode.Append(ToCSharp(line.ParseFailureGoto));
+                    _csharpCode.AppendLine("        if (x.Failure)");
+                    _csharpCode.AppendLine("            x.LogRuntimeException(20);");
+                    _csharpCode.AppendLine("        x.Failure = true;");
+                }
+                else
+                {
+                    _csharpCode.AppendLine("        if (x.Failure)");
+                    _csharpCode.AppendLine("        {");
+                    _csharpCode.AppendLine("        x.Failure = false;");
+                    _csharpCode.Append(ToCSharp(line.ParseFailureGoto));
+                    _csharpCode.AppendLine("            if (x.Failure)");
+                    _csharpCode.AppendLine("                x.LogRuntimeException(20);");
+                    _csharpCode.AppendLine("        x.Failure = true;");
+
+                    if (line.DirectGotoFirst)
+                        DirectGoto();
+                    else
+                        LabelGoto();
+
+                    _csharpCode.AppendLine("            return -1;");
+                    _csharpCode.AppendLine("        }");
+                    _csharpCode.Append(ToCSharp(line.ParseSuccessGoto));
+                    _csharpCode.AppendLine("        if (x.Failure)");
+                    _csharpCode.AppendLine("            x.LogRuntimeException(20);");
+                }
+
+                if (line.DirectGotoSecond)
+                    DirectGoto();
+                else
+                    LabelGoto();
+
+                _csharpCode.AppendLine("        return -1;");
+            }
+
+            if (line.ParseSuccessGoto.Count > 0 && line.ParseFailureGoto.Count == 0)
+            {
+                _csharpCode.AppendLine("        if (x.Failure)");
+                _csharpCode.AppendLine($"            return {statementNumber};");
+                _csharpCode.Append(ToCSharp(line.ParseSuccessGoto));
+                _csharpCode.AppendLine("        if (x.Failure)");
+                _csharpCode.AppendLine("            x.LogRuntimeException(20);");
+
+                if (line.DirectGotoFirst)
+                    DirectGoto();
+                else
+                    LabelGoto();
+
+                _csharpCode.AppendLine("        return -1;");
+            }
+
+            if (line.ParseFailureGoto.Count > 0 && line.ParseSuccessGoto.Count == 0)
+            {
+                _csharpCode.AppendLine("        if (!x.Failure)");
+                _csharpCode.AppendLine($"            return {statementNumber};");
+                _csharpCode.AppendLine("        x.Failure = false;");
+                _csharpCode.Append(ToCSharp(line.ParseFailureGoto));
+                _csharpCode.AppendLine("        if (x.Failure)");
+                _csharpCode.AppendLine("            x.LogRuntimeException(20);");
+                _csharpCode.AppendLine("        x.Failure = true;");
+
+                if (line.DirectGotoFirst)
+                    DirectGoto();
+                else
+                    LabelGoto();
+
+                _csharpCode.AppendLine("        return -1;");
+            }
+            _csharpCode.AppendLine("    }");
+        }
+    }
+
+    private static StringBuilder ToCSharp(List<Token> tokenList)
+    {
+        StringBuilder code = new();
+        foreach (var t in tokenList)
+        {
+            switch (t.TokenType)
+            {
+                case Token.Type.BINARY_AMPERSAND:
+                    code.AppendLine("        x.Operator(\"binary&\", 2);");
+                    break;
+
+                case Token.Type.BINARY_AT:
+                    code.AppendLine("        x.Operator(\"binary@\", 2);");
+                    break;
+
+                case Token.Type.BINARY_CARET:
+                    code.AppendLine("        x.Operator(\"binary^\", 2);");
+                    break;
+
+                case Token.Type.BINARY_CONCAT:
+                    code.AppendLine("        x.Operator(\"concat\", 2);");
+                    break;
+
+                case Token.Type.BINARY_DOLLAR:
+                    code.AppendLine("        x.Operator(\"binary$\", 2);");
+                    break;
+
+                case Token.Type.BINARY_EQUAL:
+                    code.AppendLine("        x._BinaryEquals();");
+                    break;
+
+                case Token.Type.BINARY_MINUS:
+                    code.AppendLine("        x.Operator(\"binary-\", 2);");
+                    break;
+
+                case Token.Type.BINARY_PERCENT:
+                    code.AppendLine("        x.Operator(\"binary%\", 2);");
+                    break;
+
+                case Token.Type.BINARY_PERIOD:
+                    code.AppendLine("        x.Operator(\"binary.\", 2);");
+                    break;
+
+                case Token.Type.BINARY_PIPE:
+                    code.AppendLine("        x.Operator(\"binary|\", 2);");
+                    break;
+
+                case Token.Type.BINARY_PLUS:
+                    code.AppendLine("        x.Operator(\"binary+\", 2);");
+                    break;
+
+                case Token.Type.BINARY_QUESTION:
+                    code.AppendLine("        x.Operator(\"binary?\", 2);");
+                    break;
+
+                case Token.Type.BINARY_SLASH:
+                    code.AppendLine("        x.Operator(\"binary/\", 2);");
+                    break;
+
+                case Token.Type.BINARY_STAR:
+                    code.AppendLine("        x.Operator(\"binary*\", 2);");
+                    break;
+
+                case Token.Type.COMMA_CHOICE:
+                    code.AppendLine("        if (x.Failure)");
+                    code.AppendLine("        {");
+                    code.AppendLine("        x.SystemStack.Pop();");
+                    code.AppendLine("        x.Failure = false;");
+                    break;
+
+                case Token.Type.IDENTIFIER:
+                case Token.Type.IDENTIFIER_ARRAY_OR_TABLE:
+                    code.AppendLine($"        x.Identifier(\"{t.MatchedString}\");");
+                    break;
+
+                case Token.Type.IDENTIFIER_FUNCTION:
+                    code.AppendLine($"        x.FunctionName(\"{t.MatchedString}\");");
+                    break;
+
+                case Token.Type.INTEGER:
+                    code.AppendLine($"        x.Constant({t.MatchedString});");
+                    break;
+
+                case Token.Type.NULL:
+                    code.AppendLine("        x.Constant(\"\");");
+                    break;
+
+                case Token.Type.R_ANGLE:
+                    code.AppendLine("        x.IndexCollection();");
+                    break;
+
+                case Token.Type.R_PAREN_CHOICE:
+                    for (var i = 1; i < t.IntegerValue; ++i)
+                        code.AppendLine("        }");
+                    break;
+
+                case Token.Type.R_PAREN_FUNCTION:
+                    code.AppendLine($"        x.Function({t.IntegerValue});");
+                    break;
+
+                case Token.Type.R_SQUARE:
+                    code.AppendLine("        x.IndexCollection();");
+                    break;
+
+                case Token.Type.REAL:
+                    code.AppendLine($"        x.Constant({t.MatchedString});");
+                    break;
+
+                case Token.Type.STRING:
+                    var s = t.MatchedString.Replace("\"", "\"\"");
+                    code.AppendLine($"""        x.Constant(@"{s}");""");
+                    break;
+
+                case Token.Type.UNARY_OPERATOR:
+                    switch (t.MatchedString)
+                    {
+                        case "~":
+                        case "?":
+                            // Special handling to omit failure check
+                            code.AppendLine($"        x.Operator(\"unary{t.MatchedString}\", 0);");
+                            break;
+
+                        default:
+                            code.AppendLine($"        x.Operator(\"unary{t.MatchedString}\", 1);");
+                            break;
+                    }
+
+                    break;
+
+                case Token.Type.EXPRESSION:
+                    code.AppendLine($"        x.Constant({t.MatchedString});");
+                    break;
+
+                case Token.Type.COLON:
+                case Token.Type.COMMA:
+                case Token.Type.FAILURE_GOTO:
+                case Token.Type.L_ANGLE:
+                case Token.Type.L_ANGLE_FAILURE:
+                case Token.Type.L_ANGLE_SUCCESS:
+                case Token.Type.L_ANGLE_UNCONDITIONAL:
+                case Token.Type.L_PAREN_CHOICE:
+                case Token.Type.L_PAREN_FAILURE:
+                case Token.Type.L_PAREN_FUNCTION:
+                case Token.Type.L_PAREN_SUCCESS:
+                case Token.Type.L_PAREN_UNCONDITIONAL:
+                case Token.Type.L_SQUARE:
+                case Token.Type.R_ANGLE_FAILURE:
+                case Token.Type.R_ANGLE_SUCCESS:
+                case Token.Type.R_ANGLE_UNCONDITIONAL:
+                case Token.Type.R_PAREN_SUCCESS:
+                case Token.Type.R_PAREN_UNCONDITIONAL:
+                case Token.Type.R_PAREN_FAILURE:
+                case Token.Type.SPACE:
+                case Token.Type.SUCCESS_GOTO:
+                case Token.Type.UNARY_STAR:
+                case Token.Type.BINARY_HASH:
+                case Token.Type.BINARY_TILDE:
+                default:
+                    throw new ApplicationException("ToCSharp(List<Token> tokenList)");
+            }
+        }
+
+        return code;
+    }
+
+    private void GenerateExpressions()
+    {
+        //var iStar = 0;
+        if (_parent.Execute != null)
+            _parent.RecordedExpressionCount = _parent.Execute.PreviousStarFunctionCount;
+        for (; _parent.RecordedExpressionCount < _parent.ParseExpression.Count; ++_parent.RecordedExpressionCount)
+        {
+            _csharpCode.AppendLine("");
+            _csharpCode.AppendLine($@"    public void Star{_parent.RecordedExpressionCount:D8}(Executive x)");
+            _csharpCode.AppendLine("    {");
+            _csharpCode.Append(ToCSharp(_parent.ParseExpression[_parent.RecordedExpressionCount]));
+            _csharpCode.AppendLine("    }");
+        }
+    }
+
+    private void MarkCodeAsCompiled()
+    {
+        foreach (var line in _parent.Code.SourceLines)
+            line.Compiled = true;
+    }
+
+    private void WriteCode(string fileName)
+    {
+        using StreamWriter srText = new(fileName);
+        srText.Write(_csharpCode.ToString());
+    }
+
+    // 20 Goto evaluation failure
+    // 23 Goto operand is not a natural variable
+    // 24 Goto operand in direct goto is not code
+
+    private void DirectGoto()
+    {
+        _csharpCode.AppendLine("        if (x.IdentifierTable.ContainsKey(x.SystemStack.Peek().Symbol))");
+        _csharpCode.AppendLine("            return ((CodeVar)(x.IdentifierTable[x.SystemStack.Pop().Symbol])).StatementNumber;");
+        _csharpCode.AppendLine("        x.LogRuntimeException(24);");
+    }
+
+    private void LabelGoto()
+    {
+        _csharpCode.AppendLine("        if (x.Labels.ContainsKey(x.SystemStack.Peek().Symbol))");
+        _csharpCode.AppendLine("            return x.Labels[x.SystemStack.Pop().Symbol];");
+        _csharpCode.AppendLine("        x.LogRuntimeException(23);");
+    }
+
+}

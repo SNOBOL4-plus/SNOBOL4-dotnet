@@ -1,0 +1,5 @@
+		input('victor',1,'C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\Frankenstein6.txt') :f(err)
+read	line = victor	:f(end)
+		output = size(line) ' ' line :(read)
+err		terminal = 'Counld not opensilfe 'frankensten.txt'
+end
