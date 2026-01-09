@@ -1,11 +1,14 @@
-﻿namespace Snobol4.Common;
+﻿using System.Runtime.CompilerServices;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Arithmetic strategy for program-defined data variables
 /// User-defined data types don't support arithmetic operations
 /// </summary>
-public class ProgramDefinedDataArithmeticStrategy : IArithmeticStrategy
+public sealed class ProgramDefinedDataArithmeticStrategy : IArithmeticStrategy
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Add(Var self, Var other, Executive executive)
     {
         // User-defined data doesn't support addition
@@ -13,6 +16,7 @@ public class ProgramDefinedDataArithmeticStrategy : IArithmeticStrategy
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Subtract(Var self, Var other, Executive executive)
     {
         // User-defined data doesn't support subtraction
@@ -20,6 +24,7 @@ public class ProgramDefinedDataArithmeticStrategy : IArithmeticStrategy
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Multiply(Var self, Var other, Executive executive)
     {
         // User-defined data doesn't support multiplication
@@ -27,6 +32,7 @@ public class ProgramDefinedDataArithmeticStrategy : IArithmeticStrategy
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Divide(Var self, Var other, Executive executive)
     {
         // User-defined data doesn't support division
@@ -34,6 +40,7 @@ public class ProgramDefinedDataArithmeticStrategy : IArithmeticStrategy
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Power(Var self, Var other, Executive executive)
     {
         // User-defined data doesn't support exponentiation
@@ -41,6 +48,7 @@ public class ProgramDefinedDataArithmeticStrategy : IArithmeticStrategy
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Negate(Var self, Executive executive)
     {
         // User-defined data doesn't support negation

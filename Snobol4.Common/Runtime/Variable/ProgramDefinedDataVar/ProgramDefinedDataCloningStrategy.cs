@@ -1,11 +1,14 @@
-﻿namespace Snobol4.Common;
+﻿using System.Runtime.CompilerServices;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Cloning strategy for program-defined data variables
 /// Creates a shallow copy of the data structure
 /// </summary>
-public class ProgramDefinedDataCloningStrategy : ICloningStrategy
+public sealed class ProgramDefinedDataCloningStrategy : ICloningStrategy
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Clone(Var self)
     {
         var dataSelf = (ProgramDefinedDataVar)self;

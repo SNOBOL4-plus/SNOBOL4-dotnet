@@ -1,10 +1,13 @@
-﻿namespace Snobol4.Common;
+﻿using System.Runtime.CompilerServices;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Formatting strategy for program-defined data variables
 /// </summary>
-public class ProgramDefinedDataFormattingStrategy : IFormattingStrategy
+public sealed class ProgramDefinedDataFormattingStrategy : IFormattingStrategy
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string ToString(Var self)
     {
         var dataSelf = (ProgramDefinedDataVar)self;
@@ -24,7 +27,7 @@ public class ProgramDefinedDataFormattingStrategy : IFormattingStrategy
         var dataSelf = (ProgramDefinedDataVar)self;
         var symbol = dataSelf.Symbol == "" ? "<no name>" : dataSelf.Symbol;
 
-        // Show field names
+        // Show field names - use string.Join for better performance
         var fields = string.Join(", ", dataSelf.ProgramDefinedData.Keys);
 
         return $"DATA Symbol: {symbol}  Type: {dataSelf.UserDefinedDataName}  Fields: [{fields}]  Succeeded: {dataSelf.Succeeded}";

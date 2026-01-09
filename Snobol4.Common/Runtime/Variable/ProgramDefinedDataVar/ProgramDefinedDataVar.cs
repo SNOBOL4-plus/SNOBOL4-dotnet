@@ -1,5 +1,6 @@
 ﻿#pragma warning disable CS8770 // Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Snobol4.Common;
 
@@ -53,6 +54,7 @@ public class ProgramDefinedDataVar : Var
     /// <summary>
     /// Get the value of a field by name
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var GetField(string fieldName)
     {
         return ProgramDefinedData.TryGetValue(fieldName, out var value)
@@ -63,6 +65,7 @@ public class ProgramDefinedDataVar : Var
     /// <summary>
     /// Set the value of a field by name
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void SetField(string fieldName, Var value)
     {
         ProgramDefinedData[fieldName] = value;
@@ -71,6 +74,7 @@ public class ProgramDefinedDataVar : Var
     /// <summary>
     /// Check if a field exists
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool HasField(string fieldName)
     {
         return ProgramDefinedData.ContainsKey(fieldName);
@@ -79,6 +83,7 @@ public class ProgramDefinedDataVar : Var
     /// <summary>
     /// Get all field names
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IEnumerable<string> GetFieldNames()
     {
         return ProgramDefinedData.Keys;
@@ -87,12 +92,20 @@ public class ProgramDefinedDataVar : Var
     /// <summary>
     /// Get the number of fields
     /// </summary>
-    public int FieldCount => ProgramDefinedData.Count;
+    public int FieldCount
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => ProgramDefinedData.Count;
+    }
 
     /// <summary>
     /// Get the user-defined type name
     /// </summary>
-    public string TypeName => UserDefinedDataName;
+    public string TypeName
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => UserDefinedDataName;
+    }
 
     #endregion
 
