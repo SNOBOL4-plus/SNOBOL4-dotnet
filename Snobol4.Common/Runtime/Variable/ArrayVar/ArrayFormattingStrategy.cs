@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using System.Runtime.CompilerServices;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Formatting strategy for array variables.
@@ -9,12 +11,14 @@ public class ArrayFormattingStrategy : IFormattingStrategy
     private const string _arrayTypeName = "array";
     private const string _anonymousSymbol = "<anonymous>";
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string ToString(Var self)
     {
         // Simple representation for general use
         return _arrayTypeName;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string DumpString(Var self)
     {
         // Detailed representation showing prototype
@@ -27,10 +31,12 @@ public class ArrayFormattingStrategy : IFormattingStrategy
         // Comprehensive debug information
         var arraySelf = (ArrayVar)self;
         var symbol = string.IsNullOrEmpty(arraySelf.Symbol) ? _anonymousSymbol : arraySelf.Symbol;
+        var fill = arraySelf.Fill.DumpString();
+        var dataCount = arraySelf.Data.Count;
         
         return $"ARRAY Symbol: {symbol}  Prototype: {arraySelf.Prototype}  " +
                $"Dimensions: {arraySelf.Dimensions}  TotalSize: {arraySelf.TotalSize}  " +
-               $"Fill: {arraySelf.Fill.DumpString()}  " +
-               $"Elements: {arraySelf.Data.Count}  Succeeded: {arraySelf.Succeeded}";
+               $"Fill: {fill}  " +
+               $"Elements: {dataCount}  Succeeded: {arraySelf.Succeeded}";
     }
 }

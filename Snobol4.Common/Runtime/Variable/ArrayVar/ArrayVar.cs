@@ -1,5 +1,6 @@
 ﻿#pragma warning disable CS8770 // Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 #pragma warning disable IDE0130
 namespace Snobol4.Common;
@@ -56,15 +57,15 @@ public class ArrayVar : Var
         ArgumentNullException.ThrowIfNull(fill);
 
         Fill = fill;
-        var remainingPrototype = prototype;
+        var prototypeSpan = prototype.AsSpan();
 
-        while (remainingPrototype.Length > 0)
+        while (prototypeSpan.Length > 0)
         {
-            var match = CompiledRegex.ArrayPrototypePattern().Match(remainingPrototype);
+            var match = CompiledRegex.ArrayPrototypePattern().Match(prototypeSpan.ToString());
             if (!match.Success)
                 return 65; // Invalid prototype syntax
 
-            remainingPrototype = remainingPrototype[match.Length..];
+            prototypeSpan = prototypeSpan[match.Length..];
 
             if (!TryParseDimensionBounds(match, out long lower, out long upper, out int errorCode))
                 return errorCode;
@@ -93,6 +94,7 @@ public class ArrayVar : Var
     /// <summary>
     /// Parse dimension bounds from regex match
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool TryParseDimensionBounds(System.Text.RegularExpressions.Match match, out long lower, out long upper, out int errorCode)
     {
         lower = 1;
@@ -102,13 +104,13 @@ public class ArrayVar : Var
         if (match.Groups[3].Success)
         {
             // Format: "lower:upper"
-            if (!ToInteger(match.Groups[1].Value, out lower))
+            if (!ToInteger(match.Groups[1].ValueSpan, out lower))
             {
                 errorCode = 65; // Invalid lower bound
                 return false;
             }
 
-            if (!ToInteger(match.Groups[3].Value, out upper))
+            if (!ToInteger(match.Groups[3].ValueSpan, out upper))
             {
                 errorCode = 66; // Invalid upper bound
                 return false;
@@ -117,7 +119,7 @@ public class ArrayVar : Var
         else
         {
             // Format: "upper" (assumes lower = 1)
-            if (!ToInteger(match.Groups[1].Value, out upper))
+            if (!ToInteger(match.Groups[1].ValueSpan, out upper))
             {
                 errorCode = 67; // Invalid dimension size
                 return false;
@@ -132,23 +134,32 @@ public class ArrayVar : Var
     /// </summary>
     private int InitializeArrayData()
     {
+        var dimensions = (int)Dimensions;
+        
+        // Pre-allocate lists with known capacity
+        Multipliers.Capacity = dimensions;
+        
         // Calculate multipliers for index conversion
         Multipliers.Add(1);
-        for (var j = 0; j < Dimensions - 1; ++j)
+        for (var j = 0; j < dimensions - 1; ++j)
         {
-            var nextMultiplier = Multipliers[^1] * Sizes[j];
+            var nextMultiplier = Multipliers[j] * Sizes[j];
             Multipliers.Add(nextMultiplier);
         }
 
-        TotalSize = Multipliers[^1] * Sizes[^1];
+        TotalSize = Multipliers[dimensions - 1] * Sizes[dimensions - 1];
 
         // Validate total size to prevent memory issues
         if (TotalSize > int.MaxValue)
             return 67; // Array too large
 
-        // Pre-allocate and fill array data
-        Data = new List<Var>((int)TotalSize);
-        for (var i = 0; i < TotalSize; i++)
+        var totalSize = (int)TotalSize;
+        
+        // Pre-allocate array data with exact capacity
+        Data = new List<Var>(totalSize);
+        
+        // Fill array efficiently - avoid repeated property access
+        for (var i = 0; i < totalSize; i++)
             Data.Add(Fill);
 
         // Build human-readable prototype string
@@ -162,12 +173,21 @@ public class ArrayVar : Var
     /// </summary>
     private void BuildPrototypeString()
     {
-        var parts = new List<string>((int)Dimensions);
-        for (var d = Dimensions - 1; d >= 0; --d)
+        var dimensions = (int)Dimensions;
+        
+        // Use Span-based string concatenation for better performance
+        if (dimensions == 1)
         {
-            parts.Add($"{LowerBounds[(int)d]}:{UpperBounds[(int)d]}");
+            Prototype = $"{LowerBounds[0]}:{UpperBounds[0]}";
+            return;
         }
-        Prototype = string.Join(",", parts);
+        
+        var parts = new string[dimensions];
+        for (var d = dimensions - 1; d >= 0; --d)
+        {
+            parts[dimensions - 1 - d] = $"{LowerBounds[d]}:{UpperBounds[d]}";
+        }
+        Prototype = string.Join(',', parts);
     }
 
     /// <summary>
@@ -175,25 +195,43 @@ public class ArrayVar : Var
     /// </summary>
     /// <param name="indices">List of dimension indices</param>
     /// <returns>Linear index into Data array</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal long Index(List<long> indices)
     {
         ArgumentNullException.ThrowIfNull(indices);
         
-        if (indices.Count != Dimensions)
-            throw new ArgumentException($"Expected {Dimensions} indices but got {indices.Count}", nameof(indices));
+        var dimensions = (int)Dimensions;
+        if (indices.Count != dimensions)
+            throw new ArgumentException($"Expected {dimensions} indices but got {indices.Count}", nameof(indices));
 
         long key = 0;
-        for (var i = 0; i < Dimensions; ++i)
+        
+        // Unroll small dimension counts for performance
+        switch (dimensions)
         {
-            key += (indices[i] - LowerBounds[i]) * Multipliers[i];
+            case 1:
+                return (indices[0] - LowerBounds[0]) * Multipliers[0];
+            case 2:
+                return (indices[0] - LowerBounds[0]) * Multipliers[0] +
+                       (indices[1] - LowerBounds[1]) * Multipliers[1];
+            case 3:
+                return (indices[0] - LowerBounds[0]) * Multipliers[0] +
+                       (indices[1] - LowerBounds[1]) * Multipliers[1] +
+                       (indices[2] - LowerBounds[2]) * Multipliers[2];
+            default:
+                // General case for N dimensions
+                for (var i = 0; i < dimensions; ++i)
+                {
+                    key += (indices[i] - LowerBounds[i]) * Multipliers[i];
+                }
+                return key;
         }
-
-        return key;
     }
 
     /// <summary>
     /// Get the element at the specified indices
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal Var GetElement(List<long> indices)
     {
         var index = Index(indices);
@@ -206,6 +244,7 @@ public class ArrayVar : Var
     /// <summary>
     /// Set the element at the specified indices
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void SetElement(List<long> indices, Var value)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -223,42 +262,49 @@ public class ArrayVar : Var
 
     // Arrays don't support arithmetic operations with other types
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var AddInteger(IntegerVar left, Executive executive)
     {
         executive.LogRuntimeException(2); // Right operand of + is not numeric
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var AddReal(RealVar left, Executive executive)
     {
         executive.LogRuntimeException(2); // Right operand of + is not numeric
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var SubtractInteger(IntegerVar left, Executive executive)
     {
         executive.LogRuntimeException(33); // Right operand of - is not numeric
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var SubtractReal(RealVar left, Executive executive)
     {
         executive.LogRuntimeException(33); // Right operand of - is not numeric
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var MultiplyInteger(IntegerVar left, Executive executive)
     {
         executive.LogRuntimeException(27); // Right operand of * is not numeric
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var MultiplyReal(RealVar left, Executive executive)
     {
         executive.LogRuntimeException(27); // Right operand of * is not numeric
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var DivideInteger(IntegerVar left, Executive executive)
     {
         executive.LogRuntimeException(13); // Right operand of / is not numeric
