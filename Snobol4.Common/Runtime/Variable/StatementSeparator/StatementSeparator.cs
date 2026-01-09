@@ -1,5 +1,6 @@
 ﻿#pragma warning disable CS8770 // Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Snobol4.Common;
 
@@ -7,7 +8,7 @@ namespace Snobol4.Common;
 /// Special marker variable used to delineate statement boundaries on the system stack
 /// </summary>
 [DebuggerDisplay("{DebugString()}")]
-public class StatementSeparator : Var
+public sealed class StatementSeparator : Var
 {
     #region Strategy Instances (Lazy-loaded singletons for performance)
 
@@ -25,9 +26,18 @@ public class StatementSeparator : Var
 
     #endregion
 
+    #region Singleton Instance
+
+    /// <summary>
+    /// Singleton instance - statement separators are immutable markers so one instance suffices
+    /// </summary>
+    public static readonly StatementSeparator Instance = new();
+
+    #endregion
+
     #region Constructors
 
-    public StatementSeparator()
+    internal StatementSeparator()
     {
         // Statement separators have no data
         Symbol = "<separator>";
@@ -40,6 +50,7 @@ public class StatementSeparator : Var
     /// <summary>
     /// Check if this is a statement separator (always true for this type)
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsStatementSeparator(Var var)
     {
         return var is StatementSeparator;
@@ -52,41 +63,49 @@ public class StatementSeparator : Var
     // Statement separators should never participate in arithmetic operations
     // These throw exceptions to catch programming errors
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var AddInteger(IntegerVar left, Executive executive)
     {
         throw new InvalidOperationException("Statement separator cannot participate in arithmetic");
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var AddReal(RealVar left, Executive executive)
     {
         throw new InvalidOperationException("Statement separator cannot participate in arithmetic");
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var SubtractInteger(IntegerVar left, Executive executive)
     {
         throw new InvalidOperationException("Statement separator cannot participate in arithmetic");
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var SubtractReal(RealVar left, Executive executive)
     {
         throw new InvalidOperationException("Statement separator cannot participate in arithmetic");
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var MultiplyInteger(IntegerVar left, Executive executive)
     {
         throw new InvalidOperationException("Statement separator cannot participate in arithmetic");
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var MultiplyReal(RealVar left, Executive executive)
     {
         throw new InvalidOperationException("Statement separator cannot participate in arithmetic");
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var DivideInteger(IntegerVar left, Executive executive)
     {
         throw new InvalidOperationException("Statement separator cannot participate in arithmetic");
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var DivideReal(RealVar left, Executive executive)
     {
         throw new InvalidOperationException("Statement separator cannot participate in arithmetic");

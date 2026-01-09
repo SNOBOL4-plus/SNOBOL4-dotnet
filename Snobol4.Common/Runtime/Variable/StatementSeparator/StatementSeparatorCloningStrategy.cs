@@ -1,14 +1,17 @@
-﻿namespace Snobol4.Common;
+﻿using System.Runtime.CompilerServices;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Cloning strategy for statement separator
-/// Creates a new statement separator instance
+/// Returns the singleton instance since statement separators are immutable
 /// </summary>
-public class StatementSeparatorCloningStrategy : ICloningStrategy
+public sealed class StatementSeparatorCloningStrategy : ICloningStrategy
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Clone(Var self)
     {
-        // Create a new statement separator
-        return new StatementSeparator();
+        // Return the singleton instance - statement separators are immutable markers
+        return StatementSeparator.Instance;
     }
 }

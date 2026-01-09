@@ -1,23 +1,28 @@
-﻿namespace Snobol4.Common;
+﻿using System.Runtime.CompilerServices;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Comparison strategy for statement separator
 /// Statement separators are internal markers and don't participate in comparisons
 /// </summary>
-public class StatementSeparatorComparisonStrategy : IComparisonStrategy
+public sealed class StatementSeparatorComparisonStrategy : IComparisonStrategy
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int CompareTo(Var self, Var other)
     {
         // Statement separators are internal markers - comparison doesn't make sense
         throw new InvalidOperationException("Statement separators cannot be compared");
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(Var self, Var other)
     {
         // Only equal if both are statement separators
         return other is StatementSeparator;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsIdentical(Var self, Var other)
     {
         // Statement separators are identical if both are statement separators
