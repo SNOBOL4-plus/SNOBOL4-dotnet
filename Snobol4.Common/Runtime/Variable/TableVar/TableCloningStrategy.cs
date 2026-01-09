@@ -1,18 +1,27 @@
-﻿namespace Snobol4.Common;
+﻿using System.Runtime.CompilerServices;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Cloning strategy for table variables
-/// Creates a deep copy of the table
+/// Creates a deep copy of the table including:
+/// - Fill value (cloned)
+/// - All key-value pairs (values cloned, keys copied by reference)
+/// - Symbol, input/output channels
 /// </summary>
-public class TableCloningStrategy : ICloningStrategy
+public sealed class TableCloningStrategy : ICloningStrategy
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Clone(Var self)
     {
         var tableSelf = (TableVar)self;
 
-        // Clone the fill value
+        // Clone the fill value to ensure independence
         var clonedFill = tableSelf.Fill.Clone();
-        var clonedTable = new TableVar(clonedFill)
+        var sourceCount = tableSelf.Count;
+        
+        // Pre-allocate dictionary capacity to avoid resizing
+        var clonedTable = new TableVar(clonedFill, sourceCount)
         {
             Symbol = tableSelf.Symbol,
             InputChannel = tableSelf.InputChannel,
@@ -20,10 +29,14 @@ public class TableCloningStrategy : ICloningStrategy
         };
 
         // Deep copy all key-value pairs
-        foreach (var kvp in tableSelf.Data)
+        // Keys are copied by reference (can be primitives or composite types)
+        // Values are cloned to ensure independence from the original table
+        var sourceData = tableSelf.Data;
+        var targetData = clonedTable.Data;
+        
+        foreach (var kvp in sourceData)
         {
-            // Clone the value (keys are immutable primitives)
-            clonedTable.Data[kvp.Key] = kvp.Value.Clone();
+            targetData[kvp.Key] = kvp.Value.Clone();
         }
 
         return clonedTable;

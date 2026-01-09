@@ -1,25 +1,43 @@
-﻿namespace Snobol4.Common;
+﻿using System.Runtime.CompilerServices;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Formatting strategy for table variables
+/// Provides string representations for display and debugging purposes
 /// </summary>
-public class TableFormattingStrategy : IFormattingStrategy
+public sealed class TableFormattingStrategy : IFormattingStrategy
 {
+    /// <summary>
+    /// Returns the type name for standard output
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string ToString(Var self)
     {
         return "table";
     }
 
+    /// <summary>
+    /// Returns a concise representation including entry count
+    /// Used for dump operations and diagnostics
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string DumpString(Var self)
     {
         var tableSelf = (TableVar)self;
-        return $"table({tableSelf.Data.Count})";
+        return $"table({tableSelf.Count})";
     }
 
+    /// <summary>
+    /// Returns detailed debug information including:
+    /// - Symbol name
+    /// - Entry count
+    /// - Success state
+    /// </summary>
     public string DebugString(Var self)
     {
         var tableSelf = (TableVar)self;
-        var symbol = tableSelf.Symbol == "" ? "<no name>" : tableSelf.Symbol;
-        return $"TABLE Symbol: {symbol}  Count: {tableSelf.Data.Count}  Succeeded: {tableSelf.Succeeded}";
+        var symbol = string.IsNullOrEmpty(tableSelf.Symbol) ? "<no name>" : tableSelf.Symbol;
+        return $"TABLE Symbol: {symbol}, Count: {tableSelf.Count}, Succeeded: {tableSelf.Succeeded}, Fill: {tableSelf.Fill.DataType()}";
     }
 }
