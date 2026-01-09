@@ -1,21 +1,27 @@
 ﻿using System.Diagnostics;
 
+#pragma warning disable IDE0130
 namespace Snobol4.Common;
+#pragma warning restore IDE0130
 
+/// <summary>
+/// Represents a multidimensional array variable in SNOBOL4.
+/// Supports arbitrary lower and upper bounds per dimension.
+/// </summary>
 [DebuggerDisplay("{DebugString()}")]
 public class ArrayVar : Var
 {
     #region Data
 
-    internal List<long> Sizes = [];
-    internal List<Var> Data = [];
-    internal long Dimensions;
-    internal long TotalSize = 1;
-    internal string Prototype = "";
-    internal Var Fill = StringVar.Null();
-    internal List<long> LowerBounds = [];
-    internal List<long> Multipliers = [];
-    internal List<long> UpperBounds = [];
+    internal List<long> Sizes { get; } = [];
+    internal List<Var> Data { get; private set; } = [];
+    internal long Dimensions { get; set; }
+    internal long TotalSize { get; set; } = 1;
+    internal string Prototype { get; set; } = string.Empty;
+    internal Var Fill { get; set; } = StringVar.Null();
+    internal List<long> LowerBounds { get; } = [];
+    internal List<long> Multipliers { get; } = [];
+    internal List<long> UpperBounds { get; } = [];
 
     #endregion
 
@@ -40,63 +46,127 @@ public class ArrayVar : Var
     /// <summary>
     /// Configure array dimensions and bounds from prototype string
     /// </summary>
-    /// <param name="prototype">Prototype string (e.g., "1:10,1:20")</param>
+    /// <param name="prototype">Prototype string (e.g., "1:10,1:20" or "10,20")</param>
     /// <param name="fill">Fill value for array elements</param>
     /// <returns>0 on success, error code otherwise</returns>
     internal int ConfigurePrototype(string prototype, Var fill)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(prototype);
+        ArgumentNullException.ThrowIfNull(fill);
+
         Fill = fill;
+        var remainingPrototype = prototype;
 
-        while (prototype.Length > 0)
+        while (remainingPrototype.Length > 0)
         {
-            var match = CompiledRegex.ArrayPrototypePattern().Match(prototype);
-            prototype = prototype[match.Length..];
+            var match = CompiledRegex.ArrayPrototypePattern().Match(remainingPrototype);
             if (!match.Success)
-                return 65;
+                return 65; // Invalid prototype syntax
 
-            long lower = 1;
-            long upper;
-            if (match.Groups[3].Success)
-            {
-                if (!ToInteger(match.Groups[1].Value, out lower))
-                    return 65;
+            remainingPrototype = remainingPrototype[match.Length..];
 
-                if (!ToInteger(match.Groups[3].Value, out upper))
-                    return 66;
-            }
-            else
-            {
-                if (!ToInteger(match.Groups[1].Value, out upper))
-                    return 67;
-            }
+            if (!TryParseDimensionBounds(match, out long lower, out long upper, out int errorCode))
+                return errorCode;
 
+            // Validate bounds
             if (lower > upper)
-                return 67;
+                return 67; // Lower bound exceeds upper bound
+
+            var dimensionSize = upper - lower + 1;
+            if (dimensionSize <= 0)
+                return 67; // Dimension size must be positive
 
             LowerBounds.Insert(0, lower);
             UpperBounds.Insert(0, upper);
             Dimensions++;
-            Sizes.Insert(0, upper - lower + 1);
+            Sizes.Insert(0, dimensionSize);
         }
 
+        // Validate we have at least one dimension
+        if (Dimensions == 0)
+            return 67; // Array must have at least one dimension
+
+        return InitializeArrayData();
+    }
+
+    /// <summary>
+    /// Parse dimension bounds from regex match
+    /// </summary>
+    private static bool TryParseDimensionBounds(System.Text.RegularExpressions.Match match, out long lower, out long upper, out int errorCode)
+    {
+        lower = 1;
+        upper = 0;
+        errorCode = 0;
+
+        if (match.Groups[3].Success)
+        {
+            // Format: "lower:upper"
+            if (!ToInteger(match.Groups[1].Value, out lower))
+            {
+                errorCode = 65; // Invalid lower bound
+                return false;
+            }
+
+            if (!ToInteger(match.Groups[3].Value, out upper))
+            {
+                errorCode = 66; // Invalid upper bound
+                return false;
+            }
+        }
+        else
+        {
+            // Format: "upper" (assumes lower = 1)
+            if (!ToInteger(match.Groups[1].Value, out upper))
+            {
+                errorCode = 67; // Invalid dimension size
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Initialize array multipliers, total size, and data
+    /// </summary>
+    private int InitializeArrayData()
+    {
+        // Calculate multipliers for index conversion
         Multipliers.Add(1);
         for (var j = 0; j < Dimensions - 1; ++j)
-            Multipliers.Add(Multipliers[^1] * Sizes[j]);
+        {
+            var nextMultiplier = Multipliers[^1] * Sizes[j];
+            Multipliers.Add(nextMultiplier);
+        }
 
         TotalSize = Multipliers[^1] * Sizes[^1];
 
+        // Validate total size to prevent memory issues
+        if (TotalSize > int.MaxValue)
+            return 67; // Array too large
+
+        // Pre-allocate and fill array data
+        Data = new List<Var>((int)TotalSize);
         for (var i = 0; i < TotalSize; i++)
             Data.Add(Fill);
 
-        Prototype = "";
-        for (var d = Dimensions - 1; d >= 0; --d)
-        {
-            Prototype += $"{LowerBounds[(int)d]}:{UpperBounds[(int)d]}";
-            if (d > 0)
-                Prototype += ",";
-        }
+        // Build human-readable prototype string
+        BuildPrototypeString();
 
         return 0;
+    }
+
+    /// <summary>
+    /// Build human-readable prototype string from bounds
+    /// </summary>
+    private void BuildPrototypeString()
+    {
+        var parts = new List<string>((int)Dimensions);
+        for (var d = Dimensions - 1; d >= 0; --d)
+        {
+            parts.Add($"{LowerBounds[(int)d]}:{UpperBounds[(int)d]}");
+        }
+        Prototype = string.Join(",", parts);
     }
 
     /// <summary>
@@ -106,12 +176,44 @@ public class ArrayVar : Var
     /// <returns>Linear index into Data array</returns>
     internal long Index(List<long> indices)
     {
-        long key = 0;
+        ArgumentNullException.ThrowIfNull(indices);
+        
+        if (indices.Count != Dimensions)
+            throw new ArgumentException($"Expected {Dimensions} indices but got {indices.Count}", nameof(indices));
 
+        long key = 0;
         for (var i = 0; i < Dimensions; ++i)
+        {
             key += (indices[i] - LowerBounds[i]) * Multipliers[i];
+        }
 
         return key;
+    }
+
+    /// <summary>
+    /// Get the element at the specified indices
+    /// </summary>
+    internal Var GetElement(List<long> indices)
+    {
+        var index = Index(indices);
+        if (index < 0 || index >= Data.Count)
+            throw new ArgumentOutOfRangeException(nameof(indices), "Computed index is out of bounds");
+
+        return Data[(int)index];
+    }
+
+    /// <summary>
+    /// Set the element at the specified indices
+    /// </summary>
+    internal void SetElement(List<long> indices, Var value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        
+        var index = Index(indices);
+        if (index < 0 || index >= Data.Count)
+            throw new ArgumentOutOfRangeException(nameof(indices), "Computed index is out of bounds");
+
+        Data[(int)index] = value;
     }
 
     #endregion

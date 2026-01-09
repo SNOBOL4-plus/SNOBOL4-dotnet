@@ -1,51 +1,91 @@
-﻿namespace Snobol4.Common;
+﻿using System.Runtime.CompilerServices;
+
+namespace Snobol4.Common;
 
 /// <summary>
-/// Conversion strategy for array variables
+/// Conversion strategy for array variables.
+/// Supports conversion to table (2-column arrays) and self-conversion.
 /// </summary>
 public class ArrayConversionStrategy : IConversionStrategy
 {
+    private const int _requiredTableDimensions = 2;
+    private const int _requiredTableColumns = 2;
+    private const int _keyColumnIndex = 0;
+    private const int _valueColumnIndex = 1;
+
     public bool TryConvert(Var self, Executive.VarType targetType, out Var varOut, out object valueOut, Executive exec)
     {
         var arraySelf = (ArrayVar)self;
-        varOut = StringVar.Null();
-        valueOut = "";
 
-        switch (targetType)
+        return targetType switch
         {
-            case Executive.VarType.ARRAY:
-                varOut = arraySelf;
-                valueOut = arraySelf;
-                return true;
+            Executive.VarType.ARRAY => ConvertToSelf(arraySelf, out varOut, out valueOut),
+            Executive.VarType.TABLE => TryConvertToTable(arraySelf, out varOut, out valueOut),
+            _ => InitializeFailure(out varOut, out valueOut)
+        };
+    }
 
-            case Executive.VarType.TABLE:
-                // Array must have 2 dimensions
-                if (arraySelf.Dimensions != 2)
-                    return false;
+    /// <summary>
+    /// Convert array to itself (identity conversion)
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool ConvertToSelf(ArrayVar array, out Var varOut, out object valueOut)
+    {
+        varOut = array;
+        valueOut = array;
+        return true;
+    }
 
-                // Array must have two columns
-                if (arraySelf.UpperBounds[0] - arraySelf.LowerBounds[0] != 1)
-                    return false;
+    /// <summary>
+    /// Attempt to convert a 2-dimensional, 2-column array to a table.
+    /// The array must be in format [key1, value1, key2, value2, ...]
+    /// </summary>
+    private static bool TryConvertToTable(ArrayVar array, out Var varOut, out object valueOut)
+    {
+        // Fast validation checks first (fail fast)
+        if (array.Dimensions != _requiredTableDimensions)
+            return InitializeFailure(out varOut, out valueOut);
 
-                TableVar convertedTable = new(arraySelf.Fill);
+        // Calculate column count once
+        var columnCount = array.UpperBounds[_keyColumnIndex] - array.LowerBounds[_keyColumnIndex] + 1;
+        
+        if (columnCount != _requiredTableColumns)
+            return InitializeFailure(out varOut, out valueOut);
 
-                for (var i = 0; i < arraySelf.Data.Count; i += 2)
-                    convertedTable.Data[arraySelf.Data[i].GetTableKey()] = arraySelf.Data[i + 1];
+        var dataCount = array.Data.Count;
+        
+        // Validate sufficient data elements (must be even for key-value pairs)
+        if (dataCount < _requiredTableColumns || (dataCount & 1) != 0) // Bitwise check for even/odd
+            return InitializeFailure(out varOut, out valueOut);
 
-                valueOut = convertedTable.Data;
-                varOut = convertedTable;
-                return true;
+        // Create new table with appropriate capacity
+        var convertedTable = new TableVar(array.Fill);
+        var entryCount = dataCount >> 1; // Divide by 2 using bit shift
+        
+        // Pre-allocate dictionary capacity to avoid resizing
+        convertedTable.Data = new Dictionary<object, Var>(entryCount);
 
-            case Executive.VarType.STRING:
-            case Executive.VarType.INTEGER:
-            case Executive.VarType.REAL:
-            case Executive.VarType.PATTERN:
-            case Executive.VarType.NAME:
-            case Executive.VarType.EXPRESSION:
-            case Executive.VarType.CODE:
-            default:
-                return false;
+        // Convert array pairs to table entries
+        // Data is stored as [key1, value1, key2, value2, ...]
+        var data = array.Data; // Cache reference to avoid property access
+        for (var i = 0; i < dataCount; i += _requiredTableColumns)
+        {
+            var key = data[i].GetTableKey(); // Direct indexing without offset calculation
+            var value = data[i + 1];
+            convertedTable.Data[key] = value;
         }
+
+        valueOut = convertedTable.Data;
+        varOut = convertedTable;
+        return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool InitializeFailure(out Var varOut, out object valueOut)
+    {
+        varOut = StringVar.Null();
+        valueOut = string.Empty;
+        return false;
     }
 
     public string GetDataType(Var self)
@@ -55,7 +95,7 @@ public class ArrayConversionStrategy : IConversionStrategy
 
     public object GetTableKey(Var self)
     {
-        // Arrays use their unique ID as table key
+        // Arrays use their unique ID as table key (reference equality)
         return self.UniqueId;
     }
 }
