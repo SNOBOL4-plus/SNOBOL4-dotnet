@@ -1,11 +1,14 @@
-﻿namespace Snobol4.Common;
+﻿using System.Runtime.CompilerServices;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Cloning strategy for code variables
 /// Creates a copy of the code variable
 /// </summary>
-public class CodeCloningStrategy : ICloningStrategy
+public sealed class CodeCloningStrategy : ICloningStrategy
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Clone(Var self)
     {
         var codeSelf = (CodeVar)self;

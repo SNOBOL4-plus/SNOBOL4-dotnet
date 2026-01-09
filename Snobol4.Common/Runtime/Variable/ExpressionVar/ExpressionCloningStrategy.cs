@@ -1,11 +1,14 @@
-﻿namespace Snobol4.Common;
+﻿using System.Runtime.CompilerServices;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Cloning strategy for expression variables
 /// Creates a copy of the expression variable
 /// </summary>
-public class ExpressionCloningStrategy : ICloningStrategy
+public sealed class ExpressionCloningStrategy : ICloningStrategy
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Clone(Var self)
     {
         var expressionSelf = (ExpressionVar)self;

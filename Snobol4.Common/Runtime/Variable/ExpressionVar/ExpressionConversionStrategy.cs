@@ -1,41 +1,35 @@
-﻿namespace Snobol4.Common;
+﻿using System.Runtime.CompilerServices;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Conversion strategy for expression variables
 /// </summary>
-public class ExpressionConversionStrategy : IConversionStrategy
+public sealed class ExpressionConversionStrategy : IConversionStrategy
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryConvert(Var self, Executive.VarType targetType, out Var varOut, out object valueOut, Executive exec)
     {
-        var expressionSelf = (ExpressionVar)self;
+        if (targetType == Executive.VarType.EXPRESSION)
+        {
+            var expressionSelf = (ExpressionVar)self;
+            varOut = expressionSelf;
+            valueOut = expressionSelf.FunctionName;
+            return true;
+        }
+
         varOut = StringVar.Null();
         valueOut = "";
-
-        switch (targetType)
-        {
-            case Executive.VarType.EXPRESSION:
-                varOut = expressionSelf;
-                valueOut = expressionSelf.FunctionName;
-                return true;
-
-            case Executive.VarType.STRING:
-            case Executive.VarType.INTEGER:
-            case Executive.VarType.REAL:
-            case Executive.VarType.ARRAY:
-            case Executive.VarType.TABLE:
-            case Executive.VarType.PATTERN:
-            case Executive.VarType.NAME:
-            case Executive.VarType.CODE:
-            default:
-                return false;
-        }
+        return false;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string GetDataType(Var self)
     {
         return "expression";
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public object GetTableKey(Var self)
     {
         // Expressions use their unique ID as table key

@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace Snobol4.Common;
 
@@ -6,28 +7,29 @@ namespace Snobol4.Common;
 /// Comparison strategy for expression variables
 /// Expressions compare by creation time and data type
 /// </summary>
-public class ExpressionComparisonStrategy : IComparisonStrategy
+public sealed class ExpressionComparisonStrategy : IComparisonStrategy
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int CompareTo(Var self, Var other)
     {
-        var expressionSelf = (ExpressionVar)self;
-
-        // Expressions of the same type compare by creation time
-        if (other is ExpressionVar)
+        // Different types compare by type name
+        if (other is not ExpressionVar)
         {
-            return DateTime.Compare(expressionSelf.CreationDateTime, other.CreationDateTime);
+            return string.Compare(self.DataType(), other.DataType(), StringComparison.OrdinalIgnoreCase);
         }
 
-        // Different types compare by type name
-        return string.Compare(expressionSelf.DataType(), other.DataType(), false, CultureInfo.InvariantCulture);
+        // Expressions of the same type compare by creation time
+        return DateTime.Compare(self.CreationDateTime, other.CreationDateTime);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(Var self, Var other)
     {
         // Expressions are only equal if they're the same instance
-        return IsIdentical(self, other);
+        return other.UniqueId == self.UniqueId;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsIdentical(Var self, Var other)
     {
         // Expressions are identical only if they have the same unique ID

@@ -1,11 +1,14 @@
-﻿namespace Snobol4.Common;
+﻿using System.Runtime.CompilerServices;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Arithmetic strategy for expression variables
 /// Expressions don't support traditional arithmetic operations
 /// </summary>
-public class ExpressionArithmeticStrategy : IArithmeticStrategy
+public sealed class ExpressionArithmeticStrategy : IArithmeticStrategy
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Add(Var self, Var other, Executive executive)
     {
         // Expressions don't support addition
@@ -13,6 +16,7 @@ public class ExpressionArithmeticStrategy : IArithmeticStrategy
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Subtract(Var self, Var other, Executive executive)
     {
         // Expressions don't support subtraction
@@ -20,6 +24,7 @@ public class ExpressionArithmeticStrategy : IArithmeticStrategy
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Multiply(Var self, Var other, Executive executive)
     {
         // Expressions don't support multiplication
@@ -27,6 +32,7 @@ public class ExpressionArithmeticStrategy : IArithmeticStrategy
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Divide(Var self, Var other, Executive executive)
     {
         // Expressions don't support division
@@ -34,6 +40,7 @@ public class ExpressionArithmeticStrategy : IArithmeticStrategy
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Power(Var self, Var other, Executive executive)
     {
         // Expressions don't support exponentiation
@@ -41,6 +48,7 @@ public class ExpressionArithmeticStrategy : IArithmeticStrategy
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Negate(Var self, Executive executive)
     {
         // Expressions don't support negation

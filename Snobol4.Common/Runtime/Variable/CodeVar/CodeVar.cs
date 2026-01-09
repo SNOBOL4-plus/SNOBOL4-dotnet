@@ -1,10 +1,11 @@
 ﻿#pragma warning disable CS8770 // Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Snobol4.Common;
 
 [DebuggerDisplay("{DebugString()}")]
-public class CodeVar : Var
+public sealed class CodeVar : Var
 {
     #region Data
 
@@ -31,18 +32,21 @@ public class CodeVar : Var
 
     #region Constructors
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public CodeVar()
     {
         StatementNumber = -1;
-        Data = "";
+        Data = string.Empty;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public CodeVar(int statementNumber, string data)
     {
         StatementNumber = statementNumber;
         Data = data;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal CodeVar(CodeVar template)
     {
         OutputChannel = template.OutputChannel;
@@ -59,6 +63,7 @@ public class CodeVar : Var
     /// <summary>
     /// Execute this code block in the context of the executive
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int Execute(Executive executive)
     {
         return executive.ExecuteLoop(StatementNumber);
@@ -67,6 +72,7 @@ public class CodeVar : Var
     /// <summary>
     /// Get the statement number for direct goto
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int GetStatementNumber()
     {
         return StatementNumber;
@@ -78,48 +84,56 @@ public class CodeVar : Var
 
     // Code doesn't support arithmetic operations with other types
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var AddInteger(IntegerVar left, Executive executive)
     {
         executive.LogRuntimeException(2); // Right operand of + is not numeric
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var AddReal(RealVar left, Executive executive)
     {
         executive.LogRuntimeException(2); // Right operand of + is not numeric
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var SubtractInteger(IntegerVar left, Executive executive)
     {
         executive.LogRuntimeException(33); // Right operand of - is not numeric
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var SubtractReal(RealVar left, Executive executive)
     {
         executive.LogRuntimeException(33); // Right operand of - is not numeric
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var MultiplyInteger(IntegerVar left, Executive executive)
     {
         executive.LogRuntimeException(27); // Right operand of * is not numeric
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var MultiplyReal(RealVar left, Executive executive)
     {
         executive.LogRuntimeException(27); // Right operand of * is not numeric
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var DivideInteger(IntegerVar left, Executive executive)
     {
         executive.LogRuntimeException(13); // Right operand of / is not numeric
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var DivideReal(RealVar left, Executive executive)
     {
         executive.LogRuntimeException(13); // Right operand of / is not numeric
