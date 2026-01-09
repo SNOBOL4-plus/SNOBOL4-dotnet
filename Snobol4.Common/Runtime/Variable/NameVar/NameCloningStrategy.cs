@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using System.Runtime.CompilerServices;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Cloning strategy for name variables
@@ -6,6 +8,7 @@
 /// </summary>
 public class NameCloningStrategy : ICloningStrategy
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Clone(Var self)
     {
         var nameSelf = (NameVar)self;

@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using System.Runtime.CompilerServices;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Arithmetic strategy for name variables
@@ -6,6 +8,7 @@
 /// </summary>
 public class NameArithmeticStrategy : IArithmeticStrategy
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Add(Var self, Var other, Executive executive)
     {
         var nameSelf = (NameVar)self;
@@ -17,6 +20,7 @@ public class NameArithmeticStrategy : IArithmeticStrategy
         return target.Add(other, executive);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Subtract(Var self, Var other, Executive executive)
     {
         var nameSelf = (NameVar)self;
@@ -24,6 +28,7 @@ public class NameArithmeticStrategy : IArithmeticStrategy
         return target.Subtract(other, executive);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Multiply(Var self, Var other, Executive executive)
     {
         var nameSelf = (NameVar)self;
@@ -31,6 +36,7 @@ public class NameArithmeticStrategy : IArithmeticStrategy
         return target.Multiply(other, executive);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Divide(Var self, Var other, Executive executive)
     {
         var nameSelf = (NameVar)self;
@@ -38,6 +44,7 @@ public class NameArithmeticStrategy : IArithmeticStrategy
         return target.Divide(other, executive);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Power(Var self, Var other, Executive executive)
     {
         var nameSelf = (NameVar)self;
@@ -45,6 +52,7 @@ public class NameArithmeticStrategy : IArithmeticStrategy
         return target.Power(other, executive);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Negate(Var self, Executive executive)
     {
         var nameSelf = (NameVar)self;
@@ -52,22 +60,23 @@ public class NameArithmeticStrategy : IArithmeticStrategy
         return target.Negate(executive);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Var GetDereferencedValue(NameVar nameVar, Executive executive)
     {
-        // If pointing to a collection element
-        if (nameVar.Pointer == "" && nameVar.Collection != null && nameVar.Key != null)
+        // Fast path: pointer dereference (most common case)
+        if (nameVar.Collection is null)
         {
-            return nameVar.Collection switch
-            {
-                ArrayVar arrayVar => arrayVar.Data[(int)(long)nameVar.Key],
-                TableVar tableVar => tableVar.Data.TryGetValue(nameVar.Key, out var value)
-                    ? value
-                    : tableVar.Fill.Clone(),
-                _ => StringVar.Null()
-            };
+            return executive.IdentifierTable[nameVar.Pointer];
         }
 
-        // Otherwise, dereference the pointer
-        return executive.IdentifierTable[nameVar.Pointer];
+        // Slower path: collection element access
+        return nameVar.Collection switch
+        {
+            ArrayVar arrayVar => arrayVar.Data[(int)(long)nameVar.Key!],
+            TableVar tableVar => tableVar.Data.TryGetValue(nameVar.Key!, out var value)
+                ? value
+                : tableVar.Fill.Clone(),
+            _ => StringVar.Null()
+        };
     }
 }

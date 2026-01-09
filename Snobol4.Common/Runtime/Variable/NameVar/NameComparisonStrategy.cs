@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace Snobol4.Common;
 
@@ -8,14 +9,15 @@ namespace Snobol4.Common;
 /// </summary>
 public class NameComparisonStrategy : IComparisonStrategy
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int CompareTo(Var self, Var other)
     {
         var nameSelf = (NameVar)self;
 
-        // Names compare by their pointer string value
+        // Fast path: comparing two names
         if (other is NameVar nameOther)
         {
-            return string.Compare(nameSelf.Pointer, nameOther.Pointer, false, CultureInfo.InvariantCulture);
+            return string.CompareOrdinal(nameSelf.Pointer, nameOther.Pointer);
         }
 
         // Different types compare by type name
@@ -29,12 +31,19 @@ public class NameComparisonStrategy : IComparisonStrategy
 
         var nameSelf = (NameVar)self;
 
-        // Names are equal if they point to the same thing
-        return nameSelf.Pointer == nameOther.Pointer
-               && Equals(nameSelf.Key, nameOther.Key)
-               && nameSelf.Collection == nameOther.Collection;
+        // Fast path: check pointer equality first (most common)
+        if (nameSelf.Pointer != nameOther.Pointer)
+            return false;
+
+        // Check collection reference equality
+        if (nameSelf.Collection != nameOther.Collection)
+            return false;
+
+        // Check key equality (handles null correctly)
+        return Equals(nameSelf.Key, nameOther.Key);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsIdentical(Var self, Var other)
     {
         // From original: always returns true

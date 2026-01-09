@@ -1,5 +1,6 @@
 ﻿#pragma warning disable CS8770 // Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Snobol4.Common;
 
@@ -30,6 +31,7 @@ public class NameVar : Var
 
     #region Constructors
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal NameVar(string pointer, object? key, Var? collection)
     {
         Pointer = pointer;
@@ -37,6 +39,7 @@ public class NameVar : Var
         Collection = collection;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal NameVar(NameVar template)
     {
         OutputChannel = template.OutputChannel;
@@ -54,34 +57,37 @@ public class NameVar : Var
     /// <summary>
     /// Dereference this name to get the actual variable it points to
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Dereference(Executive executive)
     {
-        // If pointing to a collection element
-        if (Pointer == "" && Collection != null && Key != null)
+        // Fast path: pointer dereference (most common case)
+        if (Collection is null)
         {
-            return Collection switch
-            {
-                ArrayVar arrayVar => arrayVar.Data[(int)(long)Key],
-                TableVar tableVar => tableVar.GetOrDefault(Key),
-                _ => StringVar.Null()
-            };
+            return executive.IdentifierTable[Pointer];
         }
 
-        // Otherwise, dereference the pointer from identifier table
-        return executive.IdentifierTable[Pointer];
+        // Slower path: collection element access
+        return Collection switch
+        {
+            ArrayVar arrayVar => arrayVar.Data[(int)(long)Key!],
+            TableVar tableVar => tableVar.GetOrDefault(Key!),
+            _ => StringVar.Null()
+        };
     }
 
     /// <summary>
     /// Check if this name points to a collection element
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsCollectionReference()
     {
-        return Collection != null && Key != null;
+        return Collection is not null;
     }
 
     /// <summary>
     /// Get the target symbol name
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string GetTargetName()
     {
         return Pointer;
@@ -94,6 +100,7 @@ public class NameVar : Var
     // Names support arithmetic through dereferencing
     // The arithmetic strategy handles this automatically
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var AddInteger(IntegerVar left, Executive executive)
     {
         // When name is the right operand, dereference it
@@ -101,42 +108,49 @@ public class NameVar : Var
         return left.Add(target, executive);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var AddReal(RealVar left, Executive executive)
     {
         var target = Dereference(executive);
         return left.Add(target, executive);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var SubtractInteger(IntegerVar left, Executive executive)
     {
         var target = Dereference(executive);
         return left.Subtract(target, executive);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var SubtractReal(RealVar left, Executive executive)
     {
         var target = Dereference(executive);
         return left.Subtract(target, executive);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var MultiplyInteger(IntegerVar left, Executive executive)
     {
         var target = Dereference(executive);
         return left.Multiply(target, executive);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var MultiplyReal(RealVar left, Executive executive)
     {
         var target = Dereference(executive);
         return left.Multiply(target, executive);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var DivideInteger(IntegerVar left, Executive executive)
     {
         var target = Dereference(executive);
         return left.Divide(target, executive);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var DivideReal(RealVar left, Executive executive)
     {
         var target = Dereference(executive);

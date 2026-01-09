@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using System.Runtime.CompilerServices;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Conversion strategy for name variables
@@ -9,110 +11,155 @@ public class NameConversionStrategy : IConversionStrategy
     public bool TryConvert(Var self, Executive.VarType targetType, out Var varOut, out object valueOut, Executive exec)
     {
         var nameSelf = (NameVar)self;
-        varOut = StringVar.Null();
-        valueOut = "";
-
+        
+        // Fast path optimization for common conversions
         switch (targetType)
         {
             case Executive.VarType.STRING:
-                if (nameSelf.Pointer == "")
-                    return false;
-
-                varOut = new StringVar(nameSelf.Pointer)
-                {
-                    Collection = nameSelf.Collection,
-                    Key = nameSelf.Key
-                };
-                valueOut = nameSelf.Pointer;
-                return true;
-
-            case Executive.VarType.INTEGER:
-                var stringVarInteger = new StringVar(nameSelf.Pointer);
-                if (!stringVarInteger.Convert(Executive.VarType.INTEGER, out var dataInteger, out valueOut, exec))
-                    return false;
-                varOut = dataInteger;
-                return true;
-
-            case Executive.VarType.REAL:
-                var stringVarReal = new StringVar(nameSelf.Pointer);
-                if (!stringVarReal.Convert(Executive.VarType.REAL, out var dataReal, out valueOut, exec))
-                    return false;
-                varOut = dataReal;
-                return true;
-
-            case Executive.VarType.PATTERN:
-                var patternOut = new PatternVar(new LiteralPattern(nameSelf.Pointer));
-                valueOut = patternOut.Data;
-                return true;
+                return ConvertToString(nameSelf, out varOut, out valueOut);
 
             case Executive.VarType.NAME:
                 varOut = nameSelf;
                 valueOut = nameSelf.Pointer;
                 return true;
 
-            case Executive.VarType.EXPRESSION:
-                var argExpression = exec.IdentifierTable[nameSelf.Pointer];
+            case Executive.VarType.INTEGER:
+                return ConvertToInteger(nameSelf, out varOut, out valueOut, exec);
 
-                if (argExpression is not StringVar stringVarExpression)
-                    return false;
+            case Executive.VarType.REAL:
+                return ConvertToReal(nameSelf, out varOut, out valueOut, exec);
 
-                if (stringVarExpression.Symbol == "")
-                    return false;
-
-                var previousCaseFolding = exec.Parent.CaseFolding;
-                exec.Parent.CaseFolding = ((IntegerVar)exec.IdentifierTable["&case"]).Data != 0;
-                exec.Parent.CodeMode = true;
-                exec.Parent.Code = new SourceCode(exec.Parent);
-                exec.Parent.Code.ReadCodeInString($" A = *({stringVarExpression.Data.Trim()})", exec.Parent.FilesToCompile[^1]);
-                exec.Parent.BuildEval();
-                exec.Parent.CaseFolding = previousCaseFolding;
-                exec.Parent.CodeMode = false;
-                varOut = new ExpressionVar(exec.StarFunctionList[^1]);
-                valueOut = ((ExpressionVar)varOut).FunctionName;
+            case Executive.VarType.PATTERN:
+                varOut = new PatternVar(new LiteralPattern(nameSelf.Pointer));
+                valueOut = ((PatternVar)varOut).Data;
                 return true;
+
+            case Executive.VarType.EXPRESSION:
+                return ConvertToExpression(nameSelf, out varOut, out valueOut, exec);
 
             case Executive.VarType.CODE:
-                var argCode = exec.IdentifierTable[nameSelf.Pointer];
-
-                if (argCode is not StringVar stringVarCode)
-                    return false;
-
-                if (stringVarCode.Symbol == "")
-                    return false;
-
-                CodeVar code = new()
-                {
-                    StatementNumber = exec.Statements.Count,
-                    Data = stringVarCode.Symbol
-                };
-
-                exec.Parent.Code = new SourceCode(exec.Parent);
-                exec.Parent.Code.ReadCodeInString(code.Data, exec.Parent.FilesToCompile[^1]);
-
-                if (!exec.Parent.BuildCode())
-                    return false;
-
-                varOut = code;
-                valueOut = code.Data;
-                return true;
+                return ConvertToCode(nameSelf, out varOut, out valueOut, exec);
 
             case Executive.VarType.ARRAY:
             case Executive.VarType.TABLE:
             default:
+                varOut = StringVar.Null();
+                valueOut = "";
                 return false;
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool ConvertToString(NameVar nameSelf, out Var varOut, out object valueOut)
+    {
+        if (nameSelf.Pointer.Length == 0)
+        {
+            varOut = StringVar.Null();
+            valueOut = "";
+            return false;
+        }
+
+        varOut = new StringVar(nameSelf.Pointer)
+        {
+            Collection = nameSelf.Collection,
+            Key = nameSelf.Key
+        };
+        valueOut = nameSelf.Pointer;
+        return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool ConvertToInteger(NameVar nameSelf, out Var varOut, out object valueOut, Executive exec)
+    {
+        var stringVar = new StringVar(nameSelf.Pointer);
+        if (!stringVar.Convert(Executive.VarType.INTEGER, out varOut, out valueOut, exec))
+        {
+            varOut = StringVar.Null();
+            valueOut = "";
+            return false;
+        }
+        return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool ConvertToReal(NameVar nameSelf, out Var varOut, out object valueOut, Executive exec)
+    {
+        var stringVar = new StringVar(nameSelf.Pointer);
+        if (!stringVar.Convert(Executive.VarType.REAL, out varOut, out valueOut, exec))
+        {
+            varOut = StringVar.Null();
+            valueOut = "";
+            return false;
+        }
+        return true;
+    }
+
+    private static bool ConvertToExpression(NameVar nameSelf, out Var varOut, out object valueOut, Executive exec)
+    {
+        var argExpression = exec.IdentifierTable[nameSelf.Pointer];
+
+        if (argExpression is not StringVar stringVarExpression || stringVarExpression.Symbol.Length == 0)
+        {
+            varOut = StringVar.Null();
+            valueOut = "";
+            return false;
+        }
+
+        var previousCaseFolding = exec.Parent.CaseFolding;
+        exec.Parent.CaseFolding = ((IntegerVar)exec.IdentifierTable["&case"]).Data != 0;
+        exec.Parent.CodeMode = true;
+        exec.Parent.Code = new SourceCode(exec.Parent);
+        exec.Parent.Code.ReadCodeInString($" A = *({stringVarExpression.Data.Trim()})", exec.Parent.FilesToCompile[^1]);
+        exec.Parent.BuildEval();
+        exec.Parent.CaseFolding = previousCaseFolding;
+        exec.Parent.CodeMode = false;
+        varOut = new ExpressionVar(exec.StarFunctionList[^1]);
+        valueOut = ((ExpressionVar)varOut).FunctionName;
+        return true;
+    }
+
+    private static bool ConvertToCode(NameVar nameSelf, out Var varOut, out object valueOut, Executive exec)
+    {
+        var argCode = exec.IdentifierTable[nameSelf.Pointer];
+
+        if (argCode is not StringVar stringVarCode || stringVarCode.Symbol.Length == 0)
+        {
+            varOut = StringVar.Null();
+            valueOut = "";
+            return false;
+        }
+
+        CodeVar code = new()
+        {
+            StatementNumber = exec.Statements.Count,
+            Data = stringVarCode.Symbol
+        };
+
+        exec.Parent.Code = new SourceCode(exec.Parent);
+        exec.Parent.Code.ReadCodeInString(code.Data, exec.Parent.FilesToCompile[^1]);
+
+        if (!exec.Parent.BuildCode())
+        {
+            varOut = StringVar.Null();
+            valueOut = "";
+            return false;
+        }
+
+        varOut = code;
+        valueOut = code.Data;
+        return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string GetDataType(Var self)
     {
         return "name";
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public object GetTableKey(Var self)
     {
         var nameSelf = (NameVar)self;
-
-        // Use the pointer string as the key
         return nameSelf.Pointer;
     }
 }
