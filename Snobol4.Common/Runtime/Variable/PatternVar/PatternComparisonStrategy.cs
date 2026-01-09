@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+﻿using System.Runtime.CompilerServices;
 
 namespace Snobol4.Common;
 
@@ -8,8 +8,13 @@ namespace Snobol4.Common;
 /// </summary>
 public class PatternComparisonStrategy : IComparisonStrategy
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int CompareTo(Var self, Var other)
     {
+        // Fast path: if comparing to same instance, return 0
+        if (ReferenceEquals(self, other))
+            return 0;
+
         var patternSelf = (PatternVar)self;
 
         // Patterns of the same type compare by creation time
@@ -19,17 +24,23 @@ public class PatternComparisonStrategy : IComparisonStrategy
         }
 
         // Different types compare by type name
-        return string.Compare(patternSelf.DataType(), other.DataType(), false, CultureInfo.InvariantCulture);
+        return string.Compare(patternSelf.DataType(), other.DataType(), StringComparison.Ordinal);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(Var self, Var other)
     {
         // Patterns are only equal if they're the same instance
         return IsIdentical(self, other);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsIdentical(Var self, Var other)
     {
+        // Fast path: reference equality check
+        if (ReferenceEquals(self, other))
+            return true;
+
         // Patterns are identical only if they have the same unique ID
         // (Pattern structure equality would be complex and is not needed)
         return other.UniqueId == self.UniqueId;

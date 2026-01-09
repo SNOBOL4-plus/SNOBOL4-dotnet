@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using System.Runtime.CompilerServices;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Cloning strategy for pattern variables
@@ -6,6 +8,7 @@
 /// </summary>
 public class PatternCloningStrategy : ICloningStrategy
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Clone(Var self)
     {
         var patternSelf = (PatternVar)self;
