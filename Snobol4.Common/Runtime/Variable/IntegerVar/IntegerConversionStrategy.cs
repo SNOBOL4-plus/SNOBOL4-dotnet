@@ -1,17 +1,19 @@
 ﻿using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace Snobol4.Common;
 
 /// <summary>
 /// Conversion strategy for integer variables
+/// Supports conversion to string, real, pattern, name, expression, and more
 /// </summary>
-public class IntegerConversionStrategy : IConversionStrategy
+public sealed class IntegerConversionStrategy : IConversionStrategy
 {
     public bool TryConvert(Var self, Executive.VarType targetType, out Var varOut, out object valueOut, Executive exec)
     {
         var intSelf = (IntegerVar)self;
-        varOut = new IntegerVar(0);
-        valueOut = "";
+        varOut = IntegerVar.Zero;
+        valueOut = 0;
 
         switch (targetType)
         {
@@ -36,9 +38,11 @@ public class IntegerConversionStrategy : IConversionStrategy
                 return true;
 
             case Executive.VarType.NAME:
-                var stringData = intSelf.Data.ToString();
+                var stringData = intSelf.Data.ToString(CultureInfo.CurrentCulture);
                 if (stringData == "")
+                {
                     return false;
+                }
                 varOut = new NameVar(stringData, intSelf.Key, intSelf.Collection);
                 valueOut = intSelf.Data;
                 return true;
@@ -48,7 +52,7 @@ public class IntegerConversionStrategy : IConversionStrategy
                 exec.Parent.CaseFolding = ((IntegerVar)exec.IdentifierTable["&case"]).Data != 0;
                 exec.Parent.CodeMode = true;
                 exec.Parent.Code = new SourceCode(exec.Parent);
-                exec.Parent.Code.ReadCodeInString($" A = *({intSelf.Data.ToString().Trim()})", exec.Parent.FilesToCompile[^1]);
+                exec.Parent.Code.ReadCodeInString($" A = *({intSelf.Data.ToString(CultureInfo.CurrentCulture).Trim()})", exec.Parent.FilesToCompile[^1]);
                 exec.Parent.BuildEval();
                 exec.Parent.CaseFolding = previousCaseFolding;
                 exec.Parent.CodeMode = false;
@@ -64,11 +68,13 @@ public class IntegerConversionStrategy : IConversionStrategy
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string GetDataType(Var self)
     {
         return "integer";
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public object GetTableKey(Var self)
     {
         var intSelf = (IntegerVar)self;

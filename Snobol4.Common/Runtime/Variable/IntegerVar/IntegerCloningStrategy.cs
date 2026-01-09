@@ -1,10 +1,14 @@
-﻿namespace Snobol4.Common;
+﻿using System.Runtime.CompilerServices;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Cloning strategy for integer variables
+/// Creates independent copies of integer values
 /// </summary>
-public class IntegerCloningStrategy : ICloningStrategy
+public sealed class IntegerCloningStrategy : ICloningStrategy
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Clone(Var self)
     {
         var intSelf = (IntegerVar)self;

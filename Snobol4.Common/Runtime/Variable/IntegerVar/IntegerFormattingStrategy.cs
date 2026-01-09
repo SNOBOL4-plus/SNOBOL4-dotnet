@@ -1,28 +1,45 @@
 ﻿using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace Snobol4.Common;
 
 /// <summary>
 /// Formatting strategy for integer variables
+/// Provides string representations for display and debugging purposes
 /// </summary>
-public class IntegerFormattingStrategy : IFormattingStrategy
+public sealed class IntegerFormattingStrategy : IFormattingStrategy
 {
+    /// <summary>
+    /// Returns the integer value as a string using current culture formatting
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string ToString(Var self)
     {
         var intSelf = (IntegerVar)self;
         return intSelf.Data.ToString(CultureInfo.CurrentCulture);
     }
 
+    /// <summary>
+    /// Returns a concise representation of the integer value
+    /// Used for dump operations and diagnostics
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string DumpString(Var self)
     {
         var intSelf = (IntegerVar)self;
         return $"{intSelf.Data}";
     }
 
+    /// <summary>
+    /// Returns detailed debug information including:
+    /// - Symbol name
+    /// - Data value
+    /// - Success state
+    /// </summary>
     public string DebugString(Var self)
     {
         var intSelf = (IntegerVar)self;
-        var symbol = intSelf.Symbol == "" ? "<no name>" : intSelf.Symbol;
-        return $"INTEGER Symbol: {symbol}  Data: {intSelf.Data}  Succeeded: {intSelf.Succeeded}";
+        var symbol = string.IsNullOrEmpty(intSelf.Symbol) ? "<no name>" : intSelf.Symbol;
+        return $"INTEGER Symbol: {symbol}, Data: {intSelf.Data}, Succeeded: {intSelf.Succeeded}";
     }
 }

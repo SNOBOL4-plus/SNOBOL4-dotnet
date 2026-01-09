@@ -2,13 +2,13 @@
 
 /// <summary>
 /// Arithmetic strategy for integer variables
+/// Handles binary operations with overflow checking and type promotion
 /// </summary>
-public class IntegerArithmeticStrategy : IArithmeticStrategy
+public sealed class IntegerArithmeticStrategy : IArithmeticStrategy
 {
     public Var Add(Var self, Var other, Executive executive)
     {
         var intSelf = (IntegerVar)self;
-
         // Use double dispatch to get type-specific behavior
         return other.AddInteger(intSelf, executive);
     }
@@ -53,13 +53,15 @@ public class IntegerArithmeticStrategy : IArithmeticStrategy
             {
                 long result = 1;
                 for (var i = 0; i < intOther.Data; ++i)
+                {
                     result *= intSelf.Data;
+                }
                 return new IntegerVar(result);
             }
         }
         catch (OverflowException)
         {
-            // Fall back to real arithmetic
+            // Fall back to real arithmetic on overflow
             return new RealVar(Math.Pow(intSelf.Data, intOther.Data));
         }
     }
