@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using System.Runtime.CompilerServices;
+    
+namespace Snobol4.Common;
 
 /// <summary>
 /// Cloning strategy for string variables

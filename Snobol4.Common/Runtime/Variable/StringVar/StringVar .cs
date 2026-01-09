@@ -1,5 +1,6 @@
 ﻿#pragma warning disable CS8770 // Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Snobol4.Common;
 
@@ -30,24 +31,26 @@ public class StringVar : Var
 
     #region Constructors
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public StringVar(bool succeeded)
     {
-        InputChannel = "";
-        OutputChannel = "";
-        Symbol = "";
-        Data = "";
+        InputChannel = string.Empty;
+        OutputChannel = string.Empty;
+        Symbol = string.Empty;
+        Data = string.Empty;
         Succeeded = succeeded;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static StringVar Null(string symbol = "")
     {
-        var nullString = new StringVar(true)
+        return new StringVar(true)
         {
             Symbol = symbol
         };
-        return nullString;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public StringVar(
         string data,
         string symbol = "",
@@ -66,6 +69,7 @@ public class StringVar : Var
         Validation = validation;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal StringVar(StringVar template)
     {
         Symbol = template.Symbol;
@@ -79,48 +83,56 @@ public class StringVar : Var
     // Strings don't support arithmetic operations with other types
     // These methods all throw NotSupportedException or log errors
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var AddInteger(IntegerVar left, Executive executive)
     {
         executive.LogRuntimeException(2); // Right operand of + is not numeric
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var AddReal(RealVar left, Executive executive)
     {
         executive.LogRuntimeException(2); // Right operand of + is not numeric
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var SubtractInteger(IntegerVar left, Executive executive)
     {
         executive.LogRuntimeException(33); // Right operand of - is not numeric
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var SubtractReal(RealVar left, Executive executive)
     {
         executive.LogRuntimeException(33); // Right operand of - is not numeric
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var MultiplyInteger(IntegerVar left, Executive executive)
     {
         executive.LogRuntimeException(27); // Right operand of * is not numeric
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var MultiplyReal(RealVar left, Executive executive)
     {
         executive.LogRuntimeException(27); // Right operand of * is not numeric
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var DivideInteger(IntegerVar left, Executive executive)
     {
         executive.LogRuntimeException(13); // Right operand of / is not numeric
         return StringVar.Null();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var DivideReal(RealVar left, Executive executive)
     {
         executive.LogRuntimeException(13); // Right operand of / is not numeric
@@ -134,6 +146,7 @@ public class StringVar : Var
     /// <summary>
     /// Concatenate this string with another (space operator in SNOBOL4)
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Var Concatenate(Var other, Executive executive)
     {
         // Convert other to string if possible

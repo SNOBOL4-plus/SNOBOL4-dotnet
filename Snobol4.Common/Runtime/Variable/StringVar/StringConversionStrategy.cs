@@ -1,15 +1,18 @@
-﻿namespace Snobol4.Common;
+﻿using System.Runtime.CompilerServices;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Conversion strategy for string variables
 /// </summary>
 public class StringConversionStrategy : IConversionStrategy
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryConvert(Var self, Executive.VarType targetType, out Var varOut, out object valueOut, Executive exec)
     {
         var stringSelf = (StringVar)self;
         varOut = StringVar.Null();
-        valueOut = "";
+        valueOut = string.Empty;
 
         switch (targetType)
         {
@@ -38,44 +41,20 @@ public class StringConversionStrategy : IConversionStrategy
                 return true;
 
             case Executive.VarType.NAME:
-                if (stringSelf.Data == "")
+                if (stringSelf.Data.Length == 0)
                     return false;
                 varOut = new NameVar(stringSelf.Data, stringSelf.Key, stringSelf.Collection);
                 valueOut = stringSelf.Data;
                 return true;
 
             case Executive.VarType.EXPRESSION:
-                if (stringSelf.Data == "")
+                if (stringSelf.Data.Length == 0)
                     return false;
 
-                var previousCaseFolding = exec.Parent.CaseFolding;
-                exec.Parent.CaseFolding = ((IntegerVar)exec.IdentifierTable["&case"]).Data != 0;
-                exec.Parent.CodeMode = true;
-                exec.Parent.Code = new SourceCode(exec.Parent);
-                exec.Parent.Code.ReadCodeInString($" A = *({stringSelf.Data.Trim()})", exec.Parent.FilesToCompile[^1]);
-                exec.Parent.BuildEval();
-                exec.Parent.CaseFolding = previousCaseFolding;
-                exec.Parent.CodeMode = false;
-                varOut = new ExpressionVar(exec.StarFunctionList[^1]);
-                valueOut = ((ExpressionVar)varOut).FunctionName;
-                return true;
+                return ConvertToExpression(stringSelf, exec, out varOut, out valueOut);
 
             case Executive.VarType.CODE:
-                CodeVar code = new()
-                {
-                    StatementNumber = exec.Statements.Count,
-                    Data = stringSelf.Data
-                };
-
-                exec.Parent.Code = new SourceCode(exec.Parent);
-                exec.Parent.Code.ReadCodeInString(code.Data, exec.Parent.FilesToCompile[^1]);
-
-                if (!exec.Parent.BuildCode())
-                    return false;
-
-                varOut = code;
-                valueOut = code.Data;
-                return true;
+                return ConvertToCode(stringSelf, exec, out varOut, out valueOut);
 
             case Executive.VarType.ARRAY:
             case Executive.VarType.TABLE:
@@ -84,11 +63,53 @@ public class StringConversionStrategy : IConversionStrategy
         }
     }
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static bool ConvertToExpression(StringVar stringSelf, Executive exec, out Var varOut, out object valueOut)
+    {
+        var previousCaseFolding = exec.Parent.CaseFolding;
+        exec.Parent.CaseFolding = ((IntegerVar)exec.IdentifierTable["&case"]).Data != 0;
+        exec.Parent.CodeMode = true;
+        exec.Parent.Code = new SourceCode(exec.Parent);
+        exec.Parent.Code.ReadCodeInString($" A = *({stringSelf.Data.Trim()})", exec.Parent.FilesToCompile[^1]);
+        exec.Parent.BuildEval();
+        exec.Parent.CaseFolding = previousCaseFolding;
+        exec.Parent.CodeMode = false;
+        varOut = new ExpressionVar(exec.StarFunctionList[^1]);
+        valueOut = ((ExpressionVar)varOut).FunctionName;
+        return true;
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static bool ConvertToCode(StringVar stringSelf, Executive exec, out Var varOut, out object valueOut)
+    {
+        CodeVar code = new()
+        {
+            StatementNumber = exec.Statements.Count,
+            Data = stringSelf.Data
+        };
+
+        exec.Parent.Code = new SourceCode(exec.Parent);
+        exec.Parent.Code.ReadCodeInString(code.Data, exec.Parent.FilesToCompile[^1]);
+
+        if (!exec.Parent.BuildCode())
+        {
+            varOut = StringVar.Null();
+            valueOut = string.Empty;
+            return false;
+        }
+
+        varOut = code;
+        valueOut = code.Data;
+        return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string GetDataType(Var self)
     {
         return "string";
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public object GetTableKey(Var self)
     {
         var stringSelf = (StringVar)self;
