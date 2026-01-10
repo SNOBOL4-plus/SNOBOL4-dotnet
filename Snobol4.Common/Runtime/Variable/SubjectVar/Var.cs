@@ -120,6 +120,8 @@ public abstract class Var : IEquatable<Var>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public virtual Var Add(Var other, Executive executive)
     {
+        ArgumentNullException.ThrowIfNull(other);
+        ArgumentNullException.ThrowIfNull(executive);
         return ArithmeticStrategy.Add(this, other, executive);
     }
 
@@ -133,6 +135,8 @@ public abstract class Var : IEquatable<Var>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public virtual Var Subtract(Var other, Executive executive)
     {
+        ArgumentNullException.ThrowIfNull(other);
+        ArgumentNullException.ThrowIfNull(executive);
         return ArithmeticStrategy.Subtract(this, other, executive);
     }
 
@@ -146,6 +150,8 @@ public abstract class Var : IEquatable<Var>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public virtual Var Multiply(Var other, Executive executive)
     {
+        ArgumentNullException.ThrowIfNull(other);
+        ArgumentNullException.ThrowIfNull(executive);
         return ArithmeticStrategy.Multiply(this, other, executive);
     }
 
@@ -159,6 +165,8 @@ public abstract class Var : IEquatable<Var>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public virtual Var Divide(Var other, Executive executive)
     {
+        ArgumentNullException.ThrowIfNull(other);
+        ArgumentNullException.ThrowIfNull(executive);
         return ArithmeticStrategy.Divide(this, other, executive);
     }
 
@@ -172,6 +180,8 @@ public abstract class Var : IEquatable<Var>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public virtual Var Power(Var other, Executive executive)
     {
+        ArgumentNullException.ThrowIfNull(other);
+        ArgumentNullException.ThrowIfNull(executive);
         return ArithmeticStrategy.Power(this, other, executive);
     }
 
@@ -184,6 +194,7 @@ public abstract class Var : IEquatable<Var>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public virtual Var Negate(Executive executive)
     {
+        ArgumentNullException.ThrowIfNull(executive);
         return ArithmeticStrategy.Negate(this, executive);
     }
 
@@ -270,6 +281,24 @@ public abstract class Var : IEquatable<Var>
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static Var ThrowNotSupportedException(string message)
         => throw new NotSupportedException(message);
+
+    #endregion
+
+    #region Base Double Dispatch Error Handlers
+
+    /// <summary>
+    /// Standard error handler for arithmetic operations on non-numeric types.
+    /// Logs the error and returns a null StringVar.
+    /// </summary>
+    /// <param name="executive">The execution context</param>
+    /// <param name="errorCode">The runtime error code to log</param>
+    /// <returns>A null StringVar indicating failure</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    protected static Var LogArithmeticTypeError(Executive executive, int errorCode)
+    {
+        executive.LogRuntimeException(errorCode);
+        return StringVar.Null();
+    }
 
     #endregion
 
