@@ -1,4 +1,4 @@
-﻿namespace Snobol4.Common;
+﻿    namespace Snobol4.Common;
 
 /// <summary>
 /// Represents a pattern that matches exactly N characters.

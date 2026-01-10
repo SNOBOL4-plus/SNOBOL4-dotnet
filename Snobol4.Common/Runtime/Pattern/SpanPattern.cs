@@ -150,9 +150,11 @@ internal class SpanPattern : TerminalPattern
     /// (at the first character NOT in the set, or at end of subject).
     /// </para>
     /// <para>
-    /// Uses SearchValues for hardware-accelerated character matching with larger character sets,
-    /// or direct iteration for small sets (1-3 chars) to avoid SearchValues overhead.
-    /// Provides significant performance improvements over traditional Contains() approach.
+    /// Optimizations:
+    /// - Fast path for single-character sets (common case like span('x'))
+    /// - Direct comparison for small sets (2-3 chars) to avoid SearchValues overhead
+    /// - Hardware-accelerated SearchValues for larger character sets
+    /// - Uses IndexOfAnyExcept for efficient boundary detection
     /// </para>
     /// </remarks>
     internal override MatchResult Scan(int node, Scanner scan)
@@ -161,40 +163,61 @@ internal class SpanPattern : TerminalPattern
         if (scan.CursorPosition >= scan.Subject.Length)
             return MatchResult.Failure(scan);
 
-        var subject = scan.Subject.AsSpan(scan.CursorPosition);
         var startPosition = scan.CursorPosition;
+        var subject = scan.Subject.AsSpan(scan.CursorPosition);
+
+        // Fast path for single-character sets (common case: span('x'), span(','), span(' '))
+        // This optimization eliminates SearchValues overhead and array operations
+        if (_charList.Length == 1)
+        {
+            var targetChar = _charList[0];
+            var matched = 0;
+
+            // Simple loop is faster than IndexOf for single character matching
+            while (matched < subject.Length && subject[matched] == targetChar)
+                matched++;
+
+            // Must match at least one character
+            if (matched == 0)
+                return MatchResult.Failure(scan);
+
+            scan.CursorPosition += matched;
+            return MatchResult.Success(scan);
+        }
 
         int endIndex;
 
-        // Optimize for small character sets (1-3 chars) with direct comparison
+        // Optimize for small character sets (2-3 chars) with direct comparison
         if (_searchValues == null)
         {
             endIndex = 0;
+
+            // Manual loop with direct character comparison
+            // Faster than SearchValues for very small sets
             while (endIndex < subject.Length)
             {
                 var ch = subject[endIndex];
                 bool isInSet = _charList.Length switch
                 {
-                    1 => ch == _charList[0],
                     2 => ch == _charList[0] || ch == _charList[1],
                     3 => ch == _charList[0] || ch == _charList[1] || ch == _charList[2],
-                    _ => false
+                    _ => false // Should not happen (length < SearchValuesThreshold)
                 };
 
                 if (!isInSet)
                     break;
+
                 endIndex++;
             }
 
+            // Must match at least one character
             if (endIndex == 0)
-            {
-                // First character is not in the set - fail immediately
                 return MatchResult.Failure(scan);
-            }
 
-            // Mark as "match to end" if we consumed entire remaining subject
-            if (endIndex == subject.Length)
-                endIndex = -1;
+            // Update cursor position
+            scan.CursorPosition = endIndex == subject.Length
+                ? scan.Subject.Length  // Matched to end
+                : startPosition + endIndex;  // Matched until non-matching char
         }
         else
         {
@@ -202,28 +225,24 @@ internal class SpanPattern : TerminalPattern
             // IndexOfAnyExcept finds the first character NOT in the set
             endIndex = subject.IndexOfAnyExcept(_searchValues);
 
+            // If endIndex is 0, first character is not in set - fail immediately
             if (endIndex == 0)
-            {
-                // First character is not in the set - fail immediately
                 return MatchResult.Failure(scan);
+
+            // Update cursor position
+            if (endIndex < 0)
+            {
+                // All remaining characters are in the set - match to end
+                scan.CursorPosition = scan.Subject.Length;
+            }
+            else
+            {
+                // Match up to the first character not in the set
+                scan.CursorPosition = startPosition + endIndex;
             }
         }
 
-        if (endIndex < 0)
-        {
-            // All remaining characters are in the set - match to end
-            scan.CursorPosition = scan.Subject.Length;
-        }
-        else
-        {
-            // Match up to the first character not in the set
-            scan.CursorPosition += endIndex;
-        }
-
-        // Succeed if we matched at least one character
-        return scan.CursorPosition > startPosition
-            ? MatchResult.Success(scan)
-            : MatchResult.Failure(scan);
+        return MatchResult.Success(scan);
     }
 
     #endregion

@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+﻿    using System.Buffers;
 using System.Diagnostics;
 
 namespace Snobol4.Common;
@@ -62,6 +62,9 @@ internal class AnyPattern : TerminalPattern
     /// direct comparison is faster than SearchValues overhead.
     /// </summary>
     private const int SearchValuesThreshold = 4;
+
+    // Cache the last evaluated character set for expressions
+    private string _lastEvaluatedCharList = "";
 
     #endregion
 
@@ -139,15 +142,31 @@ internal class AnyPattern : TerminalPattern
             }
 
             _charList = (string)value;
-            // Create SearchValues only for larger character sets
-            _searchValues = _charList.Length >= SearchValuesThreshold
-                ? SearchValues.Create(_charList)
-                : null;
+            
+            // Only recreate SearchValues if charset has changed
+            if (_charList != _lastEvaluatedCharList)
+            {
+                _lastEvaluatedCharList = _charList;
+                _searchValues = _charList.Length >= SearchValuesThreshold
+                    ? SearchValues.Create(_charList)
+                    : null;
+            }
         }
 
         var currentChar = scan.Subject[scan.CursorPosition];
 
-        // Optimize for small character sets (1-3 chars) with direct comparison
+        // Fast path for single-character sets (common case)
+        if (_charList.Length == 1)
+        {
+            if (currentChar == _charList[0])
+            {
+                scan.CursorPosition++;
+                return MatchResult.Success(scan);
+            }
+            return MatchResult.Failure(scan);
+        }
+
+        // Optimize for small character sets (2-3 chars) with direct comparison
         bool isInSet;
         if (_searchValues == null)
         {

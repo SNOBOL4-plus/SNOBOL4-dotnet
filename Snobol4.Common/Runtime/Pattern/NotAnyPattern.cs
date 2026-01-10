@@ -164,7 +164,7 @@ internal class NotAnyPattern : TerminalPattern
                 return MatchResult.Success(scan);
             }
 
-            // Only recreate SearchValues if charset has changed (optimization for expression patterns)
+            // Only recreate SearchValues if charset has changed
             if (_charList != _lastEvaluatedCharList)
             {
                 _lastEvaluatedCharList = _charList;
@@ -176,7 +176,18 @@ internal class NotAnyPattern : TerminalPattern
 
         var currentChar = scan.Subject[scan.CursorPosition];
 
-        // Optimize for small character sets (1-3 chars) with direct comparison
+        // Fast path for single-character exclusion sets (common case)
+        if (_charList.Length == 1)
+        {
+            if (currentChar != _charList[0])
+            {
+                scan.CursorPosition++;
+                return MatchResult.Success(scan);
+            }
+            return MatchResult.Failure(scan);
+        }
+
+        // Optimize for small character sets (2-3 chars) with direct comparison
         bool isInSet;
         if (_searchValues == null)
         {

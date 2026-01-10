@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿    using System.Diagnostics;
 
 namespace Snobol4.Common;
 
@@ -65,7 +65,6 @@ public class Scanner
     private MatchResult Match(AbstractSyntaxTreeNode node)
     {
         Debug.Assert(_state != null && _ast != null);
-        
         _state.ClearAlternates();
 
         while (true)
