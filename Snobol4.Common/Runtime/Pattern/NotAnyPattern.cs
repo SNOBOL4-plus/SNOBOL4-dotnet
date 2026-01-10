@@ -66,6 +66,12 @@ internal class NotAnyPattern : TerminalPattern
     /// </summary>
     private SearchValues<char>? _searchValues;
 
+    /// <summary>
+    /// Threshold for using SearchValues. For very small character sets (1-3 chars),
+    /// direct comparison is faster than SearchValues overhead.
+    /// </summary>
+    private const int SearchValuesThreshold = 4;
+
     #endregion
 
     #region Constructors
@@ -78,8 +84,10 @@ internal class NotAnyPattern : TerminalPattern
     {
         _charList = charList;
         _expression = null;
-        // Create SearchValues for hardware-accelerated character matching
-        _searchValues = SearchValues.Create(charList);
+        // Create SearchValues only for larger character sets
+        _searchValues = charList.Length >= SearchValuesThreshold
+            ? SearchValues.Create(charList)
+            : null;
     }
 
     /// <summary>
@@ -118,8 +126,9 @@ internal class NotAnyPattern : TerminalPattern
     /// Failure if at end of subject or character is in the excluded set
     /// </returns>
     /// <remarks>
-    /// Uses SearchValues for hardware-accelerated character matching, providing significant
-    /// performance improvements for character set exclusion checks.
+    /// Uses SearchValues for hardware-accelerated character matching with larger character sets,
+    /// or direct comparison for small sets (1-3 chars) to avoid SearchValues overhead.
+    /// Provides significant performance improvements for character set exclusion checks.
     /// </remarks>
     internal override MatchResult Scan(int node, Scanner scan)
     {
@@ -148,15 +157,35 @@ internal class NotAnyPattern : TerminalPattern
                 return MatchResult.Success(scan);
             }
 
-            // Create SearchValues for the evaluated expression
-            _searchValues = SearchValues.Create(_charList);
+            // Create SearchValues only for larger character sets
+            _searchValues = _charList.Length >= SearchValuesThreshold
+                ? SearchValues.Create(_charList)
+                : null;
         }
 
         var currentChar = scan.Subject[scan.CursorPosition];
 
-        // Use SearchValues for optimized inverse matching
+        // Optimize for small character sets (1-3 chars) with direct comparison
+        bool isInSet;
+        if (_searchValues == null)
+        {
+            // Direct comparison is faster for small sets
+            isInSet = _charList.Length switch
+            {
+                1 => currentChar == _charList[0],
+                2 => currentChar == _charList[0] || currentChar == _charList[1],
+                3 => currentChar == _charList[0] || currentChar == _charList[1] || currentChar == _charList[2],
+                _ => _charList.Contains(currentChar) // Fallback for 0-length (shouldn't happen)
+            };
+        }
+        else
+        {
+            // Use SearchValues for larger sets (hardware-accelerated)
+            isInSet = _searchValues.Contains(currentChar);
+        }
+
         // Match if character is NOT in the excluded list
-        if (!_searchValues!.Contains(currentChar))
+        if (!isInSet)
         {
             scan.CursorPosition++;
             return MatchResult.Success(scan);

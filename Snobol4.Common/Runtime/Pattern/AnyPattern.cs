@@ -53,9 +53,15 @@ internal class AnyPattern : TerminalPattern
 
     /// <summary>
     /// Optimized character search values using hardware acceleration when available.
-    /// Nullable to support dynamic expression evaluation.
+    /// Nullable to support dynamic expression evaluation and small character set optimization.
     /// </summary>
     private SearchValues<char>? _searchValues;
+
+    /// <summary>
+    /// Threshold for using SearchValues. For very small character sets (1-3 chars),
+    /// direct comparison is faster than SearchValues overhead.
+    /// </summary>
+    private const int SearchValuesThreshold = 4;
 
     #endregion
 
@@ -68,8 +74,10 @@ internal class AnyPattern : TerminalPattern
     internal AnyPattern(string charList)
     {
         _charList = charList;
-        // Create SearchValues for hardware-accelerated character matching
-        _searchValues = SearchValues.Create(charList);
+        // Create SearchValues only for larger character sets
+        _searchValues = charList.Length >= SearchValuesThreshold
+            ? SearchValues.Create(charList)
+            : null;
     }
 
     /// <summary>
@@ -93,7 +101,9 @@ internal class AnyPattern : TerminalPattern
     /// <returns>A new AnyPattern with the same character set</returns>
     internal override AnyPattern Clone()
     {
-        return new AnyPattern(_charList);
+        return _expression != null
+            ? new AnyPattern(_expression)
+            : new AnyPattern(_charList);
     }
 
     /// <summary>
@@ -106,8 +116,9 @@ internal class AnyPattern : TerminalPattern
     /// Failure if at end of subject or character not in set
     /// </returns>
     /// <remarks>
-    /// Uses SearchValues for hardware-accelerated character matching, providing significant
-    /// performance improvements for character set lookups.
+    /// Uses SearchValues for hardware-accelerated character matching with larger character sets,
+    /// or direct comparison for small sets (1-3 chars) to avoid SearchValues overhead.
+    /// Provides significant performance improvements for character set lookups.
     /// </remarks>
     internal override MatchResult Scan(int node, Scanner scan)
     {
@@ -128,14 +139,34 @@ internal class AnyPattern : TerminalPattern
             }
 
             _charList = (string)value;
-            // Create SearchValues for the evaluated expression
-            _searchValues = SearchValues.Create(_charList);
+            // Create SearchValues only for larger character sets
+            _searchValues = _charList.Length >= SearchValuesThreshold
+                ? SearchValues.Create(_charList)
+                : null;
         }
 
         var currentChar = scan.Subject[scan.CursorPosition];
 
-        // Use SearchValues for optimized character matching
-        if (_searchValues!.Contains(currentChar))
+        // Optimize for small character sets (1-3 chars) with direct comparison
+        bool isInSet;
+        if (_searchValues == null)
+        {
+            // Direct comparison is faster for small sets
+            isInSet = _charList.Length switch
+            {
+                1 => currentChar == _charList[0],
+                2 => currentChar == _charList[0] || currentChar == _charList[1],
+                3 => currentChar == _charList[0] || currentChar == _charList[1] || currentChar == _charList[2],
+                _ => false // Empty string - no characters to match
+            };
+        }
+        else
+        {
+            // Use SearchValues for larger sets (hardware-accelerated)
+            isInSet = _searchValues.Contains(currentChar);
+        }
+
+        if (isInSet)
         {
             scan.CursorPosition++;
             return MatchResult.Success(scan);
@@ -150,7 +181,9 @@ internal class AnyPattern : TerminalPattern
 
     internal string DebugString()
     {
-        return $"ANY PATTERN [{_charList}]";
+        return _expression != null
+            ? "ANY PATTERN [expression]"
+            : $"ANY PATTERN [{_charList}]";
     }
     #endregion
 }

@@ -80,8 +80,15 @@ internal class SpanPattern : TerminalPattern
     /// <summary>
     /// Optimized character search values using hardware acceleration when available.
     /// SearchValues provides vectorized character matching for significantly improved performance.
+    /// Nullable for small character set optimization.
     /// </summary>
-    private readonly SearchValues<char> _searchValues;
+    private readonly SearchValues<char>? _searchValues;
+
+    /// <summary>
+    /// Threshold for using SearchValues. For very small character sets (1-3 chars),
+    /// direct comparison is faster than SearchValues overhead.
+    /// </summary>
+    private const int SearchValuesThreshold = 4;
 
     #endregion
 
@@ -94,13 +101,15 @@ internal class SpanPattern : TerminalPattern
     /// <remarks>
     /// The character list cannot be empty because SPAN must match at least one character,
     /// and there would be no valid characters to match.
-    /// Creates a SearchValues instance for optimized character set matching using SIMD when available.
+    /// Creates a SearchValues instance for larger sets, or uses direct comparison for small sets.
     /// </remarks>
     internal SpanPattern(string charList)
     {
         _charList = charList;
-        // Create SearchValues for hardware-accelerated character matching
-        _searchValues = SearchValues.Create(charList);
+        // Create SearchValues only for larger character sets
+        _searchValues = charList.Length >= SearchValuesThreshold
+            ? SearchValues.Create(charList)
+            : null;
     }
 
     #endregion
@@ -141,8 +150,9 @@ internal class SpanPattern : TerminalPattern
     /// (at the first character NOT in the set, or at end of subject).
     /// </para>
     /// <para>
-    /// Uses SearchValues for hardware-accelerated character matching, providing significant
-    /// performance improvements (50-200% faster) compared to traditional Contains() approach.
+    /// Uses SearchValues for hardware-accelerated character matching with larger character sets,
+    /// or direct iteration for small sets (1-3 chars) to avoid SearchValues overhead.
+    /// Provides significant performance improvements over traditional Contains() approach.
     /// </para>
     /// </remarks>
     internal override MatchResult Scan(int node, Scanner scan)
@@ -154,14 +164,49 @@ internal class SpanPattern : TerminalPattern
         var subject = scan.Subject.AsSpan(scan.CursorPosition);
         var startPosition = scan.CursorPosition;
 
-        // Use SearchValues for optimized character set matching
-        // IndexOfAnyExcept finds the first character NOT in the set
-        var endIndex = subject.IndexOfAnyExcept(_searchValues);
+        int endIndex;
 
-        if (endIndex == 0)
+        // Optimize for small character sets (1-3 chars) with direct comparison
+        if (_searchValues == null)
         {
-            // First character is not in the set - fail immediately
-            return MatchResult.Failure(scan);
+            endIndex = 0;
+            while (endIndex < subject.Length)
+            {
+                var ch = subject[endIndex];
+                bool isInSet = _charList.Length switch
+                {
+                    1 => ch == _charList[0],
+                    2 => ch == _charList[0] || ch == _charList[1],
+                    3 => ch == _charList[0] || ch == _charList[1] || ch == _charList[2],
+                    _ => false
+                };
+
+                if (!isInSet)
+                    break;
+                endIndex++;
+            }
+
+            if (endIndex == 0)
+            {
+                // First character is not in the set - fail immediately
+                return MatchResult.Failure(scan);
+            }
+
+            // Mark as "match to end" if we consumed entire remaining subject
+            if (endIndex == subject.Length)
+                endIndex = -1;
+        }
+        else
+        {
+            // Use SearchValues for optimized character set matching (larger sets)
+            // IndexOfAnyExcept finds the first character NOT in the set
+            endIndex = subject.IndexOfAnyExcept(_searchValues);
+
+            if (endIndex == 0)
+            {
+                // First character is not in the set - fail immediately
+                return MatchResult.Failure(scan);
+            }
         }
 
         if (endIndex < 0)
