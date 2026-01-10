@@ -434,7 +434,7 @@ public partial class Executive
     /// In SNOBOL4: NOTANY(string)
     /// </summary>
     /// <param name="arguments">
-    /// Single-element list containing the excluded character set (string)
+    /// Single-element list containing the excluded character set (string or expression)
     /// </param>
     /// <remarks>
     /// <para>
@@ -445,6 +445,7 @@ public partial class Executive
     /// Error handling:
     /// - If argument is not a string: Logs error 151 (argument must be non-null string)
     /// - If argument is empty string: Logs error 151
+    /// - If argument is an expression: Creates NotAnyPattern with expression for runtime evaluation
     /// </para>
     /// </remarks>
     /// <example>
@@ -453,13 +454,21 @@ public partial class Executive
     /// consonant = notany('aeiou')
     /// subject = 'test'
     /// subject consonant . c    // c = "t"
+    /// 
+    /// // Expression argument (evaluated at match time)
+    /// charset = 'abc'
+    /// pattern = notany(charset)
     /// </code>
     /// </example>
     public void CreateNotAnyPattern(List<Var> arguments)
     {
-        var v0 = arguments[0];
+        if (arguments[0] is ExpressionVar expressionVar)
+        {
+            SystemStack.Push(new PatternVar(new NotAnyPattern(expressionVar)));
+            return;
+        }
 
-        if (!v0.Convert(VarType.STRING, out _, out var s, this) || string.IsNullOrEmpty((string)s))  
+        if (!arguments[0].Convert(VarType.STRING, out _, out var s, this) || string.IsNullOrEmpty((string)s))
         {
             LogRuntimeException(151);
             return;
@@ -469,7 +478,6 @@ public partial class Executive
     }
 
     #endregion
-
     #region Create POS Pattern (INTEGER)
 
     /// <summary>

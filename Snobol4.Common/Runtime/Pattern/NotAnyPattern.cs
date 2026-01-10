@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Diagnostics;
 
 namespace Snobol4.Common;
 
@@ -21,6 +22,9 @@ namespace Snobol4.Common;
 /// NOTANY is particularly useful for skipping unwanted characters or finding
 /// boundaries between different character classes.
 /// </para>
+/// <para>
+/// NOTANY can accept either a literal string or an expression that evaluates to a string at match time.
+/// </para>
 /// </remarks>
 /// <example>
 /// <code>
@@ -41,33 +45,52 @@ namespace Snobol4.Common;
 ///
 /// // Skip whitespace
 /// notSpace = notany(' \t\n\r')
+///
+/// // Dynamic character set (expression)
+/// chars = 'abc'
+/// pattern = notany(chars)         // Evaluates chars at match time
 /// </code>
 /// </example>
+[DebuggerDisplay("{DebugString()}")]
 internal class NotAnyPattern : TerminalPattern
 {
     #region Members
 
-    private readonly string _charList;
+    private string _charList;
+    private readonly ExpressionVar? _expression;
 
     /// <summary>
     /// Optimized character search values using hardware acceleration when available.
     /// SearchValues provides vectorized character matching for significantly improved performance.
+    /// Nullable to support dynamic expression evaluation.
     /// </summary>
-    private readonly SearchValues<char> _searchValues;
+    private SearchValues<char>? _searchValues;
 
     #endregion
 
     #region Constructors
 
     /// <summary>
-    /// Creates a NOTANY pattern that matches characters not in the specified set
+    /// Creates a NOTANY pattern with a literal character set
     /// </summary>
     /// <param name="charList">String of characters to exclude from matching</param>
     internal NotAnyPattern(string charList)
     {
         _charList = charList;
+        _expression = null;
         // Create SearchValues for hardware-accelerated character matching
         _searchValues = SearchValues.Create(charList);
+    }
+
+    /// <summary>
+    /// Creates a NOTANY pattern with an expression that evaluates to a character set
+    /// </summary>
+    /// <param name="expression">Expression that produces the excluded character set at match time</param>
+    internal NotAnyPattern(ExpressionVar expression)
+    {
+        _charList = "";
+        _expression = expression;
+        _searchValues = null; // Will be created after expression evaluation
     }
 
     #endregion
@@ -80,7 +103,9 @@ internal class NotAnyPattern : TerminalPattern
     /// <returns>A new NotAnyPattern with the same excluded character set</returns>
     internal override Pattern Clone()
     {
-        return new NotAnyPattern(_charList);
+        return _expression != null
+            ? new NotAnyPattern(_expression)
+            : new NotAnyPattern(_charList);
     }
 
     /// <summary>
@@ -102,17 +127,53 @@ internal class NotAnyPattern : TerminalPattern
         if (scan.CursorPosition >= scan.Subject.Length)
             return MatchResult.Failure(scan);
 
+        // If using expression, evaluate it to get the excluded character set
+        if (_expression != null)
+        {
+            _expression.FunctionName(scan.Exec);
+            var result = scan.Exec.SystemStack.Pop();
+
+            if (!result.Succeeded || !result.Convert(Executive.VarType.STRING, out _, out var value, scan.Exec))
+            {
+                scan.Exec.LogRuntimeException(151);
+                return MatchResult.Failure(scan);
+            }
+
+            _charList = (string)value;
+
+            // Handle empty string - NOTANY with empty exclusion list matches any character
+            if (string.IsNullOrEmpty(_charList))
+            {
+                scan.CursorPosition++;
+                return MatchResult.Success(scan);
+            }
+
+            // Create SearchValues for the evaluated expression
+            _searchValues = SearchValues.Create(_charList);
+        }
+
         var currentChar = scan.Subject[scan.CursorPosition];
 
         // Use SearchValues for optimized inverse matching
         // Match if character is NOT in the excluded list
-        if (!_searchValues.Contains(currentChar))
+        if (!_searchValues!.Contains(currentChar))
         {
             scan.CursorPosition++;
             return MatchResult.Success(scan);
         }
 
         return MatchResult.Failure(scan);
+    }
+
+    #endregion
+
+    #region Debugging
+
+    internal string DebugString()
+    {
+        return _expression != null
+            ? "NOTANY PATTERN [expression]"
+            : $"NOTANY PATTERN [exclude: {_charList}]";
     }
 
     #endregion
