@@ -1,5 +1,49 @@
 ﻿namespace Snobol4.Common;
 
+/// <summary>
+/// Represents a pattern that matches characters up to (but not including) a character from a specified set.
+/// In SNOBOL4, this is created using the BREAK() function.
+/// </summary>
+/// <remarks>
+/// <para>
+/// BREAK matches a sequence of zero or more characters, stopping immediately before
+/// the first character that appears in the specified character set (the "break characters").
+/// The break character itself is not consumed by BREAK.
+/// </para>
+/// <para>
+/// BREAK always succeeds if any break character is found in the remaining subject string,
+/// even if it matches zero characters. This makes BREAK useful for finding delimiters or boundaries.
+/// </para>
+/// <para>
+/// The pattern fails if:
+/// - No break character is found in the remaining subject string
+/// </para>
+/// <para>
+/// BREAK can accept either a literal string or an expression that evaluates to a string at match time.
+/// </para>
+/// </remarks>
+/// <example>
+/// <code>
+/// // Match up to a comma
+/// subject = 'one,two,three'
+/// subject break(',') . word       // word = "one", cursor before comma
+///
+/// // Match up to whitespace
+/// letters = 'abcdefghijklmnopqrstuvwxyz'
+/// word = break(' \t\n')
+/// subject = 'hello world'
+/// subject word . w1               // w1 = "hello"
+///
+/// // Extract key-value pairs
+/// subject = 'NAME:VALUE'
+/// subject break(':') . key ':'    // key = "NAME"
+///         rem . value             // value = "VALUE"
+///
+/// // BREAK can match zero characters
+/// subject = ',data'
+/// subject break(',') . prefix     // prefix = "", succeeds immediately
+/// </code>
+/// </example>
 internal class BreakPattern : TerminalPattern
 {
     #region Members
@@ -11,18 +55,31 @@ internal class BreakPattern : TerminalPattern
 
     #region Construction
 
+    /// <summary>
+    /// Creates a BREAK pattern with a literal set of break characters
+    /// </summary>
+    /// <param name="charList">String containing characters that stop the match</param>
     internal BreakPattern(string charList)
     {
         _charList = charList;
         _expression = null;
     }
 
+    /// <summary>
+    /// Creates a BREAK pattern with an expression that evaluates to break characters
+    /// </summary>
+    /// <param name="expressionVar">Expression that produces the break characters at match time</param>
     internal BreakPattern(ExpressionVar expressionVar)
     {
         _charList = "";
         _expression = expressionVar;
     }
 
+    /// <summary>
+    /// Creates a BREAK pattern with both literal and expression
+    /// </summary>
+    /// <param name="charList">Literal break characters</param>
+    /// <param name="expressionVar">Expression for additional break characters</param>
     internal BreakPattern(string charList, ExpressionVar? expressionVar)
     {
         _charList = charList;
@@ -33,21 +90,36 @@ internal class BreakPattern : TerminalPattern
 
     #region Methods
 
+    /// <summary>
+    /// Creates a deep copy of this BREAK pattern
+    /// </summary>
+    /// <returns>A new BreakPattern with the same break characters</returns>
     internal override Pattern Clone()
     {
         return new BreakPattern(_charList, _expression);
     }
 
+    /// <summary>
+    /// Matches characters up to a break character
+    /// </summary>
+    /// <param name="node">The AST node index for this pattern</param>
+    /// <param name="scan">The scanner containing the subject string and cursor state</param>
+    /// <returns>
+    /// Success if a break character is found (advances cursor to that position),
+    /// Failure if no break character found in remaining subject
+    /// </returns>
     internal override MatchResult Scan(int node, Scanner scan)
     {
         var charList = _charList;
 
+        // If using expression, evaluate it to get the break characters
         if (_expression != null)
         {
             _expression.FunctionName(scan.Exec);
             var charVar = scan.Exec.SystemStack.Pop();
 
-            if (!charVar.Convert(Executive.VarType.STRING, out _, out var str, scan.Exec) || string.IsNullOrEmpty((string)str))
+            if (!charVar.Convert(Executive.VarType.STRING, out _, out var str, scan.Exec) || 
+                string.IsNullOrEmpty((string)str))
             {
                 scan.Exec.LogRuntimeException(59);
                 return MatchResult.Failure(scan);
@@ -58,11 +130,13 @@ internal class BreakPattern : TerminalPattern
         if (scan.Subject.Length == 0)
             return MatchResult.Failure(scan);
 
+        // Find the first occurrence of any break character
         var index = scan.Subject.IndexOfAny(charList.ToCharArray(), scan.CursorPosition);
 
         if (index < 0)
             return MatchResult.Failure(scan);
 
+        // Advance cursor to the break character (but don't consume it)
         scan.CursorPosition = index;
         return MatchResult.Success(scan);
     }

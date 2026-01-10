@@ -1,5 +1,46 @@
 ﻿namespace Snobol4.Common;
 
+/// <summary>
+/// Represents a pattern that matches a single character NOT in a specified set.
+/// In SNOBOL4, this is created using the NOTANY() function.
+/// </summary>
+/// <remarks>
+/// <para>
+/// NOTANY is the inverse of ANY - it matches exactly one character that does NOT
+/// appear in the specified character set. This is useful for finding characters
+/// that don't match certain criteria.
+/// </para>
+/// <para>
+/// The pattern fails if:
+/// - The cursor is at the end of the subject string
+/// - The current character IS in the excluded character set
+/// </para>
+/// <para>
+/// NOTANY is particularly useful for skipping unwanted characters or finding
+/// boundaries between different character classes.
+/// </para>
+/// </remarks>
+/// <example>
+/// <code>
+/// // Match a single non-vowel
+/// notVowel = notany('aeiou')
+/// subject = 'vacuum'
+/// subject notVowel . v1           // v1 = "v"
+///
+/// // Combine with ANY
+/// vowelThenConsonant = any('aeiou') notany('aeiou')
+/// subject = 'vacuum'
+/// subject vowelThenConsonant . v1 // v1 = "ac"
+///
+/// // Match any character except digits
+/// notDigit = notany('0123456789')
+/// subject = 'abc123'
+/// subject notDigit . c            // c = "a"
+///
+/// // Skip whitespace
+/// notSpace = notany(' \t\n\r')
+/// </code>
+/// </example>
 internal class NotAnyPattern : TerminalPattern
 {
     #region Members
@@ -11,13 +52,9 @@ internal class NotAnyPattern : TerminalPattern
     #region Constructors
 
     /// <summary>
-    /// NOTANY(string) is a primitive function whose values is a pattern  that 
-    /// matches a single characters. NOTANY matches any character not appearing in its argument.
-    /// Thus, the pattern for NOTANY('AEIOU') matches any non-vowel. The argument of 
-    /// NOTANY must be a non-null string when pattern matching is performed. ANY is a fast 
-    /// way of looking for one excluded single characters.
+    /// Creates a NOTANY pattern that matches characters not in the specified set
     /// </summary>
-    /// <param name="charList">String of characters to not match</param>
+    /// <param name="charList">String of characters to exclude from matching</param>
     internal NotAnyPattern(string charList)
     {
         _charList = charList;
@@ -27,21 +64,34 @@ internal class NotAnyPattern : TerminalPattern
 
     #region Methods
 
+    /// <summary>
+    /// Creates a deep copy of this NOTANY pattern
+    /// </summary>
+    /// <returns>A new NotAnyPattern with the same excluded character set</returns>
     internal override Pattern Clone()
     {
         return new NotAnyPattern(_charList);
     }
 
     /// <summary>
-    /// Scan the Subject against the NOTANY pattern.
+    /// Attempts to match a single character NOT in the excluded set
     /// </summary>
-    /// <returns>Match Result</returns>
+    /// <param name="node">The AST node index for this pattern</param>
+    /// <param name="scan">The scanner containing the subject string and cursor state</param>
+    /// <returns>
+    /// Success if current character is not in the excluded set and cursor advances by one,
+    /// Failure if at end of subject or character is in the excluded set
+    /// </returns>
     internal override MatchResult Scan(int node, Scanner scan)
     {
+        // Check if at end of subject
         if (scan.CursorPosition >= scan.Subject.Length)
             return MatchResult.Failure(scan);
 
-        return !_charList.Contains(scan.Subject[scan.CursorPosition++]) ? MatchResult.Success(scan) : MatchResult.Failure(scan);
+        // Match if character is NOT in the excluded list
+        return !_charList.Contains(scan.Subject[scan.CursorPosition++]) 
+            ? MatchResult.Success(scan) 
+            : MatchResult.Failure(scan);
     }
 
     #endregion

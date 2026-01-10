@@ -1,5 +1,46 @@
 ﻿namespace Snobol4.Common;
 
+/// <summary>
+/// Represents a pattern that matches balanced parentheses.
+/// In SNOBOL4, this is the BAL or &BAL keyword.
+/// </summary>
+/// <remarks>
+/// <para>
+/// BAL matches strings where parentheses are properly balanced, or strings
+/// without parentheses. It uses a complex three-part structure internally to
+/// handle backtracking and finding progressively longer balanced strings.
+/// </para>
+/// <para>
+/// BAL matches:
+/// 1. The shortest possible string without any parentheses
+/// 2. Any string starting with '(' and ending with ')', where parentheses are balanced
+/// 3. Any combination of the above
+/// </para>
+/// <para>
+/// BAL is implemented as: NULL GBal1 GBal, where:
+/// - NULL: Stores initial cursor position
+/// - GBal1: NULL pattern for storing state
+/// - GBal: The actual balancing logic with backtracking
+/// </para>
+/// </remarks>
+/// <example>
+/// <code>
+/// // Extract all balanced substrings
+/// subject = '((A+(B*C))+D)'
+/// pattern = bal . result fail
+/// subject pattern                 // Matches progressively:
+///                                 // "((A+(B*C))+D)", "(A+(B*C))", "A", etc.
+///
+/// // Match function calls
+/// subject = 'func(arg1, arg2)'
+/// pattern = span(letters) . name '(' bal . args ')'
+/// // name = "func", args = "arg1, arg2"
+///
+/// // Parse nested expressions
+/// subject = '(x*(y+z))'
+/// pattern = '(' bal . expr ')'    // expr = "x*(y+z)"
+/// </code>
+/// </example>
 internal class BalPattern : Pattern
 {
     #region Members
@@ -13,7 +54,7 @@ internal class BalPattern : Pattern
     #region Constructors
 
     /// <summary>
-    /// Constructor forms three patterns. 
+    /// Creates a new BAL pattern with its three-part structure
     /// </summary>
     internal BalPattern()
     {
@@ -27,15 +68,19 @@ internal class BalPattern : Pattern
     #region Methods
 
     /// <summary>
-    /// Structure of composite pattern
+    /// Creates the composite pattern structure for BAL
     /// </summary>
-    /// <returns></returns>
+    /// <returns>A concatenation of NULL GBal1 GBal</returns>
     public static Pattern Structure()
     {
         var bal = new BalPattern();
         return new ConcatenatePattern(bal.GBal0, new ConcatenatePattern(bal.GBal1, bal.GBal));
     }
 
+    /// <summary>
+    /// Creates a deep copy of this BAL pattern
+    /// </summary>
+    /// <returns>A new BalPattern instance</returns>
     internal override Pattern Clone()
     {
         return new BalPattern();
@@ -60,10 +105,11 @@ internal class BalPattern : Pattern
         {
             return new GBal1Pattern();
         }
+
     }
 
     /// <summary>
-    /// GBal pattern matches
+    /// GBal pattern matches:
     ///      (1) the shortest possible string without any parentheses,
     ///      (2) any string that starts with a left parenthesis and
     ///          ends with a right parenthesis, where parentheses are matched.
@@ -76,15 +122,25 @@ internal class BalPattern : Pattern
             return new GBalPattern();
         }
 
+        /// <summary>
+        /// Matches balanced parentheses or strings without parentheses
+        /// </summary>
+        /// <param name="node">The AST node index for this pattern</param>
+        /// <param name="scan">The scanner containing the subject string and cursor state</param>
+        /// <returns>
+        /// Success if a balanced string is found (with backtracking support),
+        /// Failure if at end of subject or next character is ')'
+        /// </returns>
         internal override MatchResult Scan(int node, Scanner scan)
         {
             // Fail if there are no more characters to scan or
             // the next character is a closing parenthesis
-            if (scan.CursorPosition == scan.Subject.Length || scan.Subject[scan.CursorPosition] == ')')
+            if (scan.CursorPosition == scan.Subject.Length || 
+                scan.Subject[scan.CursorPosition] == ')')
                 return MatchResult.Failure(scan);
 
             // If the next character in the subject is not a parenthesis, then the
-            // match succeeds. // This pattern is pushed. If a subsequent fails,
+            // match succeeds. This pattern is pushed. If a subsequent fails,
             // the Bal pattern can be extended.
             if (scan.Subject[scan.CursorPosition] != '(')
             {
@@ -112,11 +168,11 @@ internal class BalPattern : Pattern
                 ++scan.CursorPosition;
             }
 
-            // Fail if there are no more characters to can and no balance was found.
+            // Fail if there are no more characters to scan and no balance was found.
             if (parenCount > 0)
                 return MatchResult.Failure(scan);
 
-            // If a balanced string was match, succeed.
+            // If a balanced string was matched, succeed.
             // This pattern is pushed. If a subsequent fails,
             // the Bal pattern can be extended.
             scan.SaveAlternate(node);
