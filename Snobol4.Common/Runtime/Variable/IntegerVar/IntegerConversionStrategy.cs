@@ -12,7 +12,7 @@ public sealed class IntegerConversionStrategy : IConversionStrategy
     public bool TryConvert(Var self, Executive.VarType targetType, out Var varOut, out object valueOut, Executive exec)
     {
         var intSelf = (IntegerVar)self;
-        varOut = IntegerVar.Zero;
+        varOut = IntegerVar.Create(0);
         valueOut = 0;
 
         switch (targetType)

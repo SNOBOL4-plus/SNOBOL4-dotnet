@@ -60,12 +60,12 @@ public sealed class IntegerArithmeticStrategy : IArithmeticStrategy
                 executive.LogRuntimeException(18);
                 return StringVar.Null();
             }
-            return IntegerVar.Zero;
+            return IntegerVar.Create(0);
         }
 
         if (exponent == 0)
         {
-            return IntegerVar.One;
+            return IntegerVar.Create(1);
         }
 
         if (exponent == 1)
@@ -75,12 +75,12 @@ public sealed class IntegerArithmeticStrategy : IArithmeticStrategy
 
         if (baseValue == 1)
         {
-            return IntegerVar.One;
+            return IntegerVar.Create(1);
         }
 
         if (baseValue == -1)
         {
-            return (exponent & 1) == 0 ? IntegerVar.One : IntegerVar.MinusOne;
+            return (exponent & 1) == 0 ? IntegerVar.Create(1) : IntegerVar.Create(-1);
         }
 
         // Use exponentiation by squaring for better performance

@@ -10,15 +10,6 @@ public sealed class IntegerVar : Var
 {
     #region Data
 
-    public static readonly IntegerVar Zero = new(0);
-    public static readonly IntegerVar One = new(1);
-    public static readonly IntegerVar MinusOne = new(-1);
-
-    // Integer pool for common small values to reduce allocations
-    private static readonly IntegerVar[] _pool = InitializePool();
-    private const int _poolMin = -128;
-    private const int _poolMax = 127;
-
     public long Data;
 
     #endregion
@@ -39,36 +30,17 @@ public sealed class IntegerVar : Var
 
     #endregion
 
-    #region Integer Pool
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static IntegerVar[] InitializePool()
-    {
-        var pool = new IntegerVar[_poolMax - _poolMin + 1];
-        for (var i = 0; i < pool.Length; i++)
-        {
-            pool[i] = new IntegerVar(i + _poolMin);
-        }
-        return pool;
-    }
+    #region Constructors
 
     /// <summary>
-    /// Creates an IntegerVar, using pooled instances for small values
+    /// Creates an IntegerVar
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IntegerVar Create(long value)
     {
-        if ((ulong)(value - _poolMin) <= (ulong)(_poolMax - _poolMin))
-        {
-            return _pool[value - _poolMin];
-        }
         return new IntegerVar(value);
     }
-
-    #endregion
-
-    #region Constructors
-
+    
     public IntegerVar(long data)
     {
         Data = data;
@@ -166,7 +138,7 @@ public sealed class IntegerVar : Var
         switch (leftData, rightData)
         {
             case (0, _) or (_, 0):
-                return Zero;
+                return Create(0);
             case (1, _):
                 return Create(rightData);
             case (_, 1):
