@@ -199,10 +199,10 @@ internal class ConcatenatePattern : NonTerminalPattern
     /// designed for debugger views where space is limited.
     /// </para>
     /// </remarks>
-    internal string DebugString()
+    public override string DebugString()
     {
-        return $"{Left} & {Right}";
+        return $"{Left?.DebugString()} & {Right?.DebugString()}";
     }
 
-    #endregion'
+    #endregion
 }

@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using System.Diagnostics;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Represents a pattern that matches zero or more consecutive occurrences of another pattern.
@@ -67,6 +69,7 @@
 /// subject pattern                 // Matches all three occurrences
 /// </code>
 /// </example>
+[DebuggerDisplay("{DebugString()}")]
 internal class ArbNoPattern : TerminalPattern
 {
     #region Members
@@ -181,4 +184,15 @@ internal class ArbNoPattern : TerminalPattern
         return MatchResult.Success(scan);
     }
     #endregion
+
+    #region Debugging
+
+    /// <summary>
+    /// Returns a debug string representation of this alternation
+    /// </summary>
+    /// <returns>A string showing this pattern</returns>
+    public override string DebugString() => $"arbno({_arbPattern.DebugString()})";
+
+    #endregion
+
 }

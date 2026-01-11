@@ -246,4 +246,7 @@ internal class SpanPattern : TerminalPattern
     }
 
     #endregion
+
+    public override string DebugString() => $"span({_charList})";
+
 }

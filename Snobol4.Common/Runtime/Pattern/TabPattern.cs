@@ -130,4 +130,7 @@ internal class TabPattern : TerminalPattern
     }
 
     #endregion
+
+    public override string DebugString() => $"tab({Position})";
+
 }

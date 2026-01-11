@@ -117,4 +117,14 @@ internal class PosPattern : TerminalPattern
     }
 
     #endregion
+
+    #region Debugging
+
+    /// <summary>
+    /// Returns a debug string representation of this alternation
+    /// </summary>
+    /// <returns>A string showing this pattern</returns>
+    public override string DebugString() => $"pos({Position})";
+
+    #endregion
 }

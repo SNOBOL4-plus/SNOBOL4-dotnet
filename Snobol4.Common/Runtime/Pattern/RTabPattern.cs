@@ -94,4 +94,7 @@ internal class RTabPattern : TerminalPattern
     }
 
     #endregion
+
+    public override string DebugString() => $"rtab({Position})";
+
 }

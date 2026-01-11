@@ -106,6 +106,8 @@ internal class BalPattern : Pattern
             return new GBal1Pattern();
         }
 
+        public override string DebugString() => "gbal1";
+        
     }
 
     /// <summary>
@@ -186,7 +188,28 @@ internal class BalPattern : Pattern
             scan.SaveAlternate(node);
             return MatchResult.Success(scan);
         }
+
+        #region Debugging
+
+        /// <summary>
+        /// Returns a debug string representation of this pattern
+        /// </summary>
+        /// <returns>A string showing this pattern</returns>
+        public override string DebugString() => "gbal";
+
+        #endregion
     }
 
     #endregion
+
+    #region Debugging
+
+    /// <summary>
+    /// Returns a debug string representation of this pattern
+    /// </summary>
+    /// <returns>A string showing this pattern</returns>
+    public override string DebugString() => "gbal";
+
+    #endregion
+
 }

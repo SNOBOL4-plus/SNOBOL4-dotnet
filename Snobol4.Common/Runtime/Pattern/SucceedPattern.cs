@@ -56,4 +56,7 @@ internal class SucceedPattern : TerminalPattern
     }
 
     #endregion
+
+    public override string DebugString() => "succeed";
+
 }

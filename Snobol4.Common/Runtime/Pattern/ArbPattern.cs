@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using System.Diagnostics;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Represents a pattern that matches an arbitrary string of any length.
@@ -31,6 +33,7 @@
 /// subject ('CAT' arb 'DOG') | ('DOG' arb 'CAT')  // Matches 'CATDOG'
 /// </code>
 /// </example>
+[DebuggerDisplay("{DebugString()}")]
 internal class ArbPattern : TerminalPattern
 {
     #region Methods
@@ -80,4 +83,15 @@ internal class ArbPattern : TerminalPattern
         return MatchResult.Success(scan);
     }
     #endregion
+
+    #region Debugging
+
+    /// <summary>
+    /// Returns a debug string representation of this alternation
+    /// </summary>
+    /// <returns>A string showing this pattern</returns>
+    public override string DebugString() => "arb";
+
+    #endregion
+
 }

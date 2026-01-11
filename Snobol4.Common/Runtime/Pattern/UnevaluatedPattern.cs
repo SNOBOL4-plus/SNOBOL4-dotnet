@@ -118,4 +118,7 @@ internal class UnevaluatedPattern : TerminalPattern
     }
 
     #endregion
+
+    public override string DebugString() => "*(expression)";
+
 }

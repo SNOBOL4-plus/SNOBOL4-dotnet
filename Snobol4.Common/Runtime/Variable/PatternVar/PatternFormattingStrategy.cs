@@ -17,12 +17,27 @@ public class PatternFormattingStrategy : IFormattingStrategy
         // Try to provide more detail about the pattern type
         var patternType = patternSelf.Data switch
         {
-            LiteralPattern lit => $"'{lit.Literal}'",
-            ConcatenatePattern => "concat",
-            AlternatePattern => "alternate",
+            AlternatePattern => "|",
+            AnyPattern => "any",
             ArbPattern => "arb",
             ArbNoPattern => "arbno",
             BalPattern => "bal",
+            BreakPattern => "break",
+            ConcatenatePattern => "&",
+            AtSign => "@",
+            FailPattern => "fail",
+            FencePattern => "fence",
+            LenPattern => "len",
+            LiteralPattern lit => $"'{lit.Literal}'",
+            NotAnyPattern => "notany",
+            PosPattern => "pos",
+            RemPattern => "rem",
+            RPosPattern => "rpos",
+            RTabPattern => "rtab",
+            SpanPattern => "span",
+            SucceedPattern => "succeed",
+            TabPattern => "tab",
+            UnevaluatedPattern => "unevaluated",
             _ => "pattern"
         };
 

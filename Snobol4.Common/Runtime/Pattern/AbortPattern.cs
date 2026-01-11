@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using System.Diagnostics;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Represents a pattern that immediately aborts pattern matching, preventing backtracking.
@@ -35,6 +37,7 @@
 /// // If quick_check matches, don't waste time on expensive_pattern
 /// </code>
 /// </example>
+[DebuggerDisplay("{DebugString()}")]
 internal class AbortPattern : TerminalPattern
 {
     #region Methods
@@ -55,6 +58,16 @@ internal class AbortPattern : TerminalPattern
     /// </summary>
     /// <returns>A new AbortPattern instance</returns>
     internal override Pattern Clone() => new AbortPattern();
+
+    #endregion
+
+    #region Debugging
+
+    /// <summary>
+    /// Returns a debug string representation of this alternation
+    /// </summary>
+    /// <returns>A string showing this pattern</returns>
+    public override string DebugString() => "abort";
 
     #endregion
 }

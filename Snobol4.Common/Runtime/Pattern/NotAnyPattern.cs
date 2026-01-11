@@ -220,11 +220,11 @@ internal class NotAnyPattern : TerminalPattern
 
     #region Debugging
 
-    internal string DebugString()
+    public override string DebugString()
     {
         return _expression != null
-            ? "NOTANY PATTERN [expression]"
-            : $"NOTANY PATTERN [exclude: {_charList}]";
+            ? "notany(*expression)"
+            : $"notany({_charList})";
     }
 
     #endregion

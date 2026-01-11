@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using System.Diagnostics;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Base class for all SNOBOL4 pattern types.
@@ -157,4 +159,13 @@ public abstract class Pattern
     /// </example>
     internal abstract Pattern Clone();
 
+    #region Debugging
+
+    /// <summary>
+    /// Returns a debug string representation of this pattern
+    /// </summary>
+    /// <returns>A string showing this pattern</returns>
+    public abstract string DebugString();
+
+    #endregion
 }

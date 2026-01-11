@@ -200,4 +200,15 @@ internal class BreakPattern : TerminalPattern
     }
 
     #endregion
+
+    #region Debugging
+
+    public override string DebugString()
+    {
+        return _expression != null
+            ? "break(*)"
+            : $"break[{_charList}]";
+    }
+
+    #endregion
 }

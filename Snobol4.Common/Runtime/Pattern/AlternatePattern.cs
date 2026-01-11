@@ -82,11 +82,8 @@ internal class AlternatePattern : NonTerminalPattern
     /// <summary>
     /// Returns a debug string representation of this alternation
     /// </summary>
-    /// <returns>A string showing left | right pattern</returns>
-    internal string DebugString()
-    {
-        return $"{Left} | {Right}";
-    }
+    /// <returns>A string showing this pattern</returns>
+    public override string DebugString() => $"{Left?.DebugString()} | {Right?.DebugString()}";
 
     #endregion
 }

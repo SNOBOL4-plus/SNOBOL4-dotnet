@@ -68,4 +68,14 @@ internal class NullPattern : LiteralPattern
     }
 
     #endregion
+
+    #region Debugging
+
+    /// <summary>
+    /// Returns a debug string representation of this alternation
+    /// </summary>
+    /// <returns>A string showing this pattern</returns>
+    public override string DebugString() => "null";
+
+    #endregion
 }

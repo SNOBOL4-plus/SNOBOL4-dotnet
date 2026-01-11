@@ -58,4 +58,15 @@ internal class FailPattern : TerminalPattern
     }
 
     #endregion
+
+    #region Debugging
+
+    /// <summary>
+    /// Returns a debug string representation of this alternation
+    /// </summary>
+    /// <returns>A string showing this pattern</returns>
+    public override string DebugString() => "fail";
+
+    #endregion
+
 }

@@ -198,11 +198,12 @@ internal class AnyPattern : TerminalPattern
 
     #region Debugging
 
-    internal string DebugString()
+    public override string DebugString()
     {
         return _expression != null
-            ? "ANY PATTERN [expression]"
-            : $"ANY PATTERN [{_charList}]";
+            ? "any(*)"
+            : $"any[{_charList}]";
     }
+
     #endregion
 }
