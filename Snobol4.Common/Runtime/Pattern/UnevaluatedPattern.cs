@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using System.Diagnostics;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Represents a pattern that is evaluated lazily at match time.
@@ -33,6 +35,7 @@
 /// // Matches: 'aa', 'bb', 'cc', etc.
 /// </code>
 /// </example>
+[DebuggerDisplay("{DebugString()}")]
 internal class UnevaluatedPattern : TerminalPattern
 {
     #region Members
@@ -119,6 +122,18 @@ internal class UnevaluatedPattern : TerminalPattern
 
     #endregion
 
+    #region Debugging
+
+    /// <summary>
+    /// Returns a debug string representation of this pattern for diagnostic purposes.
+    /// </summary>
+    /// <returns>The string "*(expression)" indicating this is an unevaluated expression pattern.</returns>
+    /// <remarks>
+    /// This method is used by the debugger display attribute and diagnostic tools
+    /// to provide a concise, human-readable representation of the pattern.
+    /// The asterisk (*) operator in SNOBOL4 indicates deferred evaluation of a pattern expression.
+    /// </remarks>
     public override string DebugString() => "*(expression)";
 
+    #endregion
 }

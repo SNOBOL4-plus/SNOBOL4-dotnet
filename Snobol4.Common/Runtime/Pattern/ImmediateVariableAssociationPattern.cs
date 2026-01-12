@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using System.Diagnostics;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Implements the first phase of immediate variable assignment in SNOBOL4 pattern matching.
@@ -52,6 +54,7 @@
 /// // ImmediateVariableAssociation2
 /// </code>
 /// </example>
+[DebuggerDisplay("{DebugString()}")]
 internal class ImmediateVariableAssociation1 : NullPattern
 {
     #region Members

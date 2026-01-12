@@ -1,4 +1,6 @@
-﻿    namespace Snobol4.Common;
+﻿    using System.Diagnostics;
+
+    namespace Snobol4.Common;
 
 /// <summary>
 /// Represents a pattern that matches exactly N characters.
@@ -40,6 +42,7 @@
 /// pattern = len(6) rem . data     // data = "DATA"
 /// </code>
 /// </example>
+[DebuggerDisplay("{DebugString()}")]
 internal class LenPattern : TerminalPattern
 {
     #region Members

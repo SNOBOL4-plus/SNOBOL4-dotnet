@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using System.Diagnostics;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Represents a pattern that matches the empty string (always succeeds without consuming input).
@@ -32,6 +34,7 @@
 /// subject 'pro' null 'gram'       // NULL is redundant but valid
 /// </code>
 /// </example>
+[DebuggerDisplay("{DebugString()}")]
 internal class NullPattern : LiteralPattern
 {
     #region Construction
@@ -72,9 +75,13 @@ internal class NullPattern : LiteralPattern
     #region Debugging
 
     /// <summary>
-    /// Returns a debug string representation of this alternation
+    /// Returns a debug string representation of this pattern for diagnostic purposes.
     /// </summary>
-    /// <returns>A string showing this pattern</returns>
+    /// <returns>The string "null" indicating this is a NULL pattern.</returns>
+    /// <remarks>
+    /// This method is used by the debugger display attribute and diagnostic tools
+    /// to provide a concise, human-readable representation of the pattern.
+    /// </remarks>
     public override string DebugString() => "null";
 
     #endregion

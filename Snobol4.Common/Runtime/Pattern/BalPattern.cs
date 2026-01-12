@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using System.Diagnostics;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Represents a pattern that matches balanced parentheses.
@@ -94,6 +96,7 @@ internal class BalPattern : Pattern
     /// First pattern is a NULL pattern augmented to store the cursor position for
     /// failure of BAL.
     /// </summary>
+    [DebuggerDisplay("{DebugString()}")]
     internal class GBal1Pattern : TerminalPattern
     {
         internal override MatchResult Scan(int node, Scanner scan)
@@ -117,6 +120,7 @@ internal class BalPattern : Pattern
     ///          ends with a right parenthesis, where parentheses are matched.
     ///      (3) any combination of 1 and 2.
     /// </summary>
+    [DebuggerDisplay("{DebugString()}")]
     internal class GBalPattern : TerminalPattern
     {
         internal override Pattern Clone()
@@ -208,7 +212,7 @@ internal class BalPattern : Pattern
     /// Returns a debug string representation of this pattern
     /// </summary>
     /// <returns>A string showing this pattern</returns>
-    public override string DebugString() => "gbal";
+    public override string DebugString() => "bal";
 
     #endregion
 

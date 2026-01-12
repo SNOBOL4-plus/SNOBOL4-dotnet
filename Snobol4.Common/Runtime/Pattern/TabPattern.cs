@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using System.Diagnostics;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Represents a pattern that advances the cursor to a specific position.
@@ -56,6 +58,7 @@
 /// subject tab(4)                // Advances to end (position 4)
 /// </code>
 /// </example>
+[DebuggerDisplay("{DebugString()}")]
 internal class TabPattern : TerminalPattern
 {
     #region Members

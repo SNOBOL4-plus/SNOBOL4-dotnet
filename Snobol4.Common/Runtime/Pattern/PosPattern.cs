@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Snobol4.Common;
 
 /// <summary>
@@ -51,6 +53,7 @@ namespace Snobol4.Common;
 /// subject pos(5) 'test'         // Fails, cursor not at position 5
 /// </code>
 /// </example>
+[DebuggerDisplay("{DebugString()}")]
 internal class PosPattern : TerminalPattern
 {
     #region Internal Members
@@ -121,9 +124,13 @@ internal class PosPattern : TerminalPattern
     #region Debugging
 
     /// <summary>
-    /// Returns a debug string representation of this alternation
+    /// Returns a debug string representation of this pattern for diagnostic purposes.
     /// </summary>
-    /// <returns>A string showing this pattern</returns>
+    /// <returns>A string in the format "pos(&lt;n&gt;)" where &lt;n&gt; is the required cursor position.</returns>
+    /// <remarks>
+    /// This method is used by the debugger display attribute and diagnostic tools
+    /// to provide a concise, human-readable representation of the pattern.
+    /// </remarks>
     public override string DebugString() => $"pos({Position})";
 
     #endregion

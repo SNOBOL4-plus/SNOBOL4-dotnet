@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Diagnostics;
 
 namespace Snobol4.Common;
 
@@ -68,6 +69,7 @@ namespace Snobol4.Common;
 /// subject span('ab') . all        // all = "aaabbb", matches all chars
 /// </code>
 /// </example>
+[DebuggerDisplay("{DebugString()}")]
 internal class SpanPattern : TerminalPattern
 {
     #region Members
@@ -247,6 +249,17 @@ internal class SpanPattern : TerminalPattern
 
     #endregion
 
+    #region Debugging
+
+    /// <summary>
+    /// Returns a debug string representation of this pattern for diagnostic purposes.
+    /// </summary>
+    /// <returns>A string in the format "span(&lt;characters&gt;)" where &lt;characters&gt; is the character set to span.</returns>
+    /// <remarks>
+    /// This method is used by the debugger display attribute and diagnostic tools
+    /// to provide a concise, human-readable representation of the pattern.
+    /// </remarks>
     public override string DebugString() => $"span({_charList})";
 
+    #endregion
 }

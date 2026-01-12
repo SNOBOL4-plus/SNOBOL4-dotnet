@@ -1,4 +1,6 @@
-﻿    namespace Snobol4.Common;
+﻿    using System.Diagnostics;
+
+    namespace Snobol4.Common;
 
 /// <summary>
 /// Represents a pattern that matches a specific literal string.
@@ -25,6 +27,7 @@
 /// subject 'hello' ' ' 'world' // Success
 /// </code>
 /// </example>
+[DebuggerDisplay("{DebugString()}")]
 internal class LiteralPattern : TerminalPattern
 {
     #region Members
@@ -99,9 +102,13 @@ internal class LiteralPattern : TerminalPattern
     #region Debugging
 
     /// <summary>
-    /// Returns a debug string representation of this alternation
+    /// Returns a debug string representation of this pattern for diagnostic purposes.
     /// </summary>
-    /// <returns>A string showing this pattern</returns>
+    /// <returns>A string in the format "literal (&lt;text&gt;)" where &lt;text&gt; is the literal string to match.</returns>
+    /// <remarks>
+    /// This method is used by the debugger display attribute and diagnostic tools
+    /// to provide a concise, human-readable representation of the pattern.
+    /// </remarks>
     public override string DebugString() => $"literal ({Literal})";
 
     #endregion

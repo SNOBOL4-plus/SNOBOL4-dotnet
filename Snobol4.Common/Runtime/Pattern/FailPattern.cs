@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using System.Diagnostics;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Represents a pattern that always fails immediately.
@@ -33,6 +35,7 @@
 /// done    // Process all matches
 /// </code>
 /// </example>
+[DebuggerDisplay("{DebugString()}")]
 internal class FailPattern : TerminalPattern
 {
     #region Methods
@@ -62,9 +65,13 @@ internal class FailPattern : TerminalPattern
     #region Debugging
 
     /// <summary>
-    /// Returns a debug string representation of this alternation
+    /// Returns a debug string representation of this pattern for diagnostic purposes.
     /// </summary>
-    /// <returns>A string showing this pattern</returns>
+    /// <returns>The string "fail" indicating this is a FAIL pattern.</returns>
+    /// <remarks>
+    /// This method is used by the debugger display attribute and diagnostic tools
+    /// to provide a concise, human-readable representation of the pattern.
+    /// </remarks>
     public override string DebugString() => "fail";
 
     #endregion

@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using System.Diagnostics;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Represents the cursor assignment operator (@) in SNOBOL4 pattern matching.
@@ -59,6 +61,7 @@
 /// // before = 0, after = 9 (entire string)
 /// </code>
 /// </example>
+[DebuggerDisplay("{DebugString()}")]
 internal class AtSign : TerminalPattern
 {
     #region Members
@@ -181,9 +184,17 @@ internal class AtSign : TerminalPattern
     #region Debugging
 
     /// <summary>
-    /// Returns a debug string representation of this alternation
+    /// Returns a debug string representation of this pattern for diagnostic purposes.
     /// </summary>
-    /// <returns>A string showing this pattern</returns>
+    /// <returns>
+    /// A string in the format "@ &lt;variable&gt;" showing the cursor assignment operation.
+    /// </returns>
+    /// <remarks>
+    /// This method is used by the debugger display attribute and diagnostic tools
+    /// to provide a concise, human-readable representation of the pattern.
+    /// The @ symbol represents the cursor assignment operator in SNOBOL4.
+    /// The assignee variable's DebugString() is included to show which variable receives the position.
+    /// </remarks>
     public override string DebugString() => $"@ {_assignee.DebugString()}";
 
     #endregion

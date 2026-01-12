@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using System.Diagnostics;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Represents a pattern that advances the cursor to a position relative to the end of the subject.
@@ -39,6 +41,7 @@
 ///           rem . last            // last = "here"
 /// </code>
 /// </example>
+[DebuggerDisplay("{DebugString()}")]
 internal class RTabPattern : TerminalPattern
 {
     #region Members
@@ -95,6 +98,17 @@ internal class RTabPattern : TerminalPattern
 
     #endregion
 
+    #region Debugging
+
+    /// <summary>
+    /// Returns a debug string representation of this pattern for diagnostic purposes.
+    /// </summary>
+    /// <returns>A string in the format "rtab(&lt;n&gt;)" where &lt;n&gt; is the target position from the end.</returns>
+    /// <remarks>
+    /// This method is used by the debugger display attribute and diagnostic tools
+    /// to provide a concise, human-readable representation of the pattern.
+    /// </remarks>
     public override string DebugString() => $"rtab({Position})";
 
+    #endregion
 }

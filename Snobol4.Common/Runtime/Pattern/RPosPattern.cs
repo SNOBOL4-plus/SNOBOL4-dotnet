@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using System.Diagnostics;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Represents a pattern that succeeds only if the cursor is at a specific position from the end.
@@ -52,6 +54,7 @@
 /// subject 'test' rpos(5)        // Fails, string length is 4
 /// </code>
 /// </example>
+[DebuggerDisplay("{DebugString()}")]
 internal class RPosPattern : TerminalPattern
 {
     #region Members
@@ -125,9 +128,13 @@ internal class RPosPattern : TerminalPattern
     #region Debugging
 
     /// <summary>
-    /// Returns a debug string representation of this alternation
+    /// Returns a debug string representation of this pattern for diagnostic purposes.
     /// </summary>
-    /// <returns>A string showing this pattern</returns>
+    /// <returns>A string in the format "rpos(&lt;n&gt;)" where &lt;n&gt; is the required position from the end.</returns>
+    /// <remarks>
+    /// This method is used by the debugger display attribute and diagnostic tools
+    /// to provide a concise, human-readable representation of the pattern.
+    /// </remarks>
     public override string DebugString() => $"rpos({Position})";
 
     #endregion

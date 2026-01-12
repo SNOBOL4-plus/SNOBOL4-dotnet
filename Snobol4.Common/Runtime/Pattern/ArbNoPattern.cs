@@ -187,12 +187,17 @@ internal class ArbNoPattern : TerminalPattern
 
     #region Debugging
 
-    /// <summary>
-    /// Returns a debug string representation of this alternation
+
+   /// <summary>
+    /// Returns a debug string representation of this pattern for diagnostic purposes.
     /// </summary>
-    /// <returns>A string showing this pattern</returns>
+    /// <returns>A string in the format "arbno(&lt;pattern&gt;)" showing the repeated pattern structure.</returns>
+    /// <remarks>
+    /// This method is used by the debugger display attribute and diagnostic tools
+    /// to provide a concise, human-readable representation of the pattern.
+    /// The nested pattern's DebugString() is recursively included to show the complete structure.
+    /// </remarks>
     public override string DebugString() => $"arbno({_arbPattern.DebugString()})";
 
     #endregion
-
 }

@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using System.Diagnostics;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Represents the FENCE pattern in SNOBOL4, which prevents backtracking past a certain point.
@@ -74,6 +76,7 @@
 /// </code>
 /// </example>
 // ReSharper disable once UnusedMember.Global
+[DebuggerDisplay("{DebugString()}")]
 internal class FencePattern : Pattern
 {
     #region Methods
@@ -162,9 +165,13 @@ internal class FencePattern : Pattern
     #region Debugging
 
     /// <summary>
-    /// Returns a debug string representation of this alternation
+    /// Returns a debug string representation of this pattern for diagnostic purposes.
     /// </summary>
-    /// <returns>A string showing this pattern</returns>
+    /// <returns>The string "fence" indicating this is a FENCE pattern.</returns>
+    /// <remarks>
+    /// This method is used by the debugger display attribute and diagnostic tools
+    /// to provide a concise, human-readable representation of the pattern.
+    /// </remarks>
     public override string DebugString() => "fence";
 
     #endregion

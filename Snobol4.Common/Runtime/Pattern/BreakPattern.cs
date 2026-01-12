@@ -1,4 +1,5 @@
-﻿    using System.Buffers;
+﻿using System.Buffers;
+using System.Diagnostics;
 
 namespace Snobol4.Common;
 
@@ -46,6 +47,7 @@ namespace Snobol4.Common;
 /// subject break(',') . prefix     // prefix = "", succeeds immediately
 /// </code>
 /// </example>
+[DebuggerDisplay("{DebugString()}")]
 internal class BreakPattern : TerminalPattern
 {
     #region Members
@@ -203,6 +205,18 @@ internal class BreakPattern : TerminalPattern
 
     #region Debugging
 
+    /// <summary>
+    /// Returns a debug string representation of this pattern for diagnostic purposes.
+    /// </summary>
+    /// <returns>
+    /// Either "break(*)" for expression-based patterns, or "break[&lt;characters&gt;]" 
+    /// for literal break character set patterns, where &lt;characters&gt; is the break character set string.
+    /// </returns>
+    /// <remarks>
+    /// This method is used by the debugger display attribute and diagnostic tools
+    /// to provide a concise, human-readable representation of the pattern.
+    /// The asterisk (*) indicates the break characters are determined by evaluating an expression at match time.
+    /// </remarks>
     public override string DebugString()
     {
         return _expression != null

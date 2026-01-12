@@ -198,6 +198,18 @@ internal class AnyPattern : TerminalPattern
 
     #region Debugging
 
+    /// <summary>
+    /// Returns a debug string representation of this pattern for diagnostic purposes.
+    /// </summary>
+    /// <returns>
+    /// Either "any(*)" for expression-based patterns, or "any[&lt;characters&gt;]" 
+    /// for literal character set patterns, where &lt;characters&gt; is the character set string.
+    /// </returns>
+    /// <remarks>
+    /// This method is used by the debugger display attribute and diagnostic tools
+    /// to provide a concise, human-readable representation of the pattern.
+    /// The asterisk (*) indicates the character set is determined by evaluating an expression at match time.
+    /// </remarks>
     public override string DebugString()
     {
         return _expression != null

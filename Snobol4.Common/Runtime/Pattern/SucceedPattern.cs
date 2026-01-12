@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using System.Diagnostics;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Represents a pattern that always succeeds (like NULL) but is typically used with different semantics.
@@ -31,6 +33,7 @@
 /// // Try test1 and test2, but don't fail if they don't match
 /// </code>
 /// </example>
+[DebuggerDisplay("{DebugString()}")]
 internal class SucceedPattern : TerminalPattern
 {
     #region Methods
@@ -57,6 +60,17 @@ internal class SucceedPattern : TerminalPattern
 
     #endregion
 
+    #region Debugging
+
+    /// <summary>
+    /// Returns a debug string representation of this pattern for diagnostic purposes.
+    /// </summary>
+    /// <returns>The string "succeed" indicating this is a SUCCEED pattern.</returns>
+    /// <remarks>
+    /// This method is used by the debugger display attribute and diagnostic tools
+    /// to provide a concise, human-readable representation of the pattern.
+    /// </remarks>
     public override string DebugString() => "succeed";
 
+    #endregion
 }

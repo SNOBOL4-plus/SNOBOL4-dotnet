@@ -80,9 +80,17 @@ internal class AlternatePattern : NonTerminalPattern
     #region Debugging
 
     /// <summary>
-    /// Returns a debug string representation of this alternation
+    /// Returns a debug string representation of this pattern for diagnostic purposes.
     /// </summary>
-    /// <returns>A string showing this pattern</returns>
+    /// <returns>
+    /// A string in the format "&lt;left&gt; | &lt;right&gt;" showing both alternative patterns.
+    /// </returns>
+    /// <remarks>
+    /// This method is used by the debugger display attribute and diagnostic tools
+    /// to provide a concise, human-readable representation of the pattern.
+    /// The pipe (|) symbol represents the alternation operator, matching SNOBOL4 syntax.
+    /// Both child patterns' DebugString() methods are recursively called to show the complete structure.
+    /// </remarks>
     public override string DebugString() => $"{Left?.DebugString()} | {Right?.DebugString()}";
 
     #endregion
