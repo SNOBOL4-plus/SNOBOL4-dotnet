@@ -61,7 +61,7 @@ namespace Snobol4.Common;
 /// // before = 0, after = 9 (entire string)
 /// </code>
 /// </example>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class AtSign : TerminalPattern
 {
     #region Members
@@ -193,9 +193,9 @@ internal class AtSign : TerminalPattern
     /// This method is used by the debugger display attribute and diagnostic tools
     /// to provide a concise, human-readable representation of the pattern.
     /// The @ symbol represents the cursor assignment operator in SNOBOL4.
-    /// The assignee variable's DebugString() is included to show which variable receives the position.
+    /// The assignee variable's DebugPattern() is included to show which variable receives the position.
     /// </remarks>
-    public override string DebugString() => $"@ {_assignee.DebugString()}";
+    public override string DebugPattern() => "@";
 
     #endregion
 

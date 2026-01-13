@@ -47,13 +47,13 @@ namespace Snobol4.Common;
 /// subject break(',') . prefix     // prefix = "", succeeds immediately
 /// </code>
 /// </example>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class BreakPattern : TerminalPattern
 {
     #region Members
 
     private string _charList;
-    private readonly ExpressionVar? _expression;
+    private readonly Executive.DeferredCode _functionName;
 
     /// <summary>
     /// Optimized character search values using hardware acceleration when available.
@@ -85,7 +85,7 @@ internal class BreakPattern : TerminalPattern
     internal BreakPattern(string charList)
     {
         _charList = charList;
-        _expression = null;
+        _functionName = null;
         // Create SearchValues only for larger character sets
         _searchValues = !string.IsNullOrEmpty(charList) && charList.Length >= SearchValuesThreshold
             ? SearchValues.Create(charList)
@@ -95,11 +95,11 @@ internal class BreakPattern : TerminalPattern
     /// <summary>
     /// Creates a BREAK pattern with an expression that evaluates to break characters
     /// </summary>
-    /// <param name="expressionVar">Expression that produces the break characters at match time</param>
-    internal BreakPattern(ExpressionVar expressionVar)
+    /// <param name="functionName">Expression that produces the break characters at match time</param>
+    internal BreakPattern(Executive.DeferredCode functionName)
     {
         _charList = "";
-        _expression = expressionVar;
+        _functionName = functionName;
         _searchValues = null; // Will be created after expression evaluation
     }
 
@@ -107,11 +107,11 @@ internal class BreakPattern : TerminalPattern
     /// Creates a BREAK pattern with both literal and expression
     /// </summary>
     /// <param name="charList">Literal break characters</param>
-    /// <param name="expressionVar">Expression for additional break characters</param>
-    internal BreakPattern(string charList, ExpressionVar? expressionVar)
+    /// <param name="functionName">Expression for additional break characters</param>
+    internal BreakPattern(string charList, Executive.DeferredCode? functionName)
     {
         _charList = charList;
-        _expression = expressionVar;
+        _functionName = functionName;
         // Create SearchValues only for larger character sets
         _searchValues = !string.IsNullOrEmpty(charList) && charList.Length >= SearchValuesThreshold
             ? SearchValues.Create(charList)
@@ -128,7 +128,7 @@ internal class BreakPattern : TerminalPattern
     /// <returns>A new BreakPattern with the same break characters</returns>
     internal override Pattern Clone()
     {
-        return new BreakPattern(_charList, _expression);
+        return new BreakPattern(_charList, _functionName);
     }
 
     /// <summary>
@@ -149,16 +149,16 @@ internal class BreakPattern : TerminalPattern
     {
         var charList = _charList;
 
-        // If using expression, evaluate it to get the break characters
-        if (_expression != null)
+        // If using function name, evaluate it to get the break characters
+        if (_functionName != null)
         {
-            _expression.FunctionName(scan.Exec);
+            _functionName(scan.Exec);
             var charVar = scan.Exec.SystemStack.Pop();
 
             if (!charVar.Convert(Executive.VarType.STRING, out _, out var str, scan.Exec) ||
                 string.IsNullOrEmpty((string)str))
             {
-                scan.Exec.LogRuntimeException(59);
+                scan.Exec.LogRuntimeException(69);
                 return MatchResult.Failure(scan);
             }
             
@@ -217,12 +217,7 @@ internal class BreakPattern : TerminalPattern
     /// to provide a concise, human-readable representation of the pattern.
     /// The asterisk (*) indicates the break characters are determined by evaluating an expression at match time.
     /// </remarks>
-    public override string DebugString()
-    {
-        return _expression != null
-            ? "break(*)"
-            : $"break[{_charList}]";
-    }
+    public override string DebugPattern() => "break";
 
     #endregion
 }

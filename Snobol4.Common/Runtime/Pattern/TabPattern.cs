@@ -58,7 +58,7 @@ namespace Snobol4.Common;
 /// subject tab(4)                // Advances to end (position 4)
 /// </code>
 /// </example>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class TabPattern : TerminalPattern
 {
     #region Members
@@ -134,6 +134,6 @@ internal class TabPattern : TerminalPattern
 
     #endregion
 
-    public override string DebugString() => $"tab({Position})";
+    public override string DebugPattern() => "tab";
 
 }

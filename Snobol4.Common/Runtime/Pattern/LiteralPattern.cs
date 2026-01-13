@@ -27,7 +27,7 @@
 /// subject 'hello' ' ' 'world' // Success
 /// </code>
 /// </example>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class LiteralPattern : TerminalPattern
 {
     #region Members
@@ -109,7 +109,7 @@ internal class LiteralPattern : TerminalPattern
     /// This method is used by the debugger display attribute and diagnostic tools
     /// to provide a concise, human-readable representation of the pattern.
     /// </remarks>
-    public override string DebugString() => $"literal ({Literal})";
+    public override string DebugPattern() => "literal";
 
     #endregion
 }

@@ -53,7 +53,7 @@ namespace Snobol4.Common;
 /// subject pos(5) 'test'         // Fails, cursor not at position 5
 /// </code>
 /// </example>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class PosPattern : TerminalPattern
 {
     #region Internal Members
@@ -131,7 +131,7 @@ internal class PosPattern : TerminalPattern
     /// This method is used by the debugger display attribute and diagnostic tools
     /// to provide a concise, human-readable representation of the pattern.
     /// </remarks>
-    public override string DebugString() => $"pos({Position})";
+    public override string DebugPattern() => "pos";
 
     #endregion
 }

@@ -22,7 +22,7 @@ public sealed class ProgramDefinedDataFormattingStrategy : IFormattingStrategy
         return $"<{dataSelf.UserDefinedDataName}:{dataSelf.ProgramDefinedData.Count}>";
     }
 
-    public string DebugString(Var self)
+    public string DebugVar(Var self)
     {
         var dataSelf = (ProgramDefinedDataVar)self;
         var symbol = dataSelf.Symbol == "" ? "<no name>" : dataSelf.Symbol;

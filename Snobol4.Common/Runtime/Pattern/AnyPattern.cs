@@ -1,4 +1,4 @@
-﻿    using System.Buffers;
+﻿using System.Buffers;
 using System.Diagnostics;
 
 namespace Snobol4.Common;
@@ -43,13 +43,13 @@ namespace Snobol4.Common;
 /// pattern = any(chars)            // Evaluates chars at match time
 /// </code>
 /// </example>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class AnyPattern : TerminalPattern
 {
     #region Members
 
     private string _charList;
-    private readonly ExpressionVar? _expression;
+    private readonly Executive.DeferredCode _functionName;
 
     /// <summary>
     /// Optimized character search values using hardware acceleration when available.
@@ -77,6 +77,7 @@ internal class AnyPattern : TerminalPattern
     internal AnyPattern(string charList)
     {
         _charList = charList;
+        _functionName = null;
         // Create SearchValues only for larger character sets
         _searchValues = charList.Length >= SearchValuesThreshold
             ? SearchValues.Create(charList)
@@ -86,11 +87,11 @@ internal class AnyPattern : TerminalPattern
     /// <summary>
     /// Creates an ANY pattern with an expression that evaluates to a character set
     /// </summary>
-    /// <param name="expression">Expression that produces the character set at match time</param>
-    internal AnyPattern(ExpressionVar expression)
+    /// <param name="functionName">Expression that produces the character set at match time</param>
+    internal AnyPattern(Executive.DeferredCode functionName)
     {
         _charList = "";
-        _expression = expression;
+        _functionName = functionName;
         _searchValues = null; // Will be created after expression evaluation
     }
 
@@ -104,8 +105,8 @@ internal class AnyPattern : TerminalPattern
     /// <returns>A new AnyPattern with the same character set</returns>
     internal override AnyPattern Clone()
     {
-        return _expression != null
-            ? new AnyPattern(_expression)
+        return _functionName != null
+            ? new AnyPattern(_functionName)
             : new AnyPattern(_charList);
     }
 
@@ -130,9 +131,9 @@ internal class AnyPattern : TerminalPattern
             return MatchResult.Failure(scan);
 
         // If using expression, evaluate it to get the character set
-        if (_expression != null)
+        if (_functionName != null)
         {
-            _expression.FunctionName(scan.Exec);
+            _functionName(scan.Exec);
             var result = scan.Exec.SystemStack.Pop();
 
             if (!result.Succeeded || !result.Convert(Executive.VarType.STRING, out _, out var value, scan.Exec))
@@ -142,7 +143,7 @@ internal class AnyPattern : TerminalPattern
             }
 
             _charList = (string)value;
-            
+
             // Only recreate SearchValues if charset has changed
             if (_charList != _lastEvaluatedCharList)
             {
@@ -210,12 +211,7 @@ internal class AnyPattern : TerminalPattern
     /// to provide a concise, human-readable representation of the pattern.
     /// The asterisk (*) indicates the character set is determined by evaluating an expression at match time.
     /// </remarks>
-    public override string DebugString()
-    {
-        return _expression != null
-            ? "any(*)"
-            : $"any[{_charList}]";
-    }
+    public override string DebugPattern() => "any";
 
     #endregion
 }

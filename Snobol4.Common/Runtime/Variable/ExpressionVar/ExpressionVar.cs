@@ -1,10 +1,11 @@
 ﻿#pragma warning disable CS8770 // Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.
 using System.Diagnostics;
+using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 
 namespace Snobol4.Common;
 
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{FormattingStrategy.DebugVar(this)}")]
 public sealed class ExpressionVar : Var
 {
     #region Data
@@ -107,4 +108,5 @@ public sealed class ExpressionVar : Var
         => LogArithmeticTypeError(executive, 13); // Right operand of / is not numeric
 
     #endregion
+
 }

@@ -10,7 +10,7 @@ namespace Snobol4.Common;
 /// Represents a multidimensional array variable in SNOBOL4.
 /// Supports arbitrary lower and upper bounds per dimension.
 /// </summary>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{FormattingStrategy.DebugVar(this)}")]
 public sealed class ArrayVar : Var
 {
     #region Data

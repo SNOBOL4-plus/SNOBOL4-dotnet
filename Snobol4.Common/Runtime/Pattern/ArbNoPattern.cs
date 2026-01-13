@@ -69,7 +69,7 @@ namespace Snobol4.Common;
 /// subject pattern                 // Matches all three occurrences
 /// </code>
 /// </example>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class ArbNoPattern : TerminalPattern
 {
     #region Members
@@ -195,9 +195,9 @@ internal class ArbNoPattern : TerminalPattern
     /// <remarks>
     /// This method is used by the debugger display attribute and diagnostic tools
     /// to provide a concise, human-readable representation of the pattern.
-    /// The nested pattern's DebugString() is recursively included to show the complete structure.
+    /// The nested pattern's DebugPattern() is recursively included to show the complete structure.
     /// </remarks>
-    public override string DebugString() => $"arbno({_arbPattern.DebugString()})";
+    public override string DebugPattern() => "arbno";
 
     #endregion
 }

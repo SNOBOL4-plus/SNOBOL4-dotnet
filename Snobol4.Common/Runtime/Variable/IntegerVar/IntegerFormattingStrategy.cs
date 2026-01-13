@@ -36,7 +36,7 @@ public sealed class IntegerFormattingStrategy : IFormattingStrategy
     /// - Data value
     /// - Success state
     /// </summary>
-    public string DebugString(Var self)
+    public string DebugVar(Var self)
     {
         var intSelf = (IntegerVar)self;
         var symbol = string.IsNullOrEmpty(intSelf.Symbol) ? "<no name>" : intSelf.Symbol;

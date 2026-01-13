@@ -54,7 +54,7 @@ namespace Snobol4.Common;
 /// // ImmediateVariableAssociation2
 /// </code>
 /// </example>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class ImmediateVariableAssociation1 : NullPattern
 {
     #region Members

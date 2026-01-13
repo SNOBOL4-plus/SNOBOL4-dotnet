@@ -2,7 +2,7 @@
 
 namespace Snobol4.Common;
 
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugAst()}")]
 internal class AbstractSyntaxTreeNode
 {
     internal Pattern Self { get; }
@@ -57,7 +57,7 @@ internal class AbstractSyntaxTreeNode
     
     internal bool IsRightChild() => ChildType == NodeType.RIGHT;
 
-    public string DebugString()
+    public string DebugAst()
     {
         return $"ASTNode: {SelfIndex:D3}  Self: {Self.ToString()?[15..],-30}  ChildType: {ChildType,-5}  ParentIndex: {ParentIndex.ToString(),4}  Left: {LeftChild.ToString(),4}  Right: {RightChild.ToString(),4}  Sub: {Subsequent.ToString(),4} Alt: {Alternate.ToString(),4}";
     }

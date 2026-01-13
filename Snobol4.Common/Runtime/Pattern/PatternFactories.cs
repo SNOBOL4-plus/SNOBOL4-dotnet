@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace Snobol4.Common;
 
 /// <summary>
 /// Factory methods for creating SNOBOL4 pattern instances from function calls.
@@ -142,19 +144,19 @@ public partial class Executive
     /// </example>
     public void CreateAnyPattern(List<Var> arguments)
     {
-        if (arguments[0] is ExpressionVar expression)
+        if (arguments[0] is ExpressionVar expressionVar)
         {
-            SystemStack.Push(expression);
+            SystemStack.Push(new PatternVar(new AnyPattern(expressionVar.FunctionName)));
             return;
         }
 
-        if (!arguments[0].Convert(VarType.STRING, out _, out var stringValue, this) || string.IsNullOrEmpty((string)stringValue))
+        if (!arguments[0].Convert(VarType.STRING, out _, out var s, this) || string.IsNullOrEmpty((string)s))
         {
             LogRuntimeException(59);
             return;
         }
 
-        SystemStack.Push(new PatternVar(new AnyPattern((string)stringValue)));
+        SystemStack.Push(new PatternVar(new AnyPattern((string)s)));
     }
 
     #endregion
@@ -278,7 +280,7 @@ public partial class Executive
     {
         if (arguments[0] is ExpressionVar expressionVar)
         {
-            SystemStack.Push(new PatternVar(new BreakPattern(expressionVar)));
+            SystemStack.Push(new PatternVar(new BreakPattern(expressionVar.FunctionName)));
             return;
         }
 
@@ -478,6 +480,7 @@ public partial class Executive
     }
 
     #endregion
+
     #region Create POS Pattern (INTEGER)
 
     /// <summary>

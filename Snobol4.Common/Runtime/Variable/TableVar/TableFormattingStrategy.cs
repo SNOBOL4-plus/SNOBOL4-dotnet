@@ -34,7 +34,7 @@ public sealed class TableFormattingStrategy : IFormattingStrategy
     /// - Entry count
     /// - Success state
     /// </summary>
-    public string DebugString(Var self)
+    public string DebugVar(Var self)
     {
         var tableSelf = (TableVar)self;
         var symbol = string.IsNullOrEmpty(tableSelf.Symbol) ? "<no name>" : tableSelf.Symbol;

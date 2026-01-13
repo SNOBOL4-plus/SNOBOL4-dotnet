@@ -21,7 +21,7 @@ public class StringFormattingStrategy : IFormattingStrategy
         return $"'{stringSelf.Data}'";
     }
 
-    public string DebugString(Var self)
+    public string DebugVar(Var self)
     {
         var stringSelf = (StringVar)self;
         var symbol = stringSelf.Symbol.Length == 0 ? "<no name>" : stringSelf.Symbol;

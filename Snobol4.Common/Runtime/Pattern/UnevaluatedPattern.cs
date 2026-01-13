@@ -35,7 +35,7 @@ namespace Snobol4.Common;
 /// // Matches: 'aa', 'bb', 'cc', etc.
 /// </code>
 /// </example>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class UnevaluatedPattern : TerminalPattern
 {
     #region Members
@@ -133,7 +133,7 @@ internal class UnevaluatedPattern : TerminalPattern
     /// to provide a concise, human-readable representation of the pattern.
     /// The asterisk (*) operator in SNOBOL4 indicates deferred evaluation of a pattern expression.
     /// </remarks>
-    public override string DebugString() => "*(expression)";
+    public override string DebugPattern() => "*(expression)";
 
     #endregion
 }

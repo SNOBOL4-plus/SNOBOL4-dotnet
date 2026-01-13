@@ -40,7 +40,7 @@ namespace Snobol4.Common;
 /// // key = "NAME", value = "VALUE"
 /// </code>
 /// </example>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class RemPattern : TerminalPattern
 {
     #region Internal Methods
@@ -79,7 +79,7 @@ internal class RemPattern : TerminalPattern
     /// This method is used by the debugger display attribute and diagnostic tools
     /// to provide a concise, human-readable representation of the pattern.
     /// </remarks>
-    public override string DebugString() => "rem";
+    public override string DebugPattern() => "rem";
 
     #endregion
 }

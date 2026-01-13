@@ -44,11 +44,12 @@ public class PatternFormattingStrategy : IFormattingStrategy
         return $"<{patternType}>";
     }
 
-    public string DebugString(Var self)
+    public string DebugVar(Var self)
     {
         var patternSelf = (PatternVar)self;
         var symbol = patternSelf.Symbol == "" ? "<no name>" : patternSelf.Symbol;
         var patternType = patternSelf.Data.GetType().Name;
         return $"PATTERN Symbol: {symbol}  Type: {patternType}  Succeeded: {patternSelf.Succeeded}";
     }
+
 }

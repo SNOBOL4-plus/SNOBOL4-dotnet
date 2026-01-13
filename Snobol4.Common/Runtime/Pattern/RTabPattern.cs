@@ -41,7 +41,7 @@ namespace Snobol4.Common;
 ///           rem . last            // last = "here"
 /// </code>
 /// </example>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class RTabPattern : TerminalPattern
 {
     #region Members
@@ -108,7 +108,7 @@ internal class RTabPattern : TerminalPattern
     /// This method is used by the debugger display attribute and diagnostic tools
     /// to provide a concise, human-readable representation of the pattern.
     /// </remarks>
-    public override string DebugString() => $"rtab({Position})";
+    public override string DebugPattern() => "rtab";
 
     #endregion
 }

@@ -34,7 +34,7 @@ namespace Snobol4.Common;
 /// subject 'pro' null 'gram'       // NULL is redundant but valid
 /// </code>
 /// </example>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class NullPattern : LiteralPattern
 {
     #region Construction
@@ -82,7 +82,7 @@ internal class NullPattern : LiteralPattern
     /// This method is used by the debugger display attribute and diagnostic tools
     /// to provide a concise, human-readable representation of the pattern.
     /// </remarks>
-    public override string DebugString() => "null";
+    public override string DebugPattern() => "null";
 
     #endregion
 }

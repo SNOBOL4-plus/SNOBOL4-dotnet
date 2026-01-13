@@ -142,11 +142,11 @@ internal class AbstractSyntaxTree
         Console.Error.WriteLine(@"=============================================================");
         Console.Error.WriteLine(@"Root:");
         if (_startNode != null)
-            Console.Error.WriteLine(_startNode.DebugString());
+            Console.Error.WriteLine(_startNode.DebugAst());
         Console.Error.WriteLine(@"-------------------------------------------------------------");
         foreach (var node in _nodes)
         {
-            Console.Error.WriteLine(node.DebugString());
+            Console.Error.WriteLine(node.DebugAst());
         }
         Console.Error.WriteLine(@"=============================================================");
     }

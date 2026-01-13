@@ -8,7 +8,7 @@ namespace Snobol4.Common;
 /// Represents a SNOBOL4 table variable - a hash table with dynamic key-value pairs
 /// Tables can use any data type as keys and values, with a fill value for missing keys
 /// </summary>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{FormattingStrategy.DebugVar(this)}")]
 public sealed class TableVar : Var
 {
     #region Data

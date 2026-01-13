@@ -24,7 +24,7 @@ public class SubjectFormattingStrategy : IFormattingStrategy
         return $"'{subjectSelf.Subject}' [matched: '{matchedPortion}']";
     }
 
-    public string DebugString(Var self)
+    public string DebugVar(Var self)
     {
         var subjectSelf = (SubjectVar)self;
         

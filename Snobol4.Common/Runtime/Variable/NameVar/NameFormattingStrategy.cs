@@ -34,7 +34,7 @@ public class NameFormattingStrategy : IFormattingStrategy
         return $".{nameSelf.Pointer}";
     }
 
-    public string DebugString(Var self)
+    public string DebugVar(Var self)
     {
         var nameSelf = (NameVar)self;
         var symbol = string.IsNullOrEmpty(nameSelf.Symbol) ? "<no name>" : nameSelf.Symbol;

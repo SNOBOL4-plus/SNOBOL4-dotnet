@@ -22,7 +22,7 @@ public sealed class RealFormattingStrategy : IFormattingStrategy
         return $"{realSelf.Data}";
     }
 
-    public string DebugString(Var self)
+    public string DebugVar(Var self)
     {
         var realSelf = (RealVar)self;
         var symbol = realSelf.Symbol.Length == 0 ? "<no name>" : realSelf.Symbol;

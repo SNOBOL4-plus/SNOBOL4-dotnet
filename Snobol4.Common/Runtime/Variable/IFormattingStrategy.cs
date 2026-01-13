@@ -18,5 +18,5 @@ public interface IFormattingStrategy
     /// <summary>
     /// Get debug string with detailed information
     /// </summary>
-    string DebugString(Var self);
+    string DebugVar(Var self);
 }

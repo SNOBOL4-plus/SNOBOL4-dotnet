@@ -179,4 +179,65 @@ end";
         Assert.AreEqual("fail", ((StringVar)build.Execute!.IdentifierTable["RESULT"]).Data);
     }
 
+    [TestMethod]
+    public void TEST_Break_010()
+    {
+        var s = @" 
+        A = BREAK(*B)
+        B = '123'
+        'ABCD3FG' A . R1
+        B = 'ABC'
+        '1234C56' A . R2
+END";
+
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual("ABCD", ((StringVar)build.Execute!.IdentifierTable["R1"]).Data);
+        Assert.AreEqual("1234", ((StringVar)build.Execute!.IdentifierTable["R2"]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Break_011()
+    {
+        var s = @" 
+        A = BREAK(*B)
+        B = '123' | 'ABC'
+        'ABCD3FG' A . R1
+END";
+
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual(69, build.ErrorCodeHistory[0]);
+    }
+
+    [TestMethod]
+    public void TEST_Break_012()
+    {
+        var s = @"
+        A = BREAK('123456')
+        '' A.R1
+END
+";
+
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable["R1"]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Break_013()
+    {
+        var s = @"
+        A = BREAK('')
+        '123456' A.R1
+END
+";
+
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual(69, build.ErrorCodeHistory[0]);
+    }
+
 }

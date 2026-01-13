@@ -165,7 +165,7 @@ public abstract class Pattern
     /// Returns a debug string representation of this pattern
     /// </summary>
     /// <returns>A string showing this pattern</returns>
-    public abstract string DebugString();
+    public abstract string DebugPattern();
 
     #endregion
 }

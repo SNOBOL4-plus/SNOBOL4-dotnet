@@ -42,7 +42,7 @@
 /// pattern = len(6) rem . data     // data = "DATA"
 /// </code>
 /// </example>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class LenPattern : TerminalPattern
 {
     #region Members
@@ -100,7 +100,7 @@ internal class LenPattern : TerminalPattern
     /// Returns a debug string representation of this alternation
     /// </summary>
     /// <returns>A string showing this pattern</returns>
-    public override string DebugString() => $"len({_length})";
+    public override string DebugPattern() => "len";
 
     #endregion
 }

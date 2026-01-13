@@ -19,7 +19,7 @@ public sealed class ExpressionFormattingStrategy : IFormattingStrategy
         return "<expression>";
     }
 
-    public string DebugString(Var self)
+    public string DebugVar(Var self)
     {
         var expressionSelf = (ExpressionVar)self;
         var symbol = expressionSelf.Symbol.Length == 0 ? "<no name>" : expressionSelf.Symbol;

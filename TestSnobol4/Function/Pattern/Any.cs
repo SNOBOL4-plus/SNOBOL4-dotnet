@@ -88,4 +88,63 @@ end";
         Assert.AreEqual("fail", ((StringVar)build.Execute!.IdentifierTable["RESULT"]).Data);
     }
 
+    [TestMethod]
+    public void TEST_Any_006()
+    {
+        var s = @" 
+        A = ANY(*B)
+        B = '123'
+        'ABCD3FG' A . R1
+        B = 'ABC'
+        '1234C56' A . R2
+END";
+
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual("3", ((StringVar)build.Execute!.IdentifierTable["R1"]).Data);
+        Assert.AreEqual("C", ((StringVar)build.Execute!.IdentifierTable["R2"]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Any_007()
+    {
+        var s = @" 
+        A = ANY(*B)
+        B = '123' | 'ABC'
+        'ABCD3FG' A . R1
+END";
+
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual(43, build.ErrorCodeHistory[0]);
+    }
+
+    [TestMethod]
+    public void TEST_Any_008()
+    {
+        var s = @" 
+        A = ANY('')
+        '123456' A . R1
+END";
+
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual(59, build.ErrorCodeHistory[0]);
+    }
+
+    [TestMethod]
+    public void TEST_Any_009()
+    {
+        var s = @" 
+        A = ANY('123456')
+        '' A . R1
+END";
+
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable["R1"]).Data);
+    }
 }

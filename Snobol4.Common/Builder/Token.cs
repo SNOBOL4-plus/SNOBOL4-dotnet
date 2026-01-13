@@ -2,7 +2,7 @@
 
 namespace Snobol4.Common;
 
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugToken()}")]
 internal class Token
 {
     #region Members
@@ -147,7 +147,7 @@ internal class Token
 
     #region Debugging
 
-    public string DebugString()
+    public string DebugToken()
     {
         return $"{TokenType} '{MatchedString}' {DoubleValue}D {IntegerValue}L [{Index}]";
     }

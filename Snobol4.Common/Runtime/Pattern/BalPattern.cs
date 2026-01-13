@@ -96,7 +96,7 @@ internal class BalPattern : Pattern
     /// First pattern is a NULL pattern augmented to store the cursor position for
     /// failure of BAL.
     /// </summary>
-    [DebuggerDisplay("{DebugString()}")]
+    [DebuggerDisplay("{DebugPattern()}")]
     internal class GBal1Pattern : TerminalPattern
     {
         internal override MatchResult Scan(int node, Scanner scan)
@@ -109,7 +109,7 @@ internal class BalPattern : Pattern
             return new GBal1Pattern();
         }
 
-        public override string DebugString() => "gbal1";
+        public override string DebugPattern() => "gbal1";
         
     }
 
@@ -120,7 +120,7 @@ internal class BalPattern : Pattern
     ///          ends with a right parenthesis, where parentheses are matched.
     ///      (3) any combination of 1 and 2.
     /// </summary>
-    [DebuggerDisplay("{DebugString()}")]
+    [DebuggerDisplay("{DebugPattern()}")]
     internal class GBalPattern : TerminalPattern
     {
         internal override Pattern Clone()
@@ -199,7 +199,7 @@ internal class BalPattern : Pattern
         /// Returns a debug string representation of this pattern
         /// </summary>
         /// <returns>A string showing this pattern</returns>
-        public override string DebugString() => "gbal";
+        public override string DebugPattern() => "gbal";
 
         #endregion
     }
@@ -212,7 +212,7 @@ internal class BalPattern : Pattern
     /// Returns a debug string representation of this pattern
     /// </summary>
     /// <returns>A string showing this pattern</returns>
-    public override string DebugString() => "bal";
+    public override string DebugPattern() => "bal";
 
     #endregion
 

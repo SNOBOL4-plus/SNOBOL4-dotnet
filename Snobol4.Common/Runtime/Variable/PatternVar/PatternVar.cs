@@ -4,12 +4,12 @@ using System.Runtime.CompilerServices;
 
 namespace Snobol4.Common;
 
-[DebuggerDisplay("{DebugString()}")]
-public sealed class PatternVar : Var
+[DebuggerDisplay("{FormattingStrategy.DebugVar(this)}")]
+public class PatternVar : Var
 {
     #region Data
 
-    internal Pattern Data;
+    public Pattern Data;
 
     #endregion
 
@@ -165,4 +165,5 @@ public sealed class PatternVar : Var
         => LogArithmeticTypeError(executive, 13); // Right operand of / is not numeric
 
     #endregion
+
 }

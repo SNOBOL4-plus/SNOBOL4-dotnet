@@ -26,7 +26,7 @@ public class ArrayFormattingStrategy : IFormattingStrategy
         return $"{_arrayTypeName}({arraySelf.Prototype})";
     }
 
-    public string DebugString(Var self)
+    public string DebugVar(Var self)
     {
         // Comprehensive debug information
         var arraySelf = (ArrayVar)self;

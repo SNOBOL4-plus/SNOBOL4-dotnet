@@ -38,7 +38,7 @@ namespace Snobol4.Common;
 /// pattern = any('ab') | '1' abort
 /// </code>
 /// </example>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class AlternatePattern : NonTerminalPattern
 {
     #region Construction
@@ -89,9 +89,9 @@ internal class AlternatePattern : NonTerminalPattern
     /// This method is used by the debugger display attribute and diagnostic tools
     /// to provide a concise, human-readable representation of the pattern.
     /// The pipe (|) symbol represents the alternation operator, matching SNOBOL4 syntax.
-    /// Both child patterns' DebugString() methods are recursively called to show the complete structure.
+    /// Both child patterns' DebugPattern() methods are recursively called to show the complete structure.
     /// </remarks>
-    public override string DebugString() => $"{Left?.DebugString()} | {Right?.DebugString()}";
+    public override string DebugPattern() => "alternate";
 
     #endregion
 }

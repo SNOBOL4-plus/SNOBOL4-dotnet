@@ -33,7 +33,7 @@ namespace Snobol4.Common;
 /// // Try test1 and test2, but don't fail if they don't match
 /// </code>
 /// </example>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class SucceedPattern : TerminalPattern
 {
     #region Methods
@@ -70,7 +70,7 @@ internal class SucceedPattern : TerminalPattern
     /// This method is used by the debugger display attribute and diagnostic tools
     /// to provide a concise, human-readable representation of the pattern.
     /// </remarks>
-    public override string DebugString() => "succeed";
+    public override string DebugPattern() => "succeed";
 
     #endregion
 }

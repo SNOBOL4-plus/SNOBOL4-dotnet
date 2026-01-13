@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace Snobol4.Common;
 
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{FormattingStrategy.DebugVar(this)}")]
 public sealed class NameVar : Var
 {
     #region Data

@@ -3,7 +3,7 @@
     "Snobol4": {
       "commandName": "Project",
       "commandLineArgs": "\"Test.sno\"",
-      "workingDirectory": "C:\\Users\\jcooper\\Documents\\Visual Studio 2022\\Snobol4\\Snobol4"
+      "workingDirectory": "C:\\Users\\jcooper\\Documents\\Visual Studio 2022\\Snobol4.Net\\TestSnobol4"
     }
   }
 }

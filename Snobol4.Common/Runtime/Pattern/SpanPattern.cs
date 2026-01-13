@@ -69,7 +69,7 @@ namespace Snobol4.Common;
 /// subject span('ab') . all        // all = "aaabbb", matches all chars
 /// </code>
 /// </example>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class SpanPattern : TerminalPattern
 {
     #region Members
@@ -259,7 +259,7 @@ internal class SpanPattern : TerminalPattern
     /// This method is used by the debugger display attribute and diagnostic tools
     /// to provide a concise, human-readable representation of the pattern.
     /// </remarks>
-    public override string DebugString() => $"span({_charList})";
+    public override string DebugPattern() => "span";
 
     #endregion
 }

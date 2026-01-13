@@ -7,7 +7,7 @@ namespace Snobol4.Common;
 /// <summary>
 /// Special marker variable used to delineate statement boundaries on the system stack
 /// </summary>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{FormattingStrategy.DebugVar(this)}")]
 public sealed class StatementSeparator : Var
 {
     #region Strategy Instances (Lazy-loaded singletons for performance)

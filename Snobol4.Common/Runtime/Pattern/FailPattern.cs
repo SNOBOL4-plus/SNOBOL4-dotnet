@@ -35,7 +35,7 @@ namespace Snobol4.Common;
 /// done    // Process all matches
 /// </code>
 /// </example>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class FailPattern : TerminalPattern
 {
     #region Methods
@@ -72,7 +72,7 @@ internal class FailPattern : TerminalPattern
     /// This method is used by the debugger display attribute and diagnostic tools
     /// to provide a concise, human-readable representation of the pattern.
     /// </remarks>
-    public override string DebugString() => "fail";
+    public override string DebugPattern() => "fail";
 
     #endregion
 

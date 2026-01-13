@@ -54,7 +54,7 @@ namespace Snobol4.Common;
 /// subject 'test' rpos(5)        // Fails, string length is 4
 /// </code>
 /// </example>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class RPosPattern : TerminalPattern
 {
     #region Members
@@ -135,7 +135,7 @@ internal class RPosPattern : TerminalPattern
     /// This method is used by the debugger display attribute and diagnostic tools
     /// to provide a concise, human-readable representation of the pattern.
     /// </remarks>
-    public override string DebugString() => $"rpos({Position})";
+    public override string DebugPattern() => "rpos";
 
     #endregion
 }

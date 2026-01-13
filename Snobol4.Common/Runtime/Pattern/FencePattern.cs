@@ -76,7 +76,7 @@ namespace Snobol4.Common;
 /// </code>
 /// </example>
 // ReSharper disable once UnusedMember.Global
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class FencePattern : Pattern
 {
     #region Methods
@@ -172,7 +172,7 @@ internal class FencePattern : Pattern
     /// This method is used by the debugger display attribute and diagnostic tools
     /// to provide a concise, human-readable representation of the pattern.
     /// </remarks>
-    public override string DebugString() => "fence";
+    public override string DebugPattern() => "fence";
 
     #endregion
 }

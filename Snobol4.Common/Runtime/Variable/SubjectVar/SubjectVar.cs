@@ -7,7 +7,7 @@ namespace Snobol4.Common;
 /// Represents a string subject with a successful pattern match result.
 /// Used for pattern replacement operations.
 /// </summary>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{FormattingStrategy.DebugVar(this)}")]
 public sealed class SubjectVar : Var
 {
     #region Data

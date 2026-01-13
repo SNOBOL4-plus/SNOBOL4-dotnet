@@ -37,7 +37,7 @@ namespace Snobol4.Common;
 /// // If quick_check matches, don't waste time on expensive_pattern
 /// </code>
 /// </example>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class AbortPattern : TerminalPattern
 {
     #region Methods
@@ -71,7 +71,7 @@ internal class AbortPattern : TerminalPattern
     /// This method is used by the debugger display attribute and diagnostic tools
     /// to provide a concise, human-readable representation of the pattern.
     /// </remarks>
-    public override string DebugString() => "abort";
+    public override string DebugPattern() => "abort";
 
     #endregion
 }

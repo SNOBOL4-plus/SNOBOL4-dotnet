@@ -7,8 +7,12 @@ public partial class Executive
         // arguments[0]: left (pattern to associate)
         // arguments[1]; right (variable to assign match(es) upon successful match
 
-        //while(arguments[0] is ExpressionVar expressionVar)
-        //    arguments[0] = new PatternVar(new Star(expressionVar.FunctionName));
+        while (arguments[0] is ExpressionVar expressionVar)
+        {
+            expressionVar.Evaluate(this);
+            arguments[0] = SystemStack.Pop();
+        }
+            //arguments[0] = new PatternVar(expressionVar.Evaluate(this));
 
         if (!arguments[0].Convert(VarType.PATTERN, out _, out var pattern, this))
         {

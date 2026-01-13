@@ -1,7 +1,7 @@
-﻿        g = 'Работа в германии'
-        output = g 
-        h = any('аеиоуыэюяАЕИОУЫЭЮЯ')
-        i = any(h)
-        output = j :(out)
-
-end
+﻿        A = ANY(*B)
+        OUTPUT = DATATYPE(A)
+        B = '123'
+        'ABCD3FG' A . OUTPUT
+        B = 'ABC'
+        '1234C56' A . OUTPUT
+END

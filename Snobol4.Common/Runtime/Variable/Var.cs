@@ -9,7 +9,6 @@ namespace Snobol4.Common;
 /// Represents the base abstract class for all variable types in the SNOBOL4 runtime.
 /// Uses Strategy Pattern for extensible operations.
 /// </summary>
-[DebuggerDisplay("{DebugString()}")]
 public abstract class Var : IEquatable<Var>
 {
     public delegate bool ValidationDelegate(Var v);
@@ -412,12 +411,6 @@ public abstract class Var : IEquatable<Var>
     /// </summary>
     /// <returns>Detailed string representation</returns>
     internal virtual string DumpString() => FormattingStrategy.DumpString(this);
-
-    /// <summary>
-    /// Returns a string representation for debugger display
-    /// </summary>
-    /// <returns>Debug string representation</returns>
-    internal virtual string DebugString() => FormattingStrategy.DebugString(this);
 
     #endregion
 

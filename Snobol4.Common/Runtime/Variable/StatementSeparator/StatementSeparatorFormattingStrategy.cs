@@ -24,7 +24,7 @@ public sealed class StatementSeparatorFormattingStrategy : IFormattingStrategy
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public string DebugString(Var self)
+    public string DebugVar(Var self)
     {
         return _debugStringValue;
     }

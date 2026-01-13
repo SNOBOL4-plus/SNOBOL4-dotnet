@@ -83,7 +83,7 @@ namespace Snobol4.Common;
 /// // Backtracks to 't' + 'est123' (succeeds)
 /// </code>
 /// </example>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class ConcatenatePattern : NonTerminalPattern
 {
     #region Construction
@@ -199,9 +199,9 @@ internal class ConcatenatePattern : NonTerminalPattern
     /// designed for debugger views where space is limited.
     /// </para>
     /// </remarks>
-    public override string DebugString()
+    public override string DebugPattern()
     {
-        return $"{Left?.DebugString()} & {Right?.DebugString()}";
+        return "&";
     }
 
     #endregion

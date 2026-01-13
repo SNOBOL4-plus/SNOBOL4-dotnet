@@ -51,7 +51,7 @@ namespace Snobol4.Common;
 /// pattern = notany(chars)         // Evaluates chars at match time
 /// </code>
 /// </example>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class NotAnyPattern : TerminalPattern
 {
     #region Members
@@ -232,12 +232,7 @@ internal class NotAnyPattern : TerminalPattern
     /// to provide a concise, human-readable representation of the pattern.
     /// The asterisk (*) indicates the character set is determined by evaluating an expression at match time.
     /// </remarks>
-    public override string DebugString()
-    {
-        return _expression != null
-            ? "notany(*expression)"
-            : $"notany({_charList})";
-    }
+    public override string DebugPattern() => "notany";
 
     #endregion
 }

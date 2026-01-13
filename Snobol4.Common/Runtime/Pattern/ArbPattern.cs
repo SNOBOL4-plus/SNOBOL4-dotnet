@@ -33,7 +33,7 @@ namespace Snobol4.Common;
 /// subject ('CAT' arb 'DOG') | ('DOG' arb 'CAT')  // Matches 'CATDOG'
 /// </code>
 /// </example>
-[DebuggerDisplay("{DebugString()}")]
+[DebuggerDisplay("{DebugPattern()}")]
 internal class ArbPattern : TerminalPattern
 {
     #region Methods
@@ -94,7 +94,7 @@ internal class ArbPattern : TerminalPattern
     /// This method is used by the debugger display attribute and diagnostic tools
     /// to provide a concise, human-readable representation of the pattern.
     /// </remarks>
-    public override string DebugString() => "arb";
+    public override string DebugPattern() => "arb";
 
     #endregion
 
