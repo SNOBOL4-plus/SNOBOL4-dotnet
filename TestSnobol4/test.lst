@@ -24,7 +24,7 @@ Test.sno(5) : error 23 -- goto operand is not a natural variable
 
 
 normal end
-in file              C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\Test.sno
+in file              C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\Test.sno
 in line              4
 in statement         5
 stmts executed       5

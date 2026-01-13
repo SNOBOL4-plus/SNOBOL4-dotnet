@@ -18,6 +18,8 @@ internal class MainConsole
             return 0;
         }
 
+        Console.WriteLine(Environment.CurrentDirectory);
+
         Builder builder = new();
 
         // If the last argument is a DLL, run it

@@ -30,9 +30,9 @@ public class Ctest
         x.SourceCode.Add("test.sno(2)\n" + @"        output = g");
         x.SourceCode.Add("test.sno(3)\n" + @"end");
 
-        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\test.sno");
-        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\test.sno");
-        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\test.sno");
+        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\test.sno");
+        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\test.sno");
+        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\test.sno");
 
         x.SourceLineNumbers.Add(1);
         x.SourceLineNumbers.Add(2);

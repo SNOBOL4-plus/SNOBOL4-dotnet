@@ -11,9 +11,9 @@ public class Detach
     [TestMethod]
     public void Detach_001()
     {
-        var testFile = @"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\Frankenstein3.txt";
+        var testFile = @"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\Frankenstein3.txt";
         if (SetupTests.IsLinux)
-            testFile = @"/mnt/c/Users/jcooper/Documents/Visual Studio 2022/Snobol4/TestSnobol4/Frankenstein3.txt";
+            testFile = @"/mnt/c/Users/jcooper/Documents/Visual Studio 2022/Snobol4.Net/TestSnobol4/Output/Frankenstein3.txt";
 
         var s = $@"
         input('READ','2','{testFile}')
@@ -35,9 +35,9 @@ end
     [TestMethod]
     public void Detach_002()
     {
-        var testFile = @"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\Frankenstein4.txt";
+        var testFile = @"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\Frankenstein4.txt";
         if (SetupTests.IsLinux)
-            testFile = @"/mnt/c/Users/jcooper/Documents/Visual Studio 2022/Snobol4/TestSnobol4/Frankenstein4.txt";
+            testFile = @"/mnt/c/Users/jcooper/Documents/Visual Studio 2022/Snobol4.Net/TestSnobol4/Output/Frankenstein4.txt";
 
         var s = $@"
         input('READ','2','{testFile}')
@@ -61,9 +61,9 @@ end
     [TestMethod]
     public void Detach_087()
     {
-        var testFile = @"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\Frankenstein5.txt";
+        var testFile = @"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\Frankenstein5.txt";
         if (SetupTests.IsLinux)
-            testFile = @"/mnt/c/Users/jcooper/Documents/Visual Studio 2022/Snobol4/TestSnobol4/Frankenstein5.txt";
+            testFile = @"/mnt/c/Users/jcooper/Documents/Visual Studio 2022/Snobol4.Net/TestSnobol4/Output/Frankenstein5.txt";
 
         var s = $@"
         input('READ','2','{testFile}')

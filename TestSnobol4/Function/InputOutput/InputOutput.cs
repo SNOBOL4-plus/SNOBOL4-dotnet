@@ -283,9 +283,9 @@ end";
     [TestMethod]
     public void TEST_Input_001()
     {
-        var testFile = @"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\TestInput.txt";
+        var testFile = @"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\TestInput.txt";
         if (SetupTests.IsLinux)
-            testFile = @"/mnt/c/Users/jcooper/Documents/Visual Studio 2022/Snobol4/TestSnobol4/TestInput.txt";
+            testFile = @"/mnt/c/Users/jcooper/Documents/Visual Studio 2022/Snobol4.Net/TestSnobol4/Output/TestInput.txt";
 
         var s = $@"
         input('INPUT','2','{testFile}')

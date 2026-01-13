@@ -13,6 +13,7 @@ public class Opsyn
         var dllName = @"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\CustomFunction\bin\Debug\net9.0\AreaLibrary.dll";
         if (SetupTests.IsLinux)
             dllName = @"/mnt/c/Users/jcooper/Documents/Visual Studio 2022/Snobol4.Net/CustomFunction/bin/Debug/net9.0/AreaLibrary.dll";
+
         var s = $"""
 
                          load('{dllName}', 'AreaFunction.Area')

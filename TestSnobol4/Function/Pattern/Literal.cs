@@ -99,8 +99,6 @@ end";
         Assert.AreEqual("fail", ((StringVar)build.Execute!.IdentifierTable["RESULT"]).Data);
     }
 
-
-
     [TestMethod]
     public void TEST_Literal_006()
     {
@@ -137,9 +135,41 @@ end";
         Assert.AreEqual("success", ((StringVar)build.Execute!.IdentifierTable["RESULT"]).Data);
     }
 
+    [TestMethod]
+    public void TEST_Literal_008()
+    {
+        var s = @"
+        &anchor = 0
+        subject = 'programmer    '
+        pattern = ''
+        subject pattern =     :s(y)f(n)
+y       result = 'success'   :(end)
+n       result = 'fail' 
+end";
 
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual("programmer    ", ((StringVar)build.Execute!.IdentifierTable["SUBJECT"]).Data);
+        Assert.AreEqual("success", ((StringVar)build.Execute!.IdentifierTable["RESULT"]).Data);
+    }
 
+    [TestMethod]
+    public void TEST_Literal_009()
+    {
+        var s = @"
+        &anchor = 0
+        subject = 'programmer    '
+        pattern = *B
+        B = 'gram'
+        subject pattern =     :s(y)f(n)
+y       result = 'success'   :(end)
+n       result = 'fail' 
+end";
 
-
-
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual("promer    ", ((StringVar)build.Execute!.IdentifierTable["SUBJECT"]).Data);
+        Assert.AreEqual("success", ((StringVar)build.Execute!.IdentifierTable["RESULT"]).Data);
+    }
+    
 }

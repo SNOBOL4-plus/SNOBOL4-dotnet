@@ -40,17 +40,17 @@ public class Ctest2
         x.SourceCode.Add("test2.sno(34)\n" + @" output = $v");
         x.SourceCode.Add("test2.sno(39)\n" + @"end");
 
-        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\test2.sno");
-        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\test2.sno");
-        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\test2.sno");
-        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\test2.sno");
-        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\test2.sno");
-        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\test2.sno");
-        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\test2.sno");
-        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\test2.sno");
-        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\test2.sno");
-        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\test2.sno");
-        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\test2.sno");
+        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\test2.sno");
+        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\test2.sno");
+        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\test2.sno");
+        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\test2.sno");
+        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\test2.sno");
+        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\test2.sno");
+        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\test2.sno");
+        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\test2.sno");
+        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\test2.sno");
+        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\test2.sno");
+        x.SourceFiles.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\test2.sno");
 
         x.SourceLineNumbers.Add(24);
         x.SourceLineNumbers.Add(25);

@@ -7,6 +7,11 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="OutputFiles\**" />
+    <EmbeddedResource Remove="OutputFiles\**" />
+    <None Remove="OutputFiles\**" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Remove="CTest_CODE0_NTest_CODE0.cs" />
     <Compile Remove="Test0.Test.cs" />
     <Compile Remove="Test_CODE1.Test.cs" />

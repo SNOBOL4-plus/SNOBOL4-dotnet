@@ -17,9 +17,9 @@ public class Rewind
     public void Rewind_001()
     {
 
-        var testFile = @"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\Frankenstein.txt";
+        var testFile = @"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\Frankenstein.txt";
         if (SetupTests.IsLinux)
-            testFile = @"/mnt/c/Users/jcooper/Documents/Visual Studio 2022/Snobol4/TestSnobol4/Frankenstein.txt";
+            testFile = @"/mnt/c/Users/jcooper/Documents/Visual Studio 2022/Snobol4.Net/TestSnobol4/Frankenstein.txt";
 
         var s = $"""
 
@@ -51,9 +51,9 @@ public class Rewind
     [TestMethod]
     public void Rewind_002()
     {
-        var testFile = @"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\Frankenstein2.txt";
+        var testFile = @"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\Frankenstein2.txt";
         if (SetupTests.IsLinux)
-            testFile = @"/mnt/c/Users/jcooper/Documents/Visual Studio 2022/Snobol4/TestSnobol4/Frankenstein2.txt";
+            testFile = @"/mnt/c/Users/jcooper/Documents/Visual Studio 2022/Snobol4.Net/TestSnobol4/Frankenstein2.txt";
 
         var s = $"""
 

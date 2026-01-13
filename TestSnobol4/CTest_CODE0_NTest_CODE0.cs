@@ -22,7 +22,7 @@ public class CTest_CODE0
         x.Parent.CaseFolding = true;
         x.Parent.DisplayListingHeader = false;
         x.Parent.ErrorsToStdout = false;
-        x.Parent.FilesToCompile.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\Test.sno");
+        x.Parent.FilesToCompile.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net.Net\TestSnobol4\Test.sno");
         x.Parent.ListFileName = @"";
         x.Parent.Listing = false;
         x.Parent.ShowExecutionStatistics = false;

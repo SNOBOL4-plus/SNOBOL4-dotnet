@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Security.Principal;
 using System.Text;
 using Snobol4.Common;
 
@@ -7,6 +8,9 @@ namespace Test.TestLexer;
 [TestClass]
 public class SetupTests
 {
+    public static string WindowsOutput = @"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\";
+    public static string LinuxOutput = @"/mnt/c/Users/jcooper/Documents/Visual Studio 2022/Snobol4.Net/TestSnobol4/Output/";
+
     internal static Builder SetupScript(string directives, string script)
     {
         // Get array of commands and source files

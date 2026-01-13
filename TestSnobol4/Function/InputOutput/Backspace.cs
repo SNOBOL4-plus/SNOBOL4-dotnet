@@ -14,11 +14,12 @@ public class Backspace
     [TestMethod]
     public void Backspace_001()
     {
-        var testFile = @"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\Frankenstein.txt";
+        var testFile = Path.Combine(SetupTests.WindowsOutput, "Frankenstein.txt");
         if (SetupTests.IsLinux)
-            testFile = @"/mnt/c/Users/jcooper/Documents/Visual Studio 2022/Snobol4/TestSnobol4/Frankenstein.txt";
+            testFile = Path.Combine(SetupTests.LinuxOutput, "Frankenstein.txt");
 
-        var s = $@"
+
+var s = $@"
         input('READ','2','{testFile}')
         d = read
         d = read
@@ -69,9 +70,9 @@ end
     [TestMethod]
     public void Backspace_318()
     {
-        var testFile = @"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\test319.txt";
+        var testFile = Path.Combine(SetupTests.WindowsOutput, "test319.txt");
         if (SetupTests.IsLinux)
-            testFile = @"/mnt/c/Users/jcooper/Documents/Visual Studio 2022/Snobol4/TestSnobol4/test319.txt";
+            testFile = Path.Combine(SetupTests.LinuxOutput, "test319.txt");
 
         var s = $@"
         output('read','2','{testFile}')

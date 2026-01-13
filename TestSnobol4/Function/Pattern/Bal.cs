@@ -11,9 +11,9 @@ public class Bal
     public void TEST_Bal_001()
     {
 
-        var testFile = @"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\BalTest.txt";
+        var testFile = Path.Combine(SetupTests.WindowsOutput, "BalTest.txt");
         if (SetupTests.IsLinux)
-            testFile = @"/mnt/c/Users/jcooper/Documents/Visual Studio 2022/Snobol4/TestSnobol4/BalTest.txt";
+            testFile = Path.Combine(SetupTests.LinuxOutput, "BalTest.txt");
 
         var s = $"""
                          output('print', '2', '{testFile}', 2, 3, 1)
@@ -38,9 +38,9 @@ public class Bal
     [TestMethod]
     public void TEST_Bal_002()
     {
-        var testFile = @"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4\TestSnobol4\BalTest2.txt";
+        var testFile = Path.Combine(SetupTests.WindowsOutput, "BalTest2.txt");
         if (SetupTests.IsLinux)
-            testFile = @"/mnt/c/Users/jcooper/Documents/Visual Studio 2022/Snobol4/TestSnobol4/BalTest2.txt";
+            testFile = Path.Combine(SetupTests.LinuxOutput, "BalTest2.txt");
 
         var s = $"""
                          OUTPUT('PRINT', '2', '{testFile}', 2, 3, 1)
