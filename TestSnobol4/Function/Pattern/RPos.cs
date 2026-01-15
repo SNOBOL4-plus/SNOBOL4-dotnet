@@ -131,4 +131,24 @@ end";
         Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
         Assert.AreEqual(185, build.ErrorCodeHistory[0]);
     }
+
+    [TestMethod]
+    public void TEST_RPos_009()
+    {
+        var s = @"
+        &anchor = 0
+        subject = 'ABCDA'
+        pattern = len(*B) . test rpos(*C)
+        B = 3
+        C = 2
+        subject pattern      :s(y)f(n)
+y       result = 'success'   :(end)
+n       result = 'fail' 
+end";
+
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual("success", ((StringVar)build.Execute!.IdentifierTable["RESULT"]).Data);
+        Assert.AreEqual("ABC", ((StringVar)build.Execute!.IdentifierTable["TEST"]).Data);
+    }
 }

@@ -8,10 +8,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Function\Pattern\BreakX\**" />
+    <Compile Remove="Function\Pattern\Fence\**" />
     <Compile Remove="OutputFiles\**" />
     <EmbeddedResource Remove="Function\Pattern\BreakX\**" />
+    <EmbeddedResource Remove="Function\Pattern\Fence\**" />
     <EmbeddedResource Remove="OutputFiles\**" />
     <None Remove="Function\Pattern\BreakX\**" />
+    <None Remove="Function\Pattern\Fence\**" />
     <None Remove="OutputFiles\**" />
   </ItemGroup>
   <ItemGroup>
@@ -40,7 +43,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Function\ObjectCreation\" />
-    <Folder Include="Function\Pattern\Fence\" />
     <Folder Include="Function\ProgramControl\" />
     <Folder Include="Function\ProgramDefinedDataType\" />
   </ItemGroup>

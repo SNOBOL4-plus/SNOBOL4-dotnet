@@ -1,6 +1,12 @@
-﻿	SUB = 'EXCEPTIONS-ARE-AS-TRUE-AS-RULES'
-	P1 = POS(0) BREAKX('A') . OUTPUT 'AS'
-	SUB P1    :S(Y)F(N)
+﻿*	'1AB+' ANY('AB') FENCE('+') :S(Y)F(N)
+*	'1AB+' ANY('AB') FENCE '+' :S(Y)F(N)
+*	'ABC'  FENCE('B') :S(Y)F(N)
+*	'ABC'  FENCE 'B' :S(Y)F(N)
+
+    P = FENCE(BREAK(',') | REM) $ STR *DIFFER(STR)
+    'ABC' P . OUTPUT
+    '123,,456' P . OUTPUT :S(Y)F(N)
+
 Y	OUTPUT = 'SUCCESS' :(END)
 N	OUTPUT = 'FAILURE'
 END

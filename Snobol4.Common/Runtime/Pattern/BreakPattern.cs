@@ -19,14 +19,14 @@ internal class BreakPattern : TerminalPattern
     {
         _charList = charList;
         _functionName = null;
-        _error = error; // 45 for BREAKX and 69 for BRAKE
+        _error = error;
     }
 
     internal BreakPattern(Executive.DeferredCode functionName, int error)
     {
         _charList = "";
         _functionName = functionName;
-        _error = error; // 45 for BREAKX and 69 for BRAKE
+        _error = error;
     }
 
     #endregion

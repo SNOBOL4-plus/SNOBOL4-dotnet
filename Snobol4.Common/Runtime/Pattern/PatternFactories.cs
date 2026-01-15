@@ -155,9 +155,7 @@ public partial class Executive
 
     public void CreateFenceFunction(List<Var> arguments)
     {
-        var v0 = arguments[0];
-
-        if (!v0.Convert(VarType.PATTERN, out _, out var p, this))
+        if (!arguments[0].Convert(VarType.PATTERN, out _, out var p, this))
         {
             LogRuntimeException(259);
             return;
@@ -172,6 +170,12 @@ public partial class Executive
 
     public void CreateLenPattern(List<Var> arguments)
     {
+        if (arguments[0] is ExpressionVar expressionVar)
+        {
+            SystemStack.Push(new PatternVar(new LenPattern(expressionVar.FunctionName)));
+            return;
+        }
+
         var i = GetInteger(arguments[0], 120, 121);
         SystemStack.Push(new PatternVar(new LenPattern(i)));
     }
@@ -203,6 +207,12 @@ public partial class Executive
 
     public void CreatePosPattern(List<Var> arguments)
     {
+        if (arguments[0] is ExpressionVar expressionVar)
+        {
+            SystemStack.Push(new PatternVar(new PosPattern(expressionVar.FunctionName)));
+            return;
+        }
+
         var i = GetInteger(arguments[0], 162, 163);
         SystemStack.Push(new PatternVar(new PosPattern(i)));
     }
@@ -213,6 +223,12 @@ public partial class Executive
 
     public void CreateRPosPattern(List<Var> arguments)
     {
+        if (arguments[0] is ExpressionVar expressionVar)
+        {
+            SystemStack.Push(new PatternVar(new RPosPattern(expressionVar.FunctionName)));
+            return;
+        }
+
         var i = GetInteger(arguments[0], 185, 186);
         SystemStack.Push(new PatternVar(new RPosPattern(i)));
     }
@@ -223,6 +239,12 @@ public partial class Executive
 
     public void CreateRTabPattern(List<Var> arguments)
     {
+        if (arguments[0] is ExpressionVar expressionVar)
+        {
+            SystemStack.Push(new PatternVar(new RTabPattern(expressionVar.FunctionName)));
+            return;
+        }
+
         var i = GetInteger(arguments[0], 181, 182);
         SystemStack.Push(new PatternVar(new RTabPattern(i)));
     }
@@ -255,6 +277,12 @@ public partial class Executive
 
     public void CreateTabPattern(List<Var> arguments)
     {
+        if (arguments[0] is ExpressionVar expressionVar)
+        {
+            SystemStack.Push(new PatternVar(new TabPattern(expressionVar.FunctionName)));
+            return;
+        }
+
         var i = GetInteger(arguments[0], 183, 184);
         SystemStack.Push(new PatternVar(new TabPattern(i)));
     }

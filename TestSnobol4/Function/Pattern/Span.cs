@@ -225,7 +225,7 @@ END";
     {
         var s = @"
         A = SPAN('123456')
-        '' A . R1 :S(END)
+        'ABCDEF' A . R1 :S(END)
         R1 = 'fail'
 END
 ";

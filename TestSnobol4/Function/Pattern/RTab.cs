@@ -132,4 +132,22 @@ end";
         Assert.AreEqual(181, build.ErrorCodeHistory[0]);
     }
 
+    [TestMethod]
+    public void TEST_RTab_009()
+    {
+        var s = @"
+        &anchor = 0
+        subject = ''
+        pattern = len(*B) . test tab(*B)
+        B = 3
+        subject pattern      :s(y)f(n)
+y       result = 'success'   :(end)
+n       result = 'fail' 
+end";
+
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual("fail", ((StringVar)build.Execute!.IdentifierTable["RESULT"]).Data);
+    }
+    
 }

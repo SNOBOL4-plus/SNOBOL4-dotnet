@@ -26,7 +26,6 @@ public class PatternFormattingStrategy : IFormattingStrategy
             ConcatenatePattern => "&",
             AtSign => "@",
             FailPattern => "fail",
-            FencePattern => "fence",
             LenPattern => "len",
             LiteralPattern lit => $"'{lit.Literal}'",
             NotAnyPattern => "notany",

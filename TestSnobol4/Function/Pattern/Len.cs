@@ -132,4 +132,25 @@ end";
         Assert.AreEqual(120, build.ErrorCodeHistory[0]);
     }
 
+    [TestMethod]
+    public void TEST_Len_009()
+    {
+        var s = @"
+        &anchor = 0
+        subject = 'ABCDA'
+        pattern = len(*B) . test 'A'
+        B = 2
+        subject pattern      :s(y)f(n)
+y       result = 'success'   :(end)
+n       result = 'fail' 
+end";
+
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual("success", ((StringVar)build.Execute!.IdentifierTable["RESULT"]).Data);
+        Assert.AreEqual("CD", ((StringVar)build.Execute!.IdentifierTable["TEST"]).Data);
+    }
+
+
+
 }
