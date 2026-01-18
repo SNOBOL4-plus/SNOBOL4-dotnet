@@ -22,7 +22,7 @@ namespace Snobol4.Common;
 /// sequential matching and backtracking.
 /// </para>
 /// <para>
-/// Non-terminal patterns always have Left and Right child patterns (inherited from
+/// Non-terminal patterns always have LeftPattern and RightPattern child patterns (inherited from
 /// the base Pattern class). These children may themselves be terminal or non-terminal,
 /// forming a tree structure.
 /// </para>

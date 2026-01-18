@@ -2,8 +2,6 @@
 
 public partial class Executive
 {
-    #region Function
-
     public void Apply(List<Var> arguments)
     {
         //Debug.WriteLine("Apply()");
@@ -20,6 +18,4 @@ public partial class Executive
 
         Function(arguments.Count - 1);
     }
-
-    #endregion
 }

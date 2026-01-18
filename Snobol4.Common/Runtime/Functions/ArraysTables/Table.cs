@@ -1,5 +1,8 @@
 ﻿namespace Snobol4.Common;
 
+    //"table argument is not integer" /* 195 UNUSED*/,
+    //"table argument is out of range" /* 196 UNUSED*/,
+
 public partial class Executive
 {
     // Lock object for thread synchronization

@@ -46,16 +46,16 @@ internal class AlternatePattern : NonTerminalPattern
     /// <summary>
     /// Creates a new alternation pattern
     /// </summary>
-    /// <param name="left">The first pattern to try</param>
-    /// <param name="right">The alternative pattern to try if left fails</param>
+    /// <param name="leftPattern">The first pattern to try</param>
+    /// <param name="rightPattern">The alternative pattern to try if leftPattern fails</param>
     /// <exception cref="ApplicationException">Thrown if either pattern is null</exception>
-    internal AlternatePattern(Pattern left, Pattern right)
+    internal AlternatePattern(Pattern leftPattern, Pattern rightPattern)
     {
-        if (left == null || right == null)
+        if (leftPattern == null || rightPattern == null)
             throw new ApplicationException("AlternatePattern");
 
-        Left = left;
-        Right = right;
+        LeftPattern = leftPattern;
+        RightPattern = rightPattern;
     }
 
     #endregion
@@ -69,10 +69,10 @@ internal class AlternatePattern : NonTerminalPattern
     /// <exception cref="ApplicationException">Thrown if left or right pattern is null (should never happen)</exception>
     internal override Pattern Clone()
     {
-        if (Left == null || Right == null)
+        if (LeftPattern == null || RightPattern == null)
             throw new ApplicationException("Pattern.Clone");
 
-        return new AlternatePattern(Left.Clone(), Right.Clone());
+        return new AlternatePattern(LeftPattern.Clone(), RightPattern.Clone());
     }
 
     #endregion

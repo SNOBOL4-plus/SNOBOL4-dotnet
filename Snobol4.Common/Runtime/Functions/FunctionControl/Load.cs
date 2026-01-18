@@ -2,16 +2,17 @@
 
 namespace Snobol4.Common;
 
+//"load second argument is not a string" /* 136 */,
+//"load first argument is not a string" /* 137 */,
+//"load first argument is null" /* 138 */,
+//"load first argument is missing a left paren" /* 139 */,
+//"load first argument has null function name" /* 140 */,
+//"load first argument is missing a right paren" /* 141 */,
+//"load function does not exist" /* 142 */,
+//"load function caused input error during load" /* 143 */,
+
 public partial class Executive
 {
-    //"load second argument is not a string" /* 136 */,
-    //"load first argument is not a string" /* 137 */,
-    //"load first argument is null" /* 138 */,
-    //"load first argument is missing a left paren" /* 139 */,
-    //"load first argument has null function name" /* 140 */,
-    //"load first argument is missing a right paren" /* 141 */,
-    //"load function does not exist" /* 142 */,
-    //"load function caused input error during load" /* 143 */,
 
     internal Dictionary<string, AssemblyLoadContext> ActiveContexts = []; // Always case-insensitive
 

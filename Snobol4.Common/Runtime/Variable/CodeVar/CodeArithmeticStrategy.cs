@@ -12,7 +12,7 @@ public sealed class CodeArithmeticStrategy : IArithmeticStrategy
     public Var Add(Var self, Var other, Executive executive)
     {
         // Code doesn't support addition
-        executive.LogRuntimeException(1); // Left operand of + is not numeric
+        executive.LogRuntimeException(1); // LeftPattern operand of + is not numeric
         return StringVar.Null();
     }
 
@@ -20,7 +20,7 @@ public sealed class CodeArithmeticStrategy : IArithmeticStrategy
     public Var Subtract(Var self, Var other, Executive executive)
     {
         // Code doesn't support subtraction
-        executive.LogRuntimeException(32); // Left operand of - is not numeric
+        executive.LogRuntimeException(32); // LeftPattern operand of - is not numeric
         return StringVar.Null();
     }
 
@@ -28,7 +28,7 @@ public sealed class CodeArithmeticStrategy : IArithmeticStrategy
     public Var Multiply(Var self, Var other, Executive executive)
     {
         // Code doesn't support multiplication
-        executive.LogRuntimeException(26); // Left operand of * is not numeric
+        executive.LogRuntimeException(26); // LeftPattern operand of * is not numeric
         return StringVar.Null();
     }
 
@@ -36,7 +36,7 @@ public sealed class CodeArithmeticStrategy : IArithmeticStrategy
     public Var Divide(Var self, Var other, Executive executive)
     {
         // Code doesn't support division
-        executive.LogRuntimeException(12); // Left operand of / is not numeric
+        executive.LogRuntimeException(12); // LeftPattern operand of / is not numeric
         return StringVar.Null();
     }
 
@@ -44,7 +44,7 @@ public sealed class CodeArithmeticStrategy : IArithmeticStrategy
     public Var Power(Var self, Var other, Executive executive)
     {
         // Code doesn't support exponentiation
-        executive.LogRuntimeException(15); // Left operand of ^ is not numeric
+        executive.LogRuntimeException(15); // LeftPattern operand of ^ is not numeric
         return StringVar.Null();
     }
 

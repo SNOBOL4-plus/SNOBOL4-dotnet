@@ -2,11 +2,15 @@
 
 public partial class Executive
 {
+    //"array first argument is not integer or string" /* 64 */,
+    //"array first argument lower bound is not integer" /* 65 */,
+    //"array first argument upper bound is not integer" /* 66 */,
+    //"array dimension is zero negative or out of range" /* 67 */,
+    //"array size exceeds maximum permitted" /* 68 UNUSED*/,
+    
     // Lock objects for thread synchronization
     private readonly Lock _arrayCreationLock = new();
     private readonly Lock _indexCollectionLock = new();
-
-    #region Factories
 
     /// <summary>
     /// Factory to create an array (Thread-Safe)
@@ -34,10 +38,6 @@ public partial class Executive
             LogRuntimeException(result);
         }
     }
-
-    #endregion
-
-    #region Methods
 
     /// <summary>
     /// Convert list of indices on the stack to a single index (key)
@@ -121,6 +121,4 @@ public partial class Executive
         v.Collection = arrayVar;
         SystemStack.Push(arrayVar.Data[(int)arrayKey]);
     }
-
-    #endregion
 }

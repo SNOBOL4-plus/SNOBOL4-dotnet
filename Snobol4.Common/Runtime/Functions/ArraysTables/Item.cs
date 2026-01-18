@@ -2,8 +2,6 @@
 
 public partial class Executive
 {
-    #region Item
-
     internal void Item(List<Var> arguments)
     {
 
@@ -17,6 +15,4 @@ public partial class Executive
 
         IndexCollection();
     }
-
-    #endregion
 }

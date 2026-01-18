@@ -1,13 +1,10 @@
 ﻿namespace Snobol4.Common;
 
+//"local second argument is not integer" /* 134 */,
+//"local first arg is not a program function name" /* 135 */,
+
 public partial class Executive
 {
-
-    //"local second argument is not integer" /* 134 */,
-    //"local first arg is not a program function name" /* 135 */,
-
-    #region Local
-
     public void Local(List<Var> arguments)
     {
         //Debug.WriteLine("Local()");
@@ -37,6 +34,4 @@ public partial class Executive
 
         SystemStack.Push(new StringVar(entry.Locals[(int)(long)i + entry.ArgumentCount - 1]));
     }
-
-    #endregion
 }

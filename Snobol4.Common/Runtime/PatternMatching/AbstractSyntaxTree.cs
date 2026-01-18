@@ -57,10 +57,10 @@ internal class AbstractSyntaxTree
             if (currentNode.IsTerminal())
                 continue;
 
-            Debug.Assert(currentNode.Self.Right != null);
-            nodeStack.Push(new AbstractSyntaxTreeNode(currentNode.Self.Right, -99, AbstractSyntaxTreeNode.NodeType.RIGHT, parentIndex, _nodes));
-            Debug.Assert(currentNode.Self.Left != null);
-            nodeStack.Push(new AbstractSyntaxTreeNode(currentNode.Self.Left, -99, AbstractSyntaxTreeNode.NodeType.LEFT, parentIndex, _nodes));
+            Debug.Assert(currentNode.Self.RightPattern != null);
+            nodeStack.Push(new AbstractSyntaxTreeNode(currentNode.Self.RightPattern, -99, AbstractSyntaxTreeNode.NodeType.RIGHT, parentIndex, _nodes));
+            Debug.Assert(currentNode.Self.LeftPattern != null);
+            nodeStack.Push(new AbstractSyntaxTreeNode(currentNode.Self.LeftPattern, -99, AbstractSyntaxTreeNode.NodeType.LEFT, parentIndex, _nodes));
         }
     }
 

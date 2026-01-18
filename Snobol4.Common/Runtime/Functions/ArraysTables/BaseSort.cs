@@ -1,11 +1,13 @@
 ﻿namespace Snobol4.Common;
 
+//"erroneous 2nd arg in sort/rsort of vector" /* 257 */
+//"sort/rsort 1st arg not suitable array or table" /* 256 */
+//"sort/rsort 2nd arg out of range or non-integer" /* 258 */
+
 public partial class Executive
 {
     // Lock object for thread synchronization
     private readonly Lock _sortLock = new();
-
-    #region BaseSort
 
     private void BaseSort(List<Var> arguments, bool ascending)
     {
@@ -13,10 +15,6 @@ public partial class Executive
         {
             // Note: Do not convert arguments other than to convert from table to array.
             // Otherwise, bad side effects will occur
-
-            //"erroneous 2nd arg in sort/rsort of vector" /* 257 */
-            //"sort/rsort 1st arg not suitable array or table" /* 256 */
-            //"sort/rsort 2nd arg out of range or non-integer" /* 258 */
 
             // First argument must be an array or table
             if (!arguments[0].Convert(VarType.ARRAY, out var a, out _, this))
@@ -87,6 +85,4 @@ public partial class Executive
             SystemStack.Push(arraySort);
         }
     }
-
-    #endregion
 }

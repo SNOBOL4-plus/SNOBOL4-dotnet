@@ -1,13 +1,13 @@
-﻿#pragma warning disable CA1854
-namespace Snobol4.Common;
+﻿namespace Snobol4.Common;
+
+//"opsyn third argument is not integer" /* 152 */,
+//"opsyn third argument is negative or too large" /* 153 */,
+//"opsyn second arg is not natural variable name" /* 154 */,
+//"opsyn first arg is not natural variable name" /* 155 */,
+//"opsyn first arg is not correct operator name" /* 156 */,
 
 public partial class Executive
 {
-    //"opsyn third argument is not integer" /* 152 */,
-    //"opsyn third argument is negative or too large" /* 153 */,
-    //"opsyn second arg is not natural variable name" /* 154 */,
-    //"opsyn first arg is not natural variable name" /* 155 */,
-    //"opsyn first arg is not correct operator name" /* 156 */,
 
     internal static readonly List<string> UnusedUnary =
     [

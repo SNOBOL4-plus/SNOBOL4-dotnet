@@ -51,7 +51,7 @@ public abstract class Pattern
     /// In composite patterns like ConcatenatePattern and AlternatePattern,
     /// this represents the first pattern to be evaluated.
     /// </remarks>
-    internal Pattern? Left = null;
+    internal Pattern? LeftPattern = null;
 
     /// <summary>
     /// The right child pattern in a composite pattern structure.
@@ -61,7 +61,7 @@ public abstract class Pattern
     /// In composite patterns like ConcatenatePattern and AlternatePattern,
     /// this represents the second pattern to be evaluated.
     /// </remarks>
-    internal Pattern? Right = null;
+    internal Pattern? RightPattern = null;
 
     /// <summary>
     /// Cached Abstract Syntax Tree nodes for this pattern.

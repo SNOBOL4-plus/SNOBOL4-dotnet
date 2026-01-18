@@ -64,7 +64,7 @@ public partial class Executive
         // If source has input channels, get input now
         rightVar = InputArgument(rightVar);
 
-        //Left side must have a symbol, be keyed to a collection, or be a NameVar
+        //LeftPattern side must have a symbol, be keyed to a collection, or be a NameVar
         if (leftVar is { Symbol: "", Key: null } and not NameVar)
         {
             LogRuntimeException(leftVar.IsKeyword ? 211 : 212);
@@ -74,7 +74,7 @@ public partial class Executive
         // Special checks for keywords
         if (leftVar.IsKeyword)
         {
-            // Left side must be writable
+            // LeftPattern side must be writable
             if (leftVar.IsReadOnly)
             {
                 LogRuntimeException(209);

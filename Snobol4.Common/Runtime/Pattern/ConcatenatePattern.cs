@@ -101,7 +101,7 @@ internal class ConcatenatePattern : NonTerminalPattern
     /// during construction (cloning occurs only in the Clone() method).
     /// </para>
     /// <para>
-    /// After construction, the Left and Right properties of the base Pattern class
+    /// After construction, the LeftPattern and RightPattern properties of the base Pattern class
     /// will contain these patterns, making them available for AST construction.
     /// </para>
     /// </remarks>
@@ -125,8 +125,8 @@ internal class ConcatenatePattern : NonTerminalPattern
     /// </example>
     internal ConcatenatePattern(Pattern left, Pattern right)
     {
-        Left = left ?? throw new ArgumentNullException(nameof(left));
-        Right = right ?? throw new ArgumentNullException(nameof(right));
+        LeftPattern = left ?? throw new ArgumentNullException(nameof(left));
+        RightPattern = right ?? throw new ArgumentNullException(nameof(right));
     }
 
     #endregion
@@ -156,7 +156,7 @@ internal class ConcatenatePattern : NonTerminalPattern
     /// </para>
     /// <para>
     /// The null check and exception are defensive programming - under normal circumstances,
-    /// Left and Right should never be null after construction.
+    /// LeftPattern and RightPattern should never be null after construction.
     /// </para>
     /// </remarks>
     /// <example>
@@ -174,10 +174,10 @@ internal class ConcatenatePattern : NonTerminalPattern
     /// </example>
     internal override Pattern Clone()
     {
-        if (Left == null || Right == null)
+        if (LeftPattern == null || RightPattern == null)
             throw new ApplicationException("Pattern.Clone");
 
-        return new ConcatenatePattern(Left, Right);
+        return new ConcatenatePattern(LeftPattern, RightPattern);
     }
 
     #endregion

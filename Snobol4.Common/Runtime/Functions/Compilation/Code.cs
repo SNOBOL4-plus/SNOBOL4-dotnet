@@ -1,5 +1,7 @@
 ﻿namespace Snobol4.Common;
 
+//"goto operand in direct goto is not code" /* 24 */,
+
 public partial class Executive
 {
     public void CreateCode(List<Var> arguments)

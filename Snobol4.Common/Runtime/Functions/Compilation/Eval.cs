@@ -1,5 +1,7 @@
 ﻿namespace Snobol4.Common;
 
+//"eval argument is not expression" /* 103 */,
+
 public partial class Executive
 {
     public void Eval(List<Var> arguments)

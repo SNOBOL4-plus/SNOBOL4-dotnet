@@ -2,11 +2,8 @@
 
 public partial class Executive
 {
-
     //"arg second argument is not integer" /* 62 */,
     //"arg first argument is not program function name" /* 63 */,
-
-    #region Arg
 
     public void Arg(List<Var> arguments)
     {
@@ -37,6 +34,4 @@ public partial class Executive
 
         SystemStack.Push(new StringVar(entry.Locals[(int)(long)i - 1]));
     }
-
-    #endregion
 }

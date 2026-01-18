@@ -12,8 +12,8 @@ public partial class Executive
     /// Calculate x^y where x and y are integers. There is no built-in .NET
     /// version for integers, so this has to be simulated.
     /// </summary>
-    /// <param name="left">Left operand</param>
-    /// <param name="right">Right operand</param>
+    /// <param name="left">LeftPattern operand</param>
+    /// <param name="right">RightPattern operand</param>
     /// <returns></returns>
     internal long IntegerPower(long left, long right)
     {

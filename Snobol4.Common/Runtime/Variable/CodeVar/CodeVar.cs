@@ -87,56 +87,56 @@ public sealed class CodeVar : Var
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var AddInteger(IntegerVar left, Executive executive)
     {
-        executive.LogRuntimeException(2); // Right operand of + is not numeric
+        executive.LogRuntimeException(2); // RightPattern operand of + is not numeric
         return StringVar.Null();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var AddReal(RealVar left, Executive executive)
     {
-        executive.LogRuntimeException(2); // Right operand of + is not numeric
+        executive.LogRuntimeException(2); // RightPattern operand of + is not numeric
         return StringVar.Null();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var SubtractInteger(IntegerVar left, Executive executive)
     {
-        executive.LogRuntimeException(33); // Right operand of - is not numeric
+        executive.LogRuntimeException(33); // RightPattern operand of - is not numeric
         return StringVar.Null();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var SubtractReal(RealVar left, Executive executive)
     {
-        executive.LogRuntimeException(33); // Right operand of - is not numeric
+        executive.LogRuntimeException(33); // RightPattern operand of - is not numeric
         return StringVar.Null();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var MultiplyInteger(IntegerVar left, Executive executive)
     {
-        executive.LogRuntimeException(27); // Right operand of * is not numeric
+        executive.LogRuntimeException(27); // RightPattern operand of * is not numeric
         return StringVar.Null();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var MultiplyReal(RealVar left, Executive executive)
     {
-        executive.LogRuntimeException(27); // Right operand of * is not numeric
+        executive.LogRuntimeException(27); // RightPattern operand of * is not numeric
         return StringVar.Null();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var DivideInteger(IntegerVar left, Executive executive)
     {
-        executive.LogRuntimeException(13); // Right operand of / is not numeric
+        executive.LogRuntimeException(13); // RightPattern operand of / is not numeric
         return StringVar.Null();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected internal override Var DivideReal(RealVar left, Executive executive)
     {
-        executive.LogRuntimeException(13); // Right operand of / is not numeric
+        executive.LogRuntimeException(13); // RightPattern operand of / is not numeric
         return StringVar.Null();
     }
 

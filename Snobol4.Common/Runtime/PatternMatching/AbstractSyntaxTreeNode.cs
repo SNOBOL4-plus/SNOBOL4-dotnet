@@ -59,6 +59,6 @@ internal class AbstractSyntaxTreeNode
 
     public string DebugAst()
     {
-        return $"ASTNode: {SelfIndex:D3}  Self: {Self.ToString()?[15..],-30}  ChildType: {ChildType,-5}  ParentIndex: {ParentIndex.ToString(),4}  Left: {LeftChild.ToString(),4}  Right: {RightChild.ToString(),4}  Sub: {Subsequent.ToString(),4} Alt: {Alternate.ToString(),4}";
+        return $"ASTNode: {SelfIndex:D3}  Self: {Self.ToString()?[15..],-30}  ChildType: {ChildType,-5}  ParentIndex: {ParentIndex.ToString(),4}  LeftPattern: {LeftChild.ToString(),4}  RightPattern: {RightChild.ToString(),4}  Sub: {Subsequent.ToString(),4} Alt: {Alternate.ToString(),4}";
     }
 }

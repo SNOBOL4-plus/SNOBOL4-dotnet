@@ -1,5 +1,7 @@
 ﻿namespace Snobol4.Common;
 
+//"prototype argument is not valid object" /* 164 */,
+
 public partial class Executive
 {
     internal void Prototype(List<Var> arguments)
