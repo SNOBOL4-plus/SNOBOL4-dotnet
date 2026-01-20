@@ -1,5 +1,9 @@
 ﻿namespace Snobol4.Common;
 
+//"rpad third argument is not a string" /* 178 */,
+//"rpad second argument is not integer" /* 179 */,
+//"rpad first argument is not a string" /* 180 */,
+
 public partial class Executive
 {
     internal void PadRight(List<Var> arguments)

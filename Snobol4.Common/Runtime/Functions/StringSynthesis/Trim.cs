@@ -1,5 +1,7 @@
 ﻿namespace Snobol4.Common;
 
+//"trim argument is not a string" /* 200 */,
+
 public partial class Executive
 {
     private static readonly char[] _whiteSpace = [' ', '\t'];

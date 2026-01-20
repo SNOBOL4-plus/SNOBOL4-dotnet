@@ -1,10 +1,11 @@
 ﻿namespace Snobol4.Common;
 
+//"substr third argument is not integer" /* 192 */,
+//"substr second argument is not integer" /* 193 */,
+//"substr first argument is not a string" /* 194 */,
+
 public partial class Executive
 {
-    //"substr third argument is not integer" /* 192 */,
-    //"substr second argument is not integer" /* 193 */,
-    //"substr first argument is not a string" /* 194 */,
     internal void Substring(List<Var> arguments)
     {
         if (!arguments[0].Convert(VarType.STRING, out _, out var inputString, this))

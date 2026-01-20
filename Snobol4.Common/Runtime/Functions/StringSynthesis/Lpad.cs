@@ -1,11 +1,11 @@
 ﻿namespace Snobol4.Common;
 
+//"lpad third argument is not a string" /* 144 */,
+//"lpad second argument is not integer" /* 145 */,
+//"lpad first argument is not a string" /* 146 */,
+
 public partial class Executive
 {
-    //"lpad third argument is not a string" /* 144 */,
-    //"lpad second argument is not integer" /* 145 */,
-    //"lpad first argument is not a string" /* 146 */,
-
     internal void PadLeft(List<Var> arguments)
     {
         if (!arguments[0].Convert(VarType.STRING, out _, out var inputString, this))

@@ -2,13 +2,13 @@
 
 namespace Snobol4.Common;
 
+//"replace third argument is not a string" /* 168 */,
+//"replace second argument is not a string" /* 169 */,
+//"replace first argument is not a string" /* 170 */,
+//"null or unequally long 2nd 3rd args to replace" /* 171 */,
+
 public partial class Executive
 {
-    //"replace third argument is not a string" /* 168 */,
-    //"replace second argument is not a string" /* 169 */,
-    //"replace first argument is not a string" /* 170 */,
-    //"null or unequally long 2nd 3rd args to replace" /* 171 */,
-
     public void Replace(List<Var> arguments)
     {
         if (!arguments[0].Convert(VarType.STRING, out _, out var target, this))

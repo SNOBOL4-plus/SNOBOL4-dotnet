@@ -1,10 +1,10 @@
 ﻿namespace Snobol4.Common;
 
+//"leq first argument is not a string" /* 122 */,
+//"leq second argument is not a string" /* 123 */,
+
 public partial class Executive
 {
-    //"leq first argument is not a string" /* 122 */,
-    //"leq second argument is not a string" /* 123 */,
-
     internal void LexicalEqual(List<Var> arguments)
     {
         var v0 = arguments[0];

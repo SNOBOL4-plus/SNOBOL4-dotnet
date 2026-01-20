@@ -1,20 +1,19 @@
 ﻿namespace Snobol4.Common;
 
+//"field function argument is wrong datatype" /* 41 */
+//"data argument has null field name" /* 80 */
+//"data argument is not a string" /* 75 */
+//"data argument is null" /* 76 */
+//"data argument is missing a left paren" /* 77 */
+//"data argument has null datatype name" /* 78 */
+//"data argument is missing a right paren" /* 79 */
+//"data argument has null field name" /* 80 */
+//"field second argument is not integer" /* 107 */
+//"field first argument is not datatype name" /* 108 */
+//"prototype argument is not valid object" /* 164 */,
+
 public partial class Executive
 {
-    #region Methods
-
-    // 41 FIELD function argument is wrong datatype
-    // 75 DATA argument is not a string
-    // 76 DATA argument is null
-    // 77 DATA argument is missing a left paren
-    // 78 DATA argument has null datatype name
-    // 79 DATA argument is missing a right paren
-    // 80 DATA argument has null field name
-    // 107 FIELD second argument is not integer
-    // 108 FIELD first argument is not datatype name
-    // 164 PROTOTYPE argument is not valid object
-
     internal void ProgramDefinedData(List<Var> arguments)
     {
         // data argument cannot be null
@@ -101,7 +100,7 @@ public partial class Executive
             return;
         }
 
-        if (arguments[1].Convert(VarType.STRING, out _, out var field, this))
+        if (!arguments[1].Convert(VarType.STRING, out _, out var field, this))
         {
             LogRuntimeException(75);
             return;
@@ -109,6 +108,4 @@ public partial class Executive
 
         SystemStack.Push(programDefinedDataVar.ProgramDefinedData[(string)field]);
     }
-
-    #endregion
 }

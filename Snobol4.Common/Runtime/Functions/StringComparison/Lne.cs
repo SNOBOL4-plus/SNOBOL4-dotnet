@@ -1,10 +1,10 @@
 ﻿namespace Snobol4.Common;
 
+//"lne first argument is not a string" /* 132 */,
+//"lne second argument is not a string" /* 133 */,
+
 public partial class Executive
 {
-    //"lne first argument is not a string" /* 132 */,
-    //"lne second argument is not a string" /* 133 */,
-
     internal void LexicalNotEqual(List<Var> arguments)
     {
         var v0 = arguments[0];

@@ -1,10 +1,10 @@
 ﻿namespace Snobol4.Common;
 
+//"lge first argument is not a string" /* 124 */,
+//"lge second argument is not a string" /* 125 */,
+
 public partial class Executive
 {
-    //"lge first argument is not a string" /* 124 */,
-    //"lge second argument is not a string" /* 125 */,
-
     internal void LexicalGreaterThanOrEqual(List<Var> arguments)
     {
         var v0 = arguments[0];
