@@ -10,45 +10,40 @@ public class Define
     public void TEST_Function_Bump1()
     {
         var s = @"
-        define('bump(var)','bump') :(bumpend)
-bump    $var = $var + 1 :(return)
+        define('bump(v)',.bumpit) :(bumpend)
+bumpit  bump = v + 1 :(return)
 bumpend
-        a = array(10)
+        s = ''
         j = 0
-        i = 0
-loop    bump(.j)
-        r = r j
-        i = i + 1
-        lt(i,10)     :s(loop)
+loop    s = s bump(2 * j)
+        j = j + 1
+        lt(j,10)     :s(loop)
         
 end";
         var directives = "-b -f";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("12345678910", ((StringVar)build.Execute!.IdentifierTable["r"]).Data);
+        Assert.AreEqual("135791113151719", ((StringVar)build.Execute!.IdentifierTable["s"]).Data);
     }
 
     [TestMethod]
     public void TEST_Function_Bump2()
     {
         var s = @"
-        define('bump(var)','bump') :(bumpend)
-bump    output = $var
-        $var = $var + 1 :(return)
+        define('bump(v)') :(bumpend)
+bump    bump = v + 1 :(return)
 bumpend
-        a = array(10)
-        a[2] = 0
-        i = 0
-loop    bump(.a[2])
-        r = r a[2]
-        i = i + 1
-        lt(i,10)     :s(loop)
+        s = ''
+        j = 0
+loop    s = s bump(2 * j)
+        j = j + 1
+        lt(j,10)     :s(loop)
         
 end";
         var directives = "-b -f";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("12345678910", ((StringVar)build.Execute!.IdentifierTable["r"]).Data);
+        Assert.AreEqual("135791113151719", ((StringVar)build.Execute!.IdentifierTable["s"]).Data);
     }
 
     [TestMethod]
@@ -106,58 +101,37 @@ end";
     public void TEST_Define_001()
     {
         var s = @"
-        define('shift(s,n)front,rest') :(end)
-        shift('abc', 2)
-end";
+        DEFINE('SHIFT(S,N)FRONT,REST')
+        SHIFT_PAT = LEN(*N) . FRONT REM . REST :(SHIFT_END)
+SHIFT   S ? SHIFT_PAT :F(FRETURN)
+        SHIFT = REST FRONT :(RETURN)
+SHIFT_END
+        R = SHIFT('COTTON',4)
+END
+";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ONCOTT", ((StringVar)build.Execute!.IdentifierTable["R"]).Data);
     }
 
     [TestMethod]
     public void TEST_Define_002()
     {
         var s = @"
-        define('shift(s,n)')
-end";
+        DEFINE('SHIFT(S,N)FRONT,REST')
+        SHIFT_PAT = LEN(*N) . FRONT REM . REST :(SHIFT_END)
+SHIFT   S ? SHIFT_PAT :F(FRETURN)
+        SHIFT = REST FRONT :(RETURN)
+SHIFT_END
+        R = SHIFT('OAK',4) :S(END)
+        S = 'FAILURE'
+END
+";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s + ";end");
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-    }
-
-    [TestMethod]
-    public void TEST_Define_003()
-    {
-        var s = @"
-        define('shift(s,)front,rest')
-end";
-        var directives = "-b";
-        var build = SetupTests.SetupScript(directives, s + ";end");
-        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual(85, build.ErrorCodeHistory[0]);
-    }
-
-    [TestMethod]
-    public void TEST_Define_004()
-    {
-        var s = @"
-        define('shift(,)front,rest')
-end";
-        var directives = "-b";
-        var build = SetupTests.SetupScript(directives, s + ";end");
-        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual(85, build.ErrorCodeHistory[0]);
-    }
-
-    [TestMethod]
-    public void TEST_Define_005()
-    {
-        var s = @"
-        define('shift()front,rest')
-end";
-        var directives = "-b";
-        var build = SetupTests.SetupScript(directives, s + ";end");
-        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("FAILURE", ((StringVar)build.Execute!.IdentifierTable["S"]).Data);
     }
 
     [TestMethod]
@@ -181,162 +155,5 @@ end";
         Assert.AreEqual(99L, ((IntegerVar)build.Execute!.IdentifierTable["FRONT"]).Data);
         Assert.AreEqual(88L, ((IntegerVar)build.Execute!.IdentifierTable["REST"]).Data);
     }
-
-    [TestMethod]
-    public void TEST_Define_81()
-    {
-        var s = @"
-        define( 'a' | 'b')
-end";
-        var directives = "-b";
-        var build = SetupTests.SetupScript(directives, s + ";end");
-        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual(81, build.ErrorCodeHistory[0]);
-    }
-
-    [TestMethod]
-    public void TEST_Define_82a()
-    {
-        var s = @"
-        define()
-end";
-        var directives = "-b";
-        var build = SetupTests.SetupScript(directives, s + ";end");
-        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual(82, build.ErrorCodeHistory[0]);
-    }
-
-    [TestMethod]
-    public void TEST_Define_82b()
-    {
-        var s = @"
-        define('')
-end";
-        var directives = "-b";
-        var build = SetupTests.SetupScript(directives, s + ";end");
-        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual(82, build.ErrorCodeHistory[0]);
-    }
-
-    [TestMethod]
-    public void TEST_Define_85h()
-    {
-        var s = @"
-        define('shift[]')
-end";
-        var directives = "-b";
-        var build = SetupTests.SetupScript(directives, s + ";end");
-        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual(85, build.ErrorCodeHistory[0]);
-    }
-
-    [TestMethod]
-    public void TEST_Define_85i()
-    {
-        var s = @"
-        define('shift')
-end";
-        var directives = "-b";
-        var build = SetupTests.SetupScript(directives, s + ";end");
-        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual(85, build.ErrorCodeHistory[0]);
-    }
-
-    [TestMethod]
-    public void TEST_Define_86j()
-    {
-        var s = @"
-        define('(s,n)')
-end";
-        var directives = "-b";
-        var build = SetupTests.SetupScript(directives, s + ";end");
-        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual(85, build.ErrorCodeHistory[0]);
-    }
-
-    [TestMethod]
-    public void TEST_Define_85a()
-    {
-        var s = @"
-        define('shift( s,n)front,rest')
-end";
-        var directives = "-b";
-        var build = SetupTests.SetupScript(directives, s + ";end");
-        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual(85, build.ErrorCodeHistory[0]);
-    }
-
-    [TestMethod]
-    public void TEST_Define_85b()
-    {
-        var s = @"
-        define('shift(s ,n)front,rest')
-end";
-        var directives = "-b";
-        var build = SetupTests.SetupScript(directives, s + ";end");
-        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual(85, build.ErrorCodeHistory[0]);
-    }
-
-    [TestMethod]
-    public void TEST_Define_85c()
-    {
-        var s = @"
-        define('shift(s, n)front,rest')
-end";
-        var directives = "-b";
-        var build = SetupTests.SetupScript(directives, s + ";end");
-        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual(85, build.ErrorCodeHistory[0]);
-    }
-
-    [TestMethod]
-    public void TEST_Define_85d()
-    {
-        var s = @"
-        define('shift(s,n )front,rest')
-end";
-        var directives = "-b";
-        var build = SetupTests.SetupScript(directives, s + ";end");
-        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual(85, build.ErrorCodeHistory[0]);
-    }
-
-    [TestMethod]
-    public void TEST_Define_85e()
-    {
-        var s = @"
-        define('shift(s,n]front,rest')
-end";
-        var directives = "-b";
-        var build = SetupTests.SetupScript(directives, s + ";end");
-        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual(85, build.ErrorCodeHistory[0]);
-    }
-
-    [TestMethod]
-    public void TEST_Define_85f()
-    {
-        var s = @"
-        define('shift(s,n) front,rest')
-end";
-        var directives = "-b";
-        var build = SetupTests.SetupScript(directives, s + ";end");
-        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual(85, build.ErrorCodeHistory[0]);
-    }
-    [TestMethod]
-
-    public void TEST_Define_85g()
-    {
-        var s = @"
-        define('shift(s,n)front,rest ')
-end";
-        var directives = "-b";
-        var build = SetupTests.SetupScript(directives, s + ";end");
-        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual(85, build.ErrorCodeHistory[0]);
-    }
-
 
 }

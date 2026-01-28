@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Snobol4.Common;
 
@@ -12,8 +13,23 @@ namespace Snobol4.Common;
 //"prototype argument is not valid object" /* 164 */,
 //"attempted redefinition of system function" /* 248 */
 
+
+public class UserDataDefinition
+{
+    internal string Prototype;
+    internal List<string> FieldNames;
+    
+    internal UserDataDefinition(string prototype, List<string> fieldNames)
+    {
+        Prototype = prototype;
+        FieldNames = fieldNames;
+    }
+}
+
 public partial class Executive
 {
+    internal Dictionary<string,UserDataDefinition> UserDataDefinitions = new();
+
     internal void ProgramDefinedData(List<Var> arguments)
     {
         // data argument cannot be null
@@ -42,7 +58,7 @@ public partial class Executive
         var match = CompiledRegex.ProgramDefinedDataPrototypePattern().Match(prototype);
         if (!match.Success)
         {
-            Assert.IsTrue(true, "prototype argument is not valid object in ProgramDefinedData()");
+            Assert.IsTrue(true, "prototype argument is not valid object in Data()");
             LogRuntimeException(164);
             return;
         }
@@ -70,7 +86,7 @@ public partial class Executive
             return;
         }
 
-        // must have a left paren
+        // must have a right paren
         var rParen = match.Groups[4].Value;
         if (rParen == "")
         {
@@ -78,6 +94,7 @@ public partial class Executive
             return;
         }
 
+        // TODO Does this ignore consecutive commas like DEFINE
         var fields = new List<string>(match.Groups[3].Value.Split(','));
         for (var i = 0; i < fields.Count; i++)
         {
@@ -98,11 +115,14 @@ public partial class Executive
             }
         }
 
-        FunctionTable[dataName] = new FunctionTableEntry(dataName, CreateProgramDefinedDataInstance, fields.Count, fields, prototype);
 
-        foreach (var field in fields)
+        FunctionTable[dataName] = new FunctionTableEntry(dataName, CreateProgramDefinedDataInstance, fields.Count, false);
+        UserDataDefinition userDataDefinition = new UserDataDefinition(prototype, fields);
+        UserDataDefinitions[dataName] = userDataDefinition;
+
+        foreach (var fieldName in fields)
         {
-            FunctionTable[field] = new FunctionTableEntry(field, GetProgramDefinedDataField, 1, false);
+            FunctionTable[fieldName] = new FunctionTableEntry(fieldName, GetProgramDefinedDataField, 1, false);
         }
 
         PredicateSuccess();
@@ -116,34 +136,28 @@ public partial class Executive
             return;
         }
 
-        var dataName = ((StringVar)arguments[^1]).Data;
-        var fields = FunctionTable[functionName.Data].Locals;
+        var dataName = functionName.Data;
+        var dataDefinition = UserDataDefinitions[dataName];
+        var prototype = dataDefinition.Prototype;
         arguments = arguments[..^1];
-        Dictionary<string, Var> userDefinedFields = [];
+        var userDefinedDataVar = new ProgramDefinedDataVar(dataName, prototype, dataDefinition.FieldNames);
 
-        for (var i = 0; i < arguments.Count; ++i)
+        for (var i = 0; i < dataDefinition.FieldNames.Count; i++)
         {
-            userDefinedFields[fields[i]] = arguments[i];
+            userDefinedDataVar.FieldValues.Data[i] = arguments[i];
         }
 
-        var userDefinedDataVar = new ProgramDefinedDataVar(dataName, userDefinedFields);
         SystemStack.Push(userDefinedDataVar);
     }
 
     internal void GetProgramDefinedDataField(List<Var> arguments)
     {
-        if (arguments[0] is not ProgramDefinedDataVar programDefinedDataVar)
-        {
-            LogRuntimeException(41);
-            return;
-        }
-
-        if (!arguments[1].Convert(VarType.STRING, out _, out var field, this))
-        {
-            LogRuntimeException(75);
-            return;
-        }
-
-        SystemStack.Push(programDefinedDataVar.ProgramDefinedData[(string)field]);
+        var fieldName = ((StringVar)arguments[1]).Data;
+        var programDefinedDataVar = (ProgramDefinedDataVar)arguments[0];
+        object index = (long)programDefinedDataVar.Definition.FieldNames.IndexOf(fieldName);
+        var v = programDefinedDataVar.FieldValues.Data[(int)(long)index];
+        v.Key = index;
+        v.Collection = programDefinedDataVar.FieldValues;
+        SystemStack.Push(programDefinedDataVar.FieldValues.Data[(int)(long)index]);
     }
 }

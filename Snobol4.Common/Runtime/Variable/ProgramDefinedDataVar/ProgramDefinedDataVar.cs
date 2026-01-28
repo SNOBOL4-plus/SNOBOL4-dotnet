@@ -7,8 +7,10 @@ public sealed class ProgramDefinedDataVar : Var
 {
     #region Data
 
-    internal string UserDefinedDataName;
-    internal Dictionary<string, Var> ProgramDefinedData;
+    internal UserDataDefinition Definition;
+    internal string DataName;                           //  Name of the user-defined data type
+    internal ArrayVar FieldValues;                      //  Field name to value mapping
+    internal List<StringVar> FieldNames;                //  List of field names
 
     #endregion
 
@@ -30,79 +32,29 @@ public sealed class ProgramDefinedDataVar : Var
 
     #region Constructors
 
-    internal ProgramDefinedDataVar(string userDefinedDataName, Dictionary<string, Var> programDefinedData)
+    internal ProgramDefinedDataVar(string dataName, string prototype, List<string> fieldNames)
     {
-        UserDefinedDataName = userDefinedDataName;
-        ProgramDefinedData = programDefinedData;
+        Definition = new UserDataDefinition(prototype, fieldNames);
+        DataName = dataName;
+        FieldValues = new ArrayVar();
+        FieldValues.ConfigurePrototype("0:" + (fieldNames.Count - 1), new StringVar(""));
+
+        //foreach (var index in Definition.FieldNames.Select(name => Definition.FieldNames.IndexOf(name)))
+        for (var index = 0; index < Definition.FieldNames.Count; index++)
+        {
+            FieldValues.Data[index] = new StringVar("");
+        }
     }
 
     internal ProgramDefinedDataVar(ProgramDefinedDataVar template)
     {
-        ProgramDefinedData = template.ProgramDefinedData;
-        UserDefinedDataName = template.UserDefinedDataName;
+        Definition = template.Definition;
+        DataName = template.DataName;
+        FieldNames = template.FieldNames;
+        FieldValues = template.FieldValues;
         Symbol = template.Symbol;
         InputChannel = template.InputChannel;
         OutputChannel = template.OutputChannel;
-    }
-
-    #endregion
-
-    #region ProgramDefinedData-Specific Methods
-
-    /// <summary>
-    /// Get the value of a field by name
-    /// </summary>
-
-    public Var GetField(string fieldName)
-    {
-        return ProgramDefinedData.TryGetValue(fieldName, out var value)
-            ? value
-            : StringVar.Null();
-    }
-
-    /// <summary>
-    /// Set the value of a field by name
-    /// </summary>
-
-    public void SetField(string fieldName, Var value)
-    {
-        ProgramDefinedData[fieldName] = value;
-    }
-
-    /// <summary>
-    /// Check if a field exists
-    /// </summary>
-
-    public bool HasField(string fieldName)
-    {
-        return ProgramDefinedData.ContainsKey(fieldName);
-    }
-
-    /// <summary>
-    /// Get all field names
-    /// </summary>
-
-    public IEnumerable<string> GetFieldNames()
-    {
-        return ProgramDefinedData.Keys;
-    }
-
-    /// <summary>
-    /// Get the number of fields
-    /// </summary>
-    public int FieldCount
-    {
-    
-        get => ProgramDefinedData.Count;
-    }
-
-    /// <summary>
-    /// Get the user-defined type name
-    /// </summary>
-    public string TypeName
-    {
-    
-        get => UserDefinedDataName;
     }
 
     #endregion

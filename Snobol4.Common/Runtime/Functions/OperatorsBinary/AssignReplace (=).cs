@@ -77,7 +77,7 @@ public partial class Executive
                 return;
             }
 
-            // If leftVar side is &errortxt, rightVar side must be a string
+            // If leftVar side is &errtext, rightVar side must be a string
             if (leftVar.Symbol == "&errtext" && leftVar is not StringVar)
             {
                 LogRuntimeException(211);

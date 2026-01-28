@@ -18,8 +18,8 @@ public sealed class ProgramDefinedDataComparisonStrategy : IComparisonStrategy
         {
             // Use ordinal comparison for maximum performance
             var typeComparison = string.CompareOrdinal(
-                dataSelf.UserDefinedDataName,
-                dataOther.UserDefinedDataName);
+                dataSelf.DataName,
+                dataOther.DataName);
 
             // If same type, compare by creation time
             return typeComparison != 0

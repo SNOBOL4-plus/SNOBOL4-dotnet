@@ -31,11 +31,14 @@ internal partial class CompiledRegex
     [GeneratedRegex(@"^([ \t]+)([A-Za-z\d_][^ \t]*)[ \t]*$")]
     internal static partial Regex EntryLabelPattern();
 
-    [GeneratedRegex(@"^([a-zA-Z][a-zA-Z0-9_]*)\(([^)]*)\)(.*)$")]
-    internal static partial Regex FunctionPrototypePattern();
+    //[GeneratedRegex(@"^([a-zA-Z][a-zA-Z0-9_]*)\(([^)]*)\)(.*)$")]
+    //internal static partial Regex FunctionPrototypePattern();
 
-    [GeneratedRegex(@"^[a-zA-Z][a-zA-Z0-9_]*$")]
-    internal static partial Regex FunctionPrototypeIdentifierPattern();
+    //[GeneratedRegex(@"^[a-zA-Z][a-zA-Z0-9_]*$")]
+    //internal static partial Regex FunctionPrototypeIdentifierPattern();
+
+    [GeneratedRegex(@"^([^(]+)(\(?)([^)]+)(\)?)(.*)$")]
+    internal static partial Regex FunctionPrototypePattern();
 
     [GeneratedRegex(@"^:[ \t]*([sSfF])?[ \t]*([(<])")]
     internal static partial Regex GoToFirstPattern();

@@ -202,7 +202,7 @@ public sealed class ArrayVar : Var
 
         var dimensions = (int)Dimensions;
         if (indices.Count != dimensions)
-            throw new ArgumentException($"Expected {dimensions} indices but got {indices.Count}", nameof(indices));
+            throw new ArgumentException(@$"Expected {dimensions} indices but got {indices.Count}", nameof(indices));
 
         long key = 0;
 

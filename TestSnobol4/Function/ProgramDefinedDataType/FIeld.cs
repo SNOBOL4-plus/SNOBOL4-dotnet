@@ -12,8 +12,8 @@ public class Field
         var s = @"
         DATA('COMPLEX(REAL,IMAG)')
         X = COMPLEX(3.2, -2.0)
-        R = FIELD(X,1)
-        I = FIELD(X,2)
+        R = FIELD('COMPLEX',1)
+        I = FIELD('COMPLEX',2)
 END";
 
         var directives = "-b";

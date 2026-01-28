@@ -8,7 +8,6 @@ namespace Test.FunctionControl;
 [TestClass]
 public class Local
 {
-
     [TestMethod]
     public void TEST_Local_001()
     {

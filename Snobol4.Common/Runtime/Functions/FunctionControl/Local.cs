@@ -14,7 +14,7 @@ public partial class Executive
             return;
         }
 
-        if (!FunctionTable.TryGetValue((string)str, out var entry))
+        if (!UserFunctionDefinitions.TryGetValue((string)str, out var entry))
         {
             LogRuntimeException(135);
             return;
@@ -26,12 +26,13 @@ public partial class Executive
             return;
         }
 
-        if ((long)i > entry.Locals.Count - entry.ArgumentCount - 1 || (long)i <= 0)
+        // Fail if index is out of range
+        if ((long)i > entry.Locals.Count - FunctionTable[(string)str].ArgumentCount - 1 || (long)i <= 0)
         {
             NonExceptionFailure();
             return;
         }
 
-        SystemStack.Push(new StringVar(entry.Locals[(int)(long)i + entry.ArgumentCount - 1]));
+        SystemStack.Push(new StringVar(entry.Locals[(int)(long)i + FunctionTable[(string)str].ArgumentCount - 1]));
     }
 }

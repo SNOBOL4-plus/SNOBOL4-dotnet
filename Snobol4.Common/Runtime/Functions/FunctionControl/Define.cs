@@ -1,62 +1,127 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Snobol4.Common;
 
+public class UserFunctionDefinition
+{
+    internal string Prototype;
+    internal List<string> Locals;
+    internal string EntryLabel;
+
+    internal UserFunctionDefinition(string prototype, List<string> locals, string entryLabel)
+    {
+        Prototype = prototype;
+        Locals = locals;
+        EntryLabel = entryLabel;
+    }
+}
 public partial class Executive
 {
-    internal Stack<string> ProgramDefinedFunctionStack = [];
+    internal Dictionary<string, UserFunctionDefinition> UserFunctionDefinitions = new();
 
     internal void CreateProgramDefinedFunction(List<Var> arguments)
     {
+
+        // define argument cannot be null
         if (arguments.Count == 0)
         {
             LogRuntimeException(82);
             return;
         }
 
+        // define argument must be a string
         if (!arguments[0].Convert(VarType.STRING, out _, out var value, this))
-        {   
+        {
             LogRuntimeException(81);
             return;
         }
 
-        var prototype = (string)value;
-
-        Debug.Assert(prototype != null, nameof(prototype) + " != null");
-        if (prototype.Trim().Length == 0)
+        // define argument cannot be null
+        var prototype = ((string)value).Trim();
+        if (prototype == "")
         {
-            LogRuntimeException(82); // Not a valid prototype
+            LogRuntimeException(81);
             return;
         }
 
+        // define argument must not have a null datatype name
         var match = CompiledRegex.FunctionPrototypePattern().Match(prototype);
         if (!match.Success)
         {
-            LogRuntimeException(85); // Not a valid prototype
+            Assert.IsTrue(true, "prototype argument is not valid object in CreateProgramDefinedFunction()");
+            LogRuntimeException(1000);
             return;
         }
 
-        var functionName = match.Groups[1].Value;
-        var locals = new List<string>(match.Groups[2].Value.Split(','));
+        // function name cannot be null
+        var functionName = match.Groups[1].Value.Trim();
+        if (functionName == "")
+        {
+            LogRuntimeException(84);
+            return;
+        }
 
-        // Allow functions with exactly one null argument (e.g., 'shift()')
-        if (locals is [{ Length: 0 }])
-            locals.Clear();
+        // function name cannot be an existing function
+        if (FunctionTable.ContainsKey(functionName))
+        {
+            LogRuntimeException(248);
+            return;
+        }
 
-        var argumentCount = locals.Count; // The first set of locals is the arguments
-        var parameters = match.Groups[3].Value.Split(',');
-        if (parameters.Length > 0 && parameters[0].Length > 0)
-            locals.AddRange(parameters);
-        locals.Add(functionName);
+        // must have a left paren
+        var lParen = match.Groups[2].Value;
+        if (lParen == "")
+        {
+            LogRuntimeException(83);
+            return;
+        }
 
-        if (locals.Any(str => str.Length == 0 || !CompiledRegex.FunctionPrototypeIdentifierPattern().Match(str).Success))
+        // must have a right paren
+        var rParen = match.Groups[4].Value;
+        if (rParen == "")
         {
             LogRuntimeException(85);
             return;
         }
 
-        var newEntry = new FunctionTableEntry(functionName, ExecuteProgramDefinedFunction, argumentCount, locals, prototype);
+        // Get entry label
+        string entryLabel = "";
+        if (arguments[1] is StringVar entryVar && entryVar.Data == "")
+        {
+            entryLabel = functionName;
+        }
+        else
+        {
+            if (!arguments[1].Convert(VarType.NAME, out Var entry, out _, this))
+            {
+                LogRuntimeException(86);
+            }
+
+            entryLabel = ((NameVar)entry).Pointer;
+        }
+
+        if (!Labels.ContainsKey(entryLabel))
+        {
+            LogRuntimeException(86);
+        }
+
+        //internal UserFunctionDefinition(string prototype, List<string> locals, string entryLabel)
+
+        // Build table entry
+        var parameters = new List<string>(match.Groups[3].Value.Split(','));
+        List<string> locals = [];
+        locals.AddRange(parameters.Select(t => t.Trim()).Where(parameter => parameter != ""));
+        var argumentCount = locals.Count;
+        parameters = new List<string>(match.Groups[5].Value.Split(','));
+        locals.AddRange(parameters.Select(t => t.Trim()).Where(parameter => parameter != ""));
+        locals.Add(functionName);
+        var newEntry = new FunctionTableEntry(functionName, ExecuteProgramDefinedFunction, argumentCount, false);
         FunctionTable[functionName] = newEntry;
+
+        // Build user function definition entry
+        var userFunctionDefinition = new UserFunctionDefinition(prototype, locals, entryLabel);
+        UserFunctionDefinitions[functionName] = userFunctionDefinition;
+
         PredicateSuccess();
     }
 
@@ -66,15 +131,18 @@ public partial class Executive
         ProgramDefinedFunctionStack.Push(functionName);
         var entry = FunctionTable[functionName];
         List<Var> saveVars = [];
+        var definition = UserFunctionDefinitions[functionName];
 
-        for (var i = 0; i < entry.Locals.Count; ++i)
+        for (var i = 0; i < definition.Locals.Count; ++i)
         {
             // Save the current value of local variables
-            var symbol = entry.Locals[i];
+            var symbol = definition.Locals[i];
 
             // If the identifier does not exist, make it now
             if (!IdentifierTable.ContainsKey(symbol))
+            {
                 IdentifierTable[symbol] = StringVar.Null();
+            }
 
             var v = IdentifierTable[symbol];
             saveVars.Add(v);
@@ -87,7 +155,7 @@ public partial class Executive
             }
             else
             {
-                var sVar = StringVar.Null(entry.Locals[i]);
+                var sVar = StringVar.Null(definition.Locals[i]);
                 IdentifierTable[sVar.Symbol] = sVar;
             }
         }
@@ -95,25 +163,34 @@ public partial class Executive
         // Save value of local variables on the stack
         entry.StateStack.Push(saveVars);
 
+        // Update keywords
         ((IntegerVar)IdentifierTable["&fnclevel"]).Data++;
 
         if (((IntegerVar)IdentifierTable["&ftrace"]).Data > 0)
+        {
             FunctionTraceEntry(arguments, functionName);
+        }
 
+        // Run function by transferring to the entry label
+        ExecuteLoop(Labels[definition.EntryLabel]);
 
-        ExecuteLoop(Labels[functionName]);
         var returnVar = IdentifierTable[functionName];
         SystemStack.Push(returnVar);
-
         ((IntegerVar)IdentifierTable["&fnclevel"]).Data--;
 
+        // Post-processing
         if (((IntegerVar)IdentifierTable["&ftrace"]).Data > 0)
+        {
             FunctionTraceExit(functionName);
+        }
 
         // Restore local variables
         saveVars = entry.StateStack.Pop();
-        for (var i = 0; i < entry.Locals.Count; ++i)
+
+        for (var i = 0; i < definition.Locals.Count; ++i)
+        {
             IdentifierTable[saveVars[i].Symbol] = saveVars[i];
+        }
     }
 
     private void FunctionTraceEntry(List<Var> arguments, string functionName)

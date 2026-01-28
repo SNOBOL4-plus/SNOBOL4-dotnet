@@ -13,7 +13,7 @@ public sealed class ProgramDefinedDataConversionStrategy : IConversionStrategy
         if (targetType == Executive.VarType.STRING)
         {
             var dataSelf = (ProgramDefinedDataVar)self;
-            var typeName = dataSelf.UserDefinedDataName;
+            var typeName = dataSelf.DataName;
             varOut = new StringVar(typeName);
             valueOut = typeName;
             return true;
@@ -30,7 +30,7 @@ public sealed class ProgramDefinedDataConversionStrategy : IConversionStrategy
     {
         var dataSelf = (ProgramDefinedDataVar)self;
         // Return the user-defined type name, not "data"
-        return dataSelf.UserDefinedDataName;
+        return dataSelf.DataName;
     }
 
 

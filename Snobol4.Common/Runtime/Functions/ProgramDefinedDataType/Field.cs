@@ -9,12 +9,19 @@ public partial class Executive
     internal void Field(List<Var> arguments)
     {
         // field first argument must be a datatype name
-        if (arguments[0] is not ProgramDefinedDataVar dataObj)
+        if (!arguments[0].Convert(VarType.STRING, out _, out var datatype, this))
         {
             LogRuntimeException(41);
             return;
         }
 
+        // table entry must be a programmer defined function
+        if (!UserDataDefinitions.TryGetValue((string)datatype, out var definition))
+        {
+            LogRuntimeException(108);
+            return;
+        }
+        
         // field second argument must be an integer
         if (!arguments[1].Convert(VarType.INTEGER, out _, out var indexObj, this))
         {
@@ -22,21 +29,14 @@ public partial class Executive
             return;
         }
 
-        if (!FunctionTable.TryGetValue(dataObj.TypeName, out var function))
-        {
-            LogRuntimeException(108);
-            return;
-        }
-
-        var functionEntry = (FunctionTableEntry)function;
         var index = (int)(long)indexObj! - 1;
-        if (index < 0 || index >= dataObj.FieldCount)
+        if (index < 0 || index >= definition.FieldNames.Count)
         {
             Failure = true;
             SystemStack.Push(StringVar.Null());
             return;
         }
 
-        SystemStack.Push(new StringVar(functionEntry.Locals[index]));
+        SystemStack.Push(new StringVar(definition.FieldNames[index]));
     }
 }

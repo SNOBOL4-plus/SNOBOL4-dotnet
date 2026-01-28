@@ -119,6 +119,7 @@ public partial class Executive
     public delegate int StatementCode(Executive x);
     public delegate void DeferredCode(Executive x);
     public List<StatementCode> Statements;
+    internal Stack<string> ProgramDefinedFunctionStack = [];
 
     internal Stack<bool> FailureStack;
     //internal int PreviousLineIndex;
@@ -228,7 +229,7 @@ public partial class Executive
             { "data", new FunctionTableEntry("data", ProgramDefinedData, 1,  true)},
             { "date", new FunctionTableEntry("date", Date, 0,  true)},
             { "datatype", new FunctionTableEntry("datatype", DataType, 1,true)},
-            { "define", new FunctionTableEntry("define", CreateProgramDefinedFunction, 1,  true)},
+            { "define", new FunctionTableEntry("define", CreateProgramDefinedFunction, 2,  true)},
             { "detach", new FunctionTableEntry("detach", Detach, 1,  true)},
             { "differ", new FunctionTableEntry("differ", Differ, 2,  true)},
             { "dump", new FunctionTableEntry("dump", DisplayVariableValues, 2,  true)},
@@ -312,7 +313,7 @@ public partial class Executive
             { "DATA", new FunctionTableEntry("data", ProgramDefinedData, 1,  true)},
             { "DATE", new FunctionTableEntry("date", Date, 0,  true)},
             { "DATATYPE", new FunctionTableEntry("datatype", DataType, 1,true)},
-            { "DEFINE", new FunctionTableEntry("define", CreateProgramDefinedFunction, 1,  true)},
+            { "DEFINE", new FunctionTableEntry("define", CreateProgramDefinedFunction, 2,  true)},
             { "DETACH", new FunctionTableEntry("detach", Detach, 1,  true)},
             { "DIFFER", new FunctionTableEntry("differ", Differ, 2,  true)},
             { "DUMP", new FunctionTableEntry("dump", DisplayVariableValues, 2,  true)},
@@ -427,7 +428,7 @@ public partial class Executive
             {"&rem", new PatternVar(new RemPattern(), "&rem", true , true)},
             {"&rtntype", new StringVar("", "&rtntype", true, true)},
             {"&stcount", new IntegerVar(0, "&stcount",true , true)},
-            {"&stlimit", new IntegerVar(22147483647, "&stlimit", true)},
+            {"&stlimit", new IntegerVar(9223372036854775807, "&stlimit", true)},
             {"&stno", new IntegerVar(0, "&stno", true , true)},
             {"&succeed", new PatternVar(new SucceedPattern(), "&succeed", true , true)},
             {"&trace", new IntegerVar(0, "&trace", true)},
@@ -476,7 +477,7 @@ public partial class Executive
             {"&REM", new PatternVar(new RemPattern(), "&rem", true , true)},
             {"&RTNTYPE", new StringVar("", "&rtntype", true, true)},
             {"&STCOUNT", new IntegerVar(0, "&stcount",true , true)},
-            {"&STLIMIT", new IntegerVar(22147483647, "&stlimit", true)},
+            {"&STLIMIT", new IntegerVar(9223372036854775807, "&stlimit", true)},
             {"&STNO", new IntegerVar(0, "&stno", true , true)},
             {"&SUCCEED", new PatternVar(new SucceedPattern(), "&succeed", true , true)},
             {"&TRACE", new IntegerVar(0, "&trace", true)},

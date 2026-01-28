@@ -14,7 +14,7 @@ public sealed class ProgramDefinedDataCloningStrategy : ICloningStrategy
         var dataSelf = (ProgramDefinedDataVar)self;
 
         // Shallow clone - fields reference the same variables
-        return new ProgramDefinedDataVar(dataSelf.UserDefinedDataName, dataSelf.ProgramDefinedData)
+        return new ProgramDefinedDataVar(dataSelf)
         {
             Symbol = dataSelf.Symbol,
             InputChannel = dataSelf.InputChannel,

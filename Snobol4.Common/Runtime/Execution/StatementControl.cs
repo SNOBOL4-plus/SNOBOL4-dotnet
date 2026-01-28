@@ -11,6 +11,9 @@ public partial class Executive
 
             i = Statements[i](this);
 
+            if (((IntegerVar)IdentifierTable["&stlimit"]).Data <= 0)
+                continue;
+
             if (((IntegerVar)IdentifierTable["&stcount"]).Data <=
                 ((IntegerVar)IdentifierTable["&stlimit"]).Data) continue;
 
