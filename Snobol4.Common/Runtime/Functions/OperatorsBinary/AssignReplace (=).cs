@@ -117,6 +117,7 @@ public partial class Executive
             default:
                 var newVar = rightVar is ArrayVar or TableVar ? rightVar : rightVar.Clone();
                 newVar.Symbol = leftVar.Symbol;
+                //newVar.Collection = rightVar.Collection;
                 newVar.OutputChannel = leftVar.OutputChannel;
                 IdentifierTable[newVar.Symbol] = newVar;
                 SystemStack.Push(newVar);

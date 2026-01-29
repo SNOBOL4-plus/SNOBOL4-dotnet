@@ -18,7 +18,7 @@ END";
         var directives = "-b -F";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("124", ((StringVar)build.Execute!.IdentifierTable["N"]).Data);
+        Assert.AreEqual(124, ((IntegerVar)build.Execute!.IdentifierTable["N"]).Data);
     }
 
     [TestMethod]

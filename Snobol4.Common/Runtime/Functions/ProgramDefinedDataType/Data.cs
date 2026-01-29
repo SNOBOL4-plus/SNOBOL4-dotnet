@@ -138,9 +138,8 @@ public partial class Executive
 
         var dataName = functionName.Data;
         var dataDefinition = UserDataDefinitions[dataName];
-        var prototype = dataDefinition.Prototype;
         arguments = arguments[..^1];
-        var userDefinedDataVar = new ProgramDefinedDataVar(dataName, prototype, dataDefinition.FieldNames);
+        var userDefinedDataVar = new ProgramDefinedDataVar(dataName, dataDefinition.Prototype, dataDefinition.FieldNames);
 
         for (var i = 0; i < dataDefinition.FieldNames.Count; i++)
         {

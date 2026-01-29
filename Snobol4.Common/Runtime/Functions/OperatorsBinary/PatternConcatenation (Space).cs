@@ -9,8 +9,21 @@ public partial class Executive
 {
     public void CreateConcatenatePattern(List<Var> arguments)
     {
+        // If left argument is null, return the right argument unchanged
+        if (arguments[0] is StringVar arg0 && arg0.Data == "")
+        {
+            SystemStack.Push(arguments[1]);
+            return;
+        }
 
-        // IF both arguments are strings, concatenate them
+        // If right argument is null, return the left argument unchanged
+        if (arguments[0] is StringVar arg1 && arg1.Data == "")
+        {
+            SystemStack.Push(arguments[0]);
+            return;
+        }
+
+        // If both arguments are strings, concatenate them
         if (arguments[0].Convert(VarType.STRING, out _, out var stringLeftValue, this) &&
             arguments[1].Convert(VarType.STRING, out _, out var stringRightValue, this))
         {
@@ -18,7 +31,7 @@ public partial class Executive
             SystemStack.Push(new StringVar((string)stringLeftValue + (string)stringRightValue));
             return;
         }
-
+        
         if (arguments[0] is ExpressionVar expressionVar0)
         {
             arguments[0] = new PatternVar(UnevaluatedPattern.Structure(expressionVar0.FunctionName));

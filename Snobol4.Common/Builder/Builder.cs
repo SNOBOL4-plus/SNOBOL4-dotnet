@@ -332,7 +332,7 @@ public partial class Builder
         Console.Error.WriteLine($@"memory left (bytes)  {memoryLeft}");
         Console.Error.WriteLine($@"comp errors          {ErrorCodeHistory.Count}");
         Console.Error.WriteLine($@"regenerations        {GC.CollectionCount(memInfo.Generation)}");
-        Console.Error.WriteLine($@"comp time (µsec)     {_timerBuild.Elapsed.Microseconds}");
+        Console.Error.WriteLine($@"comp time (sec)      {_timerBuild.Elapsed}");
         Console.Error.WriteLine(@"");
         Console.Error.WriteLine(@"");
     }

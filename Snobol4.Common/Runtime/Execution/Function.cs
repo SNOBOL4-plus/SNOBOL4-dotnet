@@ -23,7 +23,9 @@ public partial class Executive
         // Get all arguments and check for prior failure
         List<Var> arguments = [];
         if (SystemStack.ExtractArguments(argumentCount, arguments, this))
+        {
             return;
+        }
 
         var functionVar = SystemStack.Pop();
 
@@ -46,6 +48,12 @@ public partial class Executive
         // Fill in missing arguments with empty strings
         for (var i = arguments.Count; i < functionEntry.ArgumentCount; ++i)
             arguments.Add(StringVar.Null());
+
+        foreach(var argument in arguments)
+        {
+            if(!argument.Succeeded)
+                return;
+        }
 
         // If any arguments have input channels, get input now
         InputArguments(arguments);
