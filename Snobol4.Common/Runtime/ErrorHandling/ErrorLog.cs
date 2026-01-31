@@ -23,17 +23,17 @@ public partial class Executive
         }
 
         Parent.MessageHistory.Add(ce.Message);
-        var n = ((IntegerVar)IdentifierTable["&errlimit"]).Data;
+        var errorLimit = ((IntegerVar)IdentifierTable["&errlimit"]).Data;
         Console.Error.WriteLine($@"{ce.Message}");
         ((StringVar)IdentifierTable["&errtext"]).Data = ce.Message;
 
-        if(!Parent.CodeMode && (n<1 || Parent.StopOnRuntimeError))
+        if(!Parent.CodeMode && (errorLimit<1 || Parent.StopOnRuntimeError))
         {
             ((IntegerVar)IdentifierTable["&code"]).Data = ce.Code;
             throw ce;
         }
 
-        ((IntegerVar)IdentifierTable["&errlimit"]).Data = n - 1;
+        ((IntegerVar)IdentifierTable["&errlimit"]).Data = errorLimit - 1;
         return nullStringVar;
     }
 

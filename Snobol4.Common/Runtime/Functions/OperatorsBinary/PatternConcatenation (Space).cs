@@ -27,7 +27,7 @@ public partial class Executive
         if (arguments[0].Convert(VarType.STRING, out _, out var stringLeftValue, this) &&
             arguments[1].Convert(VarType.STRING, out _, out var stringRightValue, this))
         {
-            Debug.Assert(stringRightValue != null, nameof(stringRightValue) + " != null");
+            //Debug.Assert(stringRightValue != null, nameof(stringRightValue) + " != null");
             SystemStack.Push(new StringVar((string)stringLeftValue + (string)stringRightValue));
             return;
         }

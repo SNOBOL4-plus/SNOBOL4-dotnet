@@ -1,12 +1,7 @@
-﻿*	'1AB+' ANY('AB') FENCE('+') :S(Y)F(N)
-*	'1AB+' ANY('AB') FENCE '+' :S(Y)F(N)
-*	'ABC'  FENCE('B') :S(Y)F(N)
-*	'ABC'  FENCE 'B' :S(Y)F(N)
-
-    P = FENCE(BREAK(',') | REM) $ STR *DIFFER(STR)
-    'ABC' P . OUTPUT
-    '123,,456' P . OUTPUT :S(Y)F(N)
-
-Y	OUTPUT = 'SUCCESS' :(END)
-N	OUTPUT = 'FAILURE'
+﻿HELLO
+	OUTPUT = '==> ' SETEXIT(.HELLO)    :(CONTINUE)
+	OUTPUT = '==> ' SETEXIT(.GOODBYE)
+	OUTPUT = '==> ' SETEXIT('')
+	
+GOODBYE
 END

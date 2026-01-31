@@ -150,10 +150,18 @@ public class GenerateCSharpCode(Builder parent)
             _csharpCode.AppendLine("        x.Labels.Add(\"return\", -2);");
             _csharpCode.AppendLine("        x.Labels.Add(\"sreturn\", -3);");
             _csharpCode.AppendLine("        x.Labels.Add(\"freturn\", -4);");
+            _csharpCode.AppendLine("        x.Labels.Add(\"nreturn\", -5);");
+            _csharpCode.AppendLine("        x.Labels.Add(\"abort\", -6);");
+            _csharpCode.AppendLine("        x.Labels.Add(\"continue\", -7);");
+            _csharpCode.AppendLine("        x.Labels.Add(\"scontinue\", -8);");
             _csharpCode.AppendLine("        x.Labels.Add(\"END\",-1);");
             _csharpCode.AppendLine("        x.Labels.Add(\"RETURN\", -2);");
             _csharpCode.AppendLine("        x.Labels.Add(\"SRETURN\", -3);");
             _csharpCode.AppendLine("        x.Labels.Add(\"FRETURN\", -4);");
+            _csharpCode.AppendLine("        x.Labels.Add(\"NRETURN\", -5);");
+            _csharpCode.AppendLine("        x.Labels.Add(\"ABORT\", -6);");
+            _csharpCode.AppendLine("        x.Labels.Add(\"CONTINUE\", -7);");
+            _csharpCode.AppendLine("        x.Labels.Add(\"SCONTINUE\", -8);");
             _csharpCode.AppendLine();
             _csharpCode.AppendLine("        x.ExecuteLoop(0);");
         }

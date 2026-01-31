@@ -35,4 +35,9 @@
     <None Include="Runtime\Functions\OperatorsBinary\ImmediateAssignment %28%24%29.cs" />
     <None Include="Runtime\Functions\OperatorsUnary\NegativeNumeric %28-%29.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Management">
+      <HintPath>..\..\..\..\..\..\Program Files\Microsoft Visual Studio\2022\Professional\Common7\IDE\Extensions\Microsoft\LiveShare\Agent\System.Management.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>

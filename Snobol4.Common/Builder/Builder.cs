@@ -39,7 +39,7 @@ public partial class Builder
     public List<string> MessageHistory = [];
 
     // Source code
-    //internal List<string> PathList = [];            // List of source paths
+    //internal List<string> PathList = [];           // List of source paths
     internal List<string> IncludeList = [];         // List of include paths
     internal int StatementCount;
 
@@ -53,13 +53,13 @@ public partial class Builder
     public bool ShowListing;                        // -l
     internal bool SuppressExecution;                // -n
     internal bool InputAfterEndStatement;           // -r
+    internal string HostParameter;                  // -u
     internal bool GenerateDebugSymbols = true;      // -v
     internal bool WriteDll;                         // -w
     public bool ShowExecutionStatistics;            // -x
 
     public string ListFileName = "";                // Name of list file;
     public StreamWriter? ListFileWriter;
-
 
     // Command line data
     public List<string> FilesToCompile = [];        // Files to compile based on command line TODO redundant with PathList[]?

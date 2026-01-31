@@ -30,7 +30,7 @@
 // -r   [Input After End Statement NOT IMPLEMENTED. HANDLED BY .NET FRAMEWORK. DIFFERS FROM ORIGINAL SPITBOL]
 // -s   [NOT IMPLEMENTED. HANDLED BY .NET FRAMEWORK. DIFFERS FROM ORIGINAL SPITBOL]
 // -t   [NOT IMPLEMENTED. RECOMMEND USING A TEXT EDITOR FOR PRINTING. DIFFERS FROM ORIGINAL SPITBOL]
-// -u   [HOST() NOT IMPLEMENTED. DIFFERS FROM ORIGINAL SPITBOL]
+// -u   Host Parameter
 // -v   Generate Debug Symbols
 // -w   WriteDll (DIFFERS FROM ORIGINAL SPITBOL)
 // -x   ShowExecutionStatistics
@@ -47,6 +47,8 @@
 
 public partial class Builder
 {
+    private bool _u = false;
+
     public void ParseCommandLine(string[] commandLine)
     {
         var commandMode = true;
@@ -54,6 +56,13 @@ public partial class Builder
 
         foreach (var arg in commandLine)
         {
+            if (_u)
+            {
+                HostParameter = arg;
+                _u = false;
+                continue;
+            }
+
             if (commandMode && arg[0] == '-' && arg.Length > 1)
             {
                 ArgumentSwitch(arg);
@@ -138,6 +147,11 @@ public partial class Builder
 
             case "-r":
                 InputAfterEndStatement = true;
+                break;
+
+            case "-u":
+                _u = true;
+                HostParameter = "";
                 break;
 
             case "-v":
