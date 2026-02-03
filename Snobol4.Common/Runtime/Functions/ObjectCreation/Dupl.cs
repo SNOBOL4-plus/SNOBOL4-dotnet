@@ -29,7 +29,7 @@ public partial class Executive
             return;
         }
 
-        Pattern patternOut = (Pattern)patternDupl;
+        var patternOut = (Pattern)patternDupl;
 
         for (long i = 1; i < (long)numberDupl; ++i)
             patternOut = new ConcatenatePattern(patternOut, (Pattern)patternDupl);

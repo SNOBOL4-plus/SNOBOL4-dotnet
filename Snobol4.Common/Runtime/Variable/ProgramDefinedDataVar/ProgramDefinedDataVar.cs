@@ -10,7 +10,7 @@ public sealed class ProgramDefinedDataVar : Var
     internal UserDataDefinition Definition;
     internal string DataName;                           //  Name of the user-defined data type
     internal ArrayVar FieldValues;                      //  Field name to value mapping
-    internal List<StringVar> FieldNames;                //  List of field names
+    internal List<StringVar> FieldNames = new();                //  List of field names
 
     #endregion
 

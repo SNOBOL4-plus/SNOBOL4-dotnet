@@ -7,15 +7,9 @@
 
 public partial class Executive
 {
-    // Lock object for thread synchronization
-    private readonly Lock _multiplicationLock = new();
-
     internal void Multiply(List<Var> arguments)
     {
-        lock (_multiplicationLock)
-        {
-            BinaryNumericOperation(arguments, IntegerMultiply, RealMultiply, 26, 27, 28, 263);
-        }
+        BinaryNumericOperation(arguments, IntegerMultiply, RealMultiply, 26, 27, 28, 263);
     }
 
     internal long IntegerMultiply(long left, long right)

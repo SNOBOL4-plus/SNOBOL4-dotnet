@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Snobol4.Common;
+﻿namespace Snobol4.Common;
 
 //"concatenation left operand is not a string or pattern" /* 8 */,
 //"concatenation right operand is not a string or pattern" /* 9 */,
@@ -27,7 +25,6 @@ public partial class Executive
         if (arguments[0].Convert(VarType.STRING, out _, out var stringLeftValue, this) &&
             arguments[1].Convert(VarType.STRING, out _, out var stringRightValue, this))
         {
-            //Debug.Assert(stringRightValue != null, nameof(stringRightValue) + " != null");
             SystemStack.Push(new StringVar((string)stringLeftValue + (string)stringRightValue));
             return;
         }

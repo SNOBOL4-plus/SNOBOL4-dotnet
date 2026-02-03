@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace Snobol4.Common;
+﻿namespace Snobol4.Common;
 
 /// <summary>
 /// Formatting strategy for statement separator

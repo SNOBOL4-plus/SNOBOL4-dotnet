@@ -1,5 +1,4 @@
 using System.Runtime.InteropServices;
-using System.Security.Principal;
 using System.Text;
 using Snobol4.Common;
 

@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Snobol4.Common;
+﻿namespace Snobol4.Common;
 
 /// <summary>
 /// Base class for all SNOBOL4 pattern types.

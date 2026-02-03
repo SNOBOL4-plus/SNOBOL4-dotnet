@@ -1,5 +1,4 @@
-﻿using Snobol4.Common;
-using Test.TestLexer;
+﻿using Test.TestLexer;
 
 namespace Test.InputOutput;
 

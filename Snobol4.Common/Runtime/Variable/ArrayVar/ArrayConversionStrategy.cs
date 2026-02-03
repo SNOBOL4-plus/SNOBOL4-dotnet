@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace Snobol4.Common;
+﻿namespace Snobol4.Common;
 
 /// <summary>
 /// Conversion strategy for array variables.
@@ -11,7 +9,6 @@ public class ArrayConversionStrategy : IConversionStrategy
     private const int _requiredTableDimensions = 2;
     private const int _requiredTableColumns = 2;
     private const int _keyColumnIndex = 0;
-    private const int _valueColumnIndex = 1;
 
     public bool TryConvert(Var self, Executive.VarType targetType, out Var varOut, out object valueOut, Executive exec)
     {

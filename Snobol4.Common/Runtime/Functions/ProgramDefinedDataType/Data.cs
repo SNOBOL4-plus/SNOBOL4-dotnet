@@ -1,5 +1,4 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Snobol4.Common;
 
@@ -117,7 +116,7 @@ public partial class Executive
 
 
         FunctionTable[dataName] = new FunctionTableEntry(dataName, CreateProgramDefinedDataInstance, fields.Count, false);
-        UserDataDefinition userDataDefinition = new UserDataDefinition(prototype, fields);
+        var userDataDefinition = new UserDataDefinition(prototype, fields);
         UserDataDefinitions[dataName] = userDataDefinition;
 
         foreach (var fieldName in fields)

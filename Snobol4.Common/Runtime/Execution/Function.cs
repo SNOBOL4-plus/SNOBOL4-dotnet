@@ -19,7 +19,7 @@ public partial class Executive
     /// <param name="argumentCount">Number of supplied arguments</param>
     public void Function(int argumentCount)
     {
-        Stopwatch timer = Stopwatch.StartNew();
+        var timer = Stopwatch.StartNew();
 
         if (Builder.TraceStatements)
             Console.Error.WriteLine($@"Function {argumentCount}");

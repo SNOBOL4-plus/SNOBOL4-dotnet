@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-
-namespace Snobol4.Common;
+﻿namespace Snobol4.Common;
 
 /// <summary>
 /// Comparison strategy for subject variables

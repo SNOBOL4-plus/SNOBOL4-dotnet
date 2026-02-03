@@ -1,6 +1,4 @@
-﻿using System.Runtime.InteropServices.JavaScript;
-
-namespace Snobol4.Common;
+﻿namespace Snobol4.Common;
 
 //"local second argument is not integer" /* 134 */,
 //"local first arg is not a program function name" /* 135 */,

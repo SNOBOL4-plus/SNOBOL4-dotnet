@@ -42,22 +42,4 @@ public partial class Executive
         ((IntegerVar)IdentifierTable["&lastno"]).Data = ((IntegerVar)IdentifierTable["&stno"]).Data;
         ((IntegerVar)IdentifierTable["&lastline"]).Data = ((IntegerVar)IdentifierTable["&line"]).Data;
     }
-
-    //public void PerformConditionalVariableAssociations()
-    //{
-    //    if (Failure)
-    //        return;
-
-    //    foreach (var nameListEntry in BetaStack.Reverse())
-    //    {
-    //        List<Var> arguments =
-    //        [
-    //            nameListEntry.Assignee,
-    //            new StringVar(nameListEntry.Scan.Subject[nameListEntry.PreCursor..nameListEntry.PostCursor])
-    //        ];
-
-    //        Assign(arguments);
-    //        SystemStack.Pop();
-    //    }
-    //}
 }

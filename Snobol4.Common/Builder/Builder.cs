@@ -53,7 +53,7 @@ public partial class Builder
     public bool ShowListing;                        // -l
     internal bool SuppressExecution;                // -n
     internal bool InputAfterEndStatement;           // -r
-    internal string HostParameter;                  // -u
+    internal string HostParameter = "";                  // -u
     internal bool GenerateDebugSymbols = true;      // -v
     internal bool WriteDll;                         // -w
     public bool ShowExecutionStatistics;            // -x

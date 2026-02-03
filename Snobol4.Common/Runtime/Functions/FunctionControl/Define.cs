@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Reflection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Snobol4.Common;
 
@@ -95,14 +93,14 @@ public partial class Executive
         }
 
         // Get entry label
-        string entryLabel = "";
+        var entryLabel = "";
         if (arguments[1] is StringVar entryVar && entryVar.Data == "")
         {
             entryLabel = functionName;
         }
         else
         {
-            if (!arguments[1].Convert(VarType.NAME, out Var entry, out _, this))
+            if (!arguments[1].Convert(VarType.NAME, out var entry, out _, this))
             {
                 LogRuntimeException(86);
             }

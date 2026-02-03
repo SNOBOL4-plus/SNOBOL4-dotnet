@@ -52,6 +52,5 @@ error output = 'error reading line:' line
 * A little cheat to format a value as a real with a single digit decimal.
 * A little cheat to format a value as a real with a single digit decimal.
 fmt   fmt = convert(v,'string')
-      fmt len(size(v) - 1) . x rem . d
-      fmt = = x '.' d          :(return) 
+      fmt len(size(v) - 1) . x rem . d = x '.' d          :(return) 
 end

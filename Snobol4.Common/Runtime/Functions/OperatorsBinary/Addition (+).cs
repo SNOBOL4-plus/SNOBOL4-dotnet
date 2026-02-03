@@ -7,15 +7,9 @@
 
 public partial class Executive
 {
-    // Lock object for thread synchronization
-    private readonly Lock _additionLock = new();
-
     internal void Add(List<Var> arguments)
     {
-        lock (_additionLock)
-        {
-            BinaryNumericOperation(arguments, IntegerAdd, RealAdd, 1, 2, 3, 261);
-        }
+        BinaryNumericOperation(arguments, IntegerAdd, RealAdd, 1, 2, 3, 261);
     }
 
     internal long IntegerAdd(long left, long right)

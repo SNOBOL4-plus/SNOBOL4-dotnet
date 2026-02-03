@@ -1,7 +1,6 @@
 ﻿    using System.Globalization;
-using System.Runtime.CompilerServices;
 
-namespace Snobol4.Common;
+    namespace Snobol4.Common;
 
 /// <summary>
 /// Formatting strategy for integer variables

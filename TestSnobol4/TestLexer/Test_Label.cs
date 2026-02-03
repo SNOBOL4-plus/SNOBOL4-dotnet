@@ -76,7 +76,7 @@ public partial class TestLexer
     [TestMethod]
     public void TEST_LABEL_005()
     {
-        string s = $"test c = 1{Environment.NewLine}end test";
+        var s = $"test c = 1{Environment.NewLine}end test";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);

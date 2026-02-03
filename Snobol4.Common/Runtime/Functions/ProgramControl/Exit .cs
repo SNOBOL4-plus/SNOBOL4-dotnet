@@ -10,7 +10,7 @@ public partial class Executive
 {
     internal void Exit(List<Var> arguments)
     {
-        if(!arguments[0].Convert(VarType.STRING,out _, out object command, this))
+        if(!arguments[0].Convert(VarType.STRING,out _, out var command, this))
         {
             LogRuntimeException(104);
             return;

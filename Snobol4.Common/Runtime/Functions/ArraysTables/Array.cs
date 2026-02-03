@@ -7,10 +7,6 @@ public partial class Executive
     //"array first argument upper bound is not integer" /* 66 */,
     //"array dimension is zero negative or out of range" /* 67 */,
     //"array size exceeds maximum permitted" /* 68 UNUSED*/,
-    
-    // Lock objects for thread synchronization
-    private readonly Lock _arrayCreationLock = new();
-    private readonly Lock _indexCollectionLock = new();
 
     /// <summary>
     /// Factory to create an array (Thread-Safe)
@@ -18,25 +14,22 @@ public partial class Executive
     /// <param name="arguments">List of arguments</param>
     public void CreateArray(List<Var> arguments)
     {
-        lock (_arrayCreationLock)
+        if (!arguments[0].Convert(VarType.STRING, out _, out var prototypeString, this))
         {
-            if (!arguments[0].Convert(VarType.STRING, out _, out var prototypeString, this))
-            {
-                LogRuntimeException(64);
-                return;
-            }
-
-            ArrayVar av = new();
-            var result = av.ConfigurePrototype((string)prototypeString, arguments[1]);
-
-            if (result == 0)
-            {
-                SystemStack.Push(av);
-                return;
-            }
-
-            LogRuntimeException(result);
+            LogRuntimeException(64);
+            return;
         }
+
+        ArrayVar av = new();
+        var result = av.ConfigurePrototype((string)prototypeString, arguments[1]);
+
+        if (result == 0)
+        {
+            SystemStack.Push(av);
+            return;
+        }
+
+        LogRuntimeException(result);
     }
 
     /// <summary>
@@ -45,46 +38,42 @@ public partial class Executive
     /// </summary>
     public void IndexCollection()
     {
-        lock (_indexCollectionLock)
+        // Do not delete. Used by DLL
+        if (Failure)
+            return;
+        if (Builder.TraceStatements)
+            Console.Error.WriteLine(@"IndexCollection");
+
+        List<Var> varIndices = [];
+
+        while (SystemStack.Peek() is not ArrayVar && SystemStack.Peek() is not TableVar)
         {
-            // Do not delete. Used by DLL
-            if (Failure)
+            if (SystemStack.Peek() is StatementSeparator)
+            {
+                LogRuntimeException(235);
                 return;
-            if (Builder.TraceStatements)
-                Console.Error.WriteLine(@"IndexCollection");
-
-            List<Var> varIndices = [];
-
-            while (SystemStack.Peek() is not ArrayVar && SystemStack.Peek() is not TableVar)
-            {
-                if (SystemStack.Peek() is StatementSeparator)
-                {
-                    LogRuntimeException(235);
-                    return;
-                }
-
-                varIndices.Add(SystemStack.Pop());
             }
 
-            switch (SystemStack.Pop())
-            {
-                case ArrayVar arrayVar:
-                    IndexArray(arrayVar, varIndices);
-                    break;
+            varIndices.Add(SystemStack.Pop());
+        }
 
-                case TableVar tableVar:
-                    IndexTable(tableVar, varIndices);
-                    break;
+        switch (SystemStack.Pop())
+        {
+            case ArrayVar arrayVar:
+                IndexArray(arrayVar, varIndices);
+                break;
 
-                default:
-                    throw new ApplicationException("IndexCollection()");
-            }
+            case TableVar tableVar:
+                IndexTable(tableVar, varIndices);
+                break;
+
+            default:
+                throw new ApplicationException("IndexCollection()");
         }
     }
 
     private void IndexArray(ArrayVar arrayVar, List<Var> varIndices)
     {
-        // Called from within lock, no additional locking needed
         if (arrayVar.Dimensions != varIndices.Count)
         {
             LogRuntimeException(236);
