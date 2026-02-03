@@ -12,9 +12,6 @@ public partial class Executive
     /// </summary>
     public void PatternMatch(List<Var> arguments)
     {
-        if (Failure)
-            return;
-
         // arguments[0]: Subject and left operand
         // arguments[1]: Pattern and right operand
 
@@ -37,6 +34,10 @@ public partial class Executive
             LogRuntimeException(241);
             return;
         }
+
+        // If the subject is converted from something other than a string, it loses its symbol.
+        // So preserve it here.
+        subject.Symbol = arguments[0].Symbol;
 
         // Try the match
         var anchor = ((IntegerVar)IdentifierTable["&anchor"]).Data;

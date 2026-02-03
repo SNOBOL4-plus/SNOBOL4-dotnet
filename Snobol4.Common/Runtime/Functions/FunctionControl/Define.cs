@@ -194,10 +194,17 @@ public partial class Executive
         }
 
         // Run function by transferring to the entry label
-        ExecuteLoop(Labels[definition.EntryLabel]);
+        var nextIndex = ExecuteLoop(Labels[definition.EntryLabel]);
 
         var returnVar = IdentifierTable[functionName];
+
+        if (nextIndex == -3) // FRETURN
+        {
+            Failure = true;
+        }
+
         SystemStack.Push(returnVar);
+        IdentifierTable[functionName] = StringVar.Null(functionName); // Clear function name variable
         ((IntegerVar)IdentifierTable["&fnclevel"]).Data--;
 
         // Post-processing

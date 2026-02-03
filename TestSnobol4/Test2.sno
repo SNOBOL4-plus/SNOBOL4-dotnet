@@ -1,6 +1,4 @@
-﻿		output('broadcast','pa','file1.txt');
-		n = 0
-loop		broadcast = 'Hello, world';
-		n = n + 1
-		le(n,1000) :s(loop)
-end
+﻿LOOP	N = INPUT
+	TEN = REPLACE(N, 'IVXLCDM', 'XLCDM**')
+	OUTPUT = TEN  :(LOOP)
+END
