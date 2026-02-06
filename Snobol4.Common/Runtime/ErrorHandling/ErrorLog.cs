@@ -5,36 +5,37 @@ public partial class Executive
 
     public StringVar LogRuntimeException(int code, Exception? e = null)
     {
-        ((IntegerVar)IdentifierTable["&errtype"]).Data = code;
+        AmpErrorType = code;
         Failure = true;
         var nullStringVar = new StringVar(false);
         SystemStack.Push(nullStringVar);
         var ce = new CompilerException(code);
         Parent.ErrorCodeHistory.Add(code);
         Parent.ColumnHistory.Add(0);
-        var fi = new FileInfo(((StringVar)IdentifierTable["&file"]).Data);
-        ce.Message = $"{Environment.NewLine}{fi.Name}({((IntegerVar)IdentifierTable["&line"]).Data + 1}) : error {code} -- {CompilerException.ErrorMessage[code]}{Environment.NewLine}{SourceCode[(int)((IntegerVar)IdentifierTable["&stno"]).Data - 1].Split('\n')[1]}";
-        ((StringVar)IdentifierTable["&errtext"]).Data = ce.Message[2..];
+        var fi = new FileInfo(SourceFiles[AmpCurrentLineNumber - 1]);
+        ce.Message = $"{Environment.NewLine}{fi.Name}({SourceLineNumbers[AmpCurrentLineNumber - 1] - 1}) : error {code} -- {CompilerException.ErrorMessage[code]}{Environment.NewLine}{SourceCode[AmpCurrentLineNumber - 1].Split('\n')[1]}";
+
+        AmpErrorText = ce.Message[2..];
 
         if (e != null)
         {
             ce.Message += $"{Environment.NewLine}{e.Message}";
             Console.Error.WriteLine(ce.Message);
-            ((StringVar)IdentifierTable["&errtext"]).Data = e.Message[2..];
+            AmpErrorText = e.Message[2..];
         }
 
         Parent.MessageHistory.Add(ce.Message);
-        var errorLimit = ((IntegerVar)IdentifierTable["&errlimit"]).Data;
+        var errorLimit = AmpErrorLimit;
         Console.Error.WriteLine($@"{ce.Message}");
-        ((StringVar)IdentifierTable["&errtext"]).Data = ce.Message;
+        AmpErrorText = ce.Message;
 
-        if(!Parent.CodeMode && (errorLimit<1 || Parent.StopOnRuntimeError))
+        if (!Parent.CodeMode && (errorLimit < 1 || Parent.StopOnRuntimeError))
         {
-            ((IntegerVar)IdentifierTable["&code"]).Data = ce.Code;
+            AmpErrorType = ce.Code;
             throw ce;
         }
 
-        ((IntegerVar)IdentifierTable["&errlimit"]).Data = errorLimit - 1;
+        AmpErrorLimit--;
         return nullStringVar;
     }
 

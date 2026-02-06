@@ -13,11 +13,9 @@ public partial class Executive
                                InitializeStatement {lineNumber}
 
                                """);
-        ((StringVar)IdentifierTable["&file"]).Data = SourceFiles[lineNumber - 1];
-        ((IntegerVar)IdentifierTable["&stno"]).Data = lineNumber;
-        ((IntegerVar)IdentifierTable["&line"]).Data = SourceLineNumbers[lineNumber - 1] - 1;
-        //((IntegerVar)IdentifierTable["&stcount"]).Data++;
-        Amp_StatementCount++;
+
+        AmpCurrentLineNumber = lineNumber;
+        AmpStatementCount++;
         Failure = false;
         AlphaStack.Clear(); // Used for conditional variable association
         BetaStack.Clear();  // Used for conditional variable association
@@ -40,9 +38,6 @@ public partial class Executive
             SystemStack.Pop();
 
         SystemStack.Pop();
-
-        ((StringVar)IdentifierTable["&lastfile"]).Data = ((StringVar)IdentifierTable["&file"]).Data;
-        ((IntegerVar)IdentifierTable["&lastno"]).Data = ((IntegerVar)IdentifierTable["&stno"]).Data;
-        ((IntegerVar)IdentifierTable["&lastline"]).Data = ((IntegerVar)IdentifierTable["&line"]).Data;
+        AmpLastLineNumber = AmpCurrentLineNumber;
     }
 }

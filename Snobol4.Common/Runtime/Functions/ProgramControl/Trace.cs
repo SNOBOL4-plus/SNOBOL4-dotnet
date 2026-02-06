@@ -110,19 +110,18 @@ public partial class Executive
         if (name[0] == '&')
             return;
 
-        if (((IntegerVar)IdentifierTable["&trace"]).Data <= 0)
+        if (AmpTrace <= 0)
             return;
 
         if (!TraceTableIdentifierAccess.ContainsKey(name))
             return;
 
-        var line = ((IntegerVar)IdentifierTable["&line"]).Data + 1;
+        var line = AmpCurrentLineNumber + 1;
         var linePad = line.ToString().PadRight(8, '*');
-        var r = (int)((IntegerVar)IdentifierTable["&fnclevel"]).Data;
+        var r = (int)AmpFunctionLevel;
 
         Console.Error.WriteLine($@"****{linePad} {new string('i', r)} {name}");
-
-        ((IntegerVar)IdentifierTable["&trace"]).Data--;
+        AmpTrace--;
     }
 
     internal void TraceIdentifierValue(string name)
@@ -130,73 +129,73 @@ public partial class Executive
         if (name[0] == '&')
             return;
 
-        if (((IntegerVar)IdentifierTable["&trace"]).Data <= 0)
+        if (AmpTrace <= 0)
             return;
 
         if (!TraceTableIdentifierValue.ContainsKey(name))
             return;
 
-        var line = ((IntegerVar)IdentifierTable["&line"]).Data + 1;
+        var line = AmpCurrentLineNumber + 1;
         var linePad = line.ToString().PadRight(8, '*');
-        var r = (int)((IntegerVar)IdentifierTable["&fnclevel"]).Data;
+        var r = (int)AmpFunctionLevel;
 
         Console.Error.WriteLine($@"****{linePad} {new string('i', r)} {name} = {IdentifierTable.GetValueSafe(name)}");
 
-        ((IntegerVar)IdentifierTable["&trace"]).Data--;
+        AmpTrace--;
     }
 
 
     // ReSharper disable once UnusedMember.Global
     internal void TraceGoto(string name)
     {
-        if (((IntegerVar)IdentifierTable["&trace"]).Data <= 0)
+        if (AmpTrace <= 0)
             return;
 
         if (!TraceTableLabel.ContainsKey(name))
             return;
 
-        var line = ((IntegerVar)IdentifierTable["&line"]).Data + 1;
+        var line = AmpCurrentLineNumber + 1;
         var linePad = line.ToString().PadRight(8, '*');
-        var r = (int)((IntegerVar)IdentifierTable["&fnclevel"]).Data;
+        var r = (int)AmpFunctionLevel;
 
         Console.Error.WriteLine($@"****{linePad} {new string('i', r)} goto {name}");
 
-        ((IntegerVar)IdentifierTable["&trace"]).Data--;
+        AmpTrace--;
     }
 
     // ReSharper disable once UnusedMember.Global
     internal void TraceFunctionCall(string name)
     {
-        if (((IntegerVar)IdentifierTable["&trace"]).Data <= 0)
+        if (AmpTrace <= 0)
             return;
 
         if (!TraceTableFunctionCall.ContainsKey(name))
             return;
 
-        var line = ((IntegerVar)IdentifierTable["&line"]).Data + 1;
+        var line = AmpCurrentLineNumber + 1;
         var linePad = line.ToString().PadRight(8, '*');
-        var r = (int)((IntegerVar)IdentifierTable["&fnclevel"]).Data;
+        var r = (int)AmpFunctionLevel;
 
         Console.Error.WriteLine($@"****{linePad} {new string('i', r)} call {name}");
 
-        ((IntegerVar)IdentifierTable["&trace"]).Data--;
+        AmpTrace--;
     }
 
     // ReSharper disable once UnusedMember.Global
     internal void TraceFunctionReturn(string name)
     {
-        if (((IntegerVar)IdentifierTable["&trace"]).Data <= 0)
+        if (AmpTrace <= 0)
             return;
 
         if (!TraceTableFunctionReturn.ContainsKey(name))
             return;
 
-        var line = ((IntegerVar)IdentifierTable["&line"]).Data + 1;
+        var line = AmpCurrentLineNumber + 1;
         var linePad = line.ToString().PadRight(8, '*');
-        var r = (int)((IntegerVar)IdentifierTable["&fnclevel"]).Data;
+        var r = (int)AmpFunctionLevel;
 
         Console.Error.WriteLine($@"****{linePad} {new string('i', r)} return {name}");
 
-        ((IntegerVar)IdentifierTable["&trace"]).Data--;
+        AmpTrace--;
     }
 }

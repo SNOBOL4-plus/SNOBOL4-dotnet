@@ -89,7 +89,7 @@ public sealed class RealConversionStrategy : IConversionStrategy
     private static bool ConvertToExpression(RealVar realSelf, Executive exec, out Var varOut, out object valueOut)
     {
         var previousCaseFolding = exec.Parent.CaseFolding;
-        exec.Parent.CaseFolding = ((IntegerVar)exec.IdentifierTable["&case"]).Data != 0;
+        exec.Parent.CaseFolding = exec.AmpCaseFolding != 0;
         exec.Parent.CodeMode = true;
         exec.Parent.Code = new SourceCode(exec.Parent);
         

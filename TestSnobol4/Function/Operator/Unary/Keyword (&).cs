@@ -29,7 +29,7 @@ public class Keyword
         a = &alphabet
 end";
         var directives = "-b";
-        var build = SetupTests.SetupScript(directives, s + ";end");
+        var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
         Assert.AreEqual(255, ((StringVar)build.Execute!.IdentifierTable["A"]).Data.Length);
     }
@@ -41,7 +41,7 @@ end";
         &alphabet = 'abcxyz'
 end";
         var directives = "-b";
-        var build = SetupTests.SetupScript(directives, s + ";end");
+        var build = SetupTests.SetupScript(directives, s);
         Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
         Assert.AreEqual(209, build.ErrorCodeHistory[0]);
     }
@@ -53,7 +53,7 @@ end";
         &trim = 'a'
 end";
         var directives = "-b";
-        var build = SetupTests.SetupScript(directives, s + ";end");
+        var build = SetupTests.SetupScript(directives, s);
         Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
         Assert.AreEqual(208, build.ErrorCodeHistory[0]);
     }
@@ -65,7 +65,7 @@ end";
         a = &1
 end";
         var directives = "-b";
-        var build = SetupTests.SetupScript(directives, s + ";end");
+        var build = SetupTests.SetupScript(directives, s);
         Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
         Assert.AreEqual(251, build.ErrorCodeHistory[0]);
     }
@@ -78,9 +78,24 @@ end";
 end
 ";
         var directives = "-b";
-        var build = SetupTests.SetupScript(directives, s + ";end");
+        var build = SetupTests.SetupScript(directives, s);
         Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
         Assert.AreEqual(251, build.ErrorCodeHistory[0]);
     }
 
+    [TestMethod]
+    public void TEST_Abend()
+    {
+        var s = @"
+        &abend = 1
+        A = &abend
+        &abend = '1'
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(1, build.ErrorCodeHistory.Count);
+        Assert.AreEqual(1, ((IntegerVar)build.Execute!.IdentifierTable["A"]).Data);
+        Assert.AreEqual(208, build.ErrorCodeHistory[0]);
+    }
 }

@@ -19,15 +19,7 @@ public partial class Executive
 
     internal void DisplayVariableValues()
     {
-        var dumpVar = IdentifierTable["&dump"];
-
-        if (!dumpVar.Convert(VarType.INTEGER, out _, out var value, this))
-        {
-            LogRuntimeException(88);
-            return;
-        }
-
-        DisplayVariableValues((long)value);
+        DisplayVariableValues(AmpDump);
     }
 
     private void DisplayVariableValues(long value)

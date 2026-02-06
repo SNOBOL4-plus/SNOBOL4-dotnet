@@ -35,7 +35,7 @@ public partial class Executive
                 }
 
                 var previousCaseFolding = Parent.CaseFolding;
-                Parent.CaseFolding = ((IntegerVar)IdentifierTable["&case"]).Data != 0;
+                Parent.CaseFolding = AmpCaseFolding!= 0;
                 Parent.CodeMode = true;
                 Parent.Code = new SourceCode(Parent);
                 Parent.Code.ReadCodeInString($" A = *({stringVar.Data.Trim()})", Parent.FilesToCompile[^1]);

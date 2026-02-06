@@ -57,36 +57,6 @@ public class IdentifierTable(Executive exec) : Dictionary<string, Var>
     // [DIFFERS FROM ORIGINAL SPITBOL]
     private readonly Dictionary<string, string> _specialKeyWords = new()
     {
-        { "&CASE", "" },
-        { "&case", "" },
-        { "&CODE", "" },
-        { "&code", "" },
-        { "&COMPARE", "" },
-        { "&compare", "" },
-        { "&DUMP", "" },
-        { "&dump", "" },
-        { "&ERRLIMIT", "" },
-        { "&errlimit", "" },
-        { "&ERRTEXT", "" },
-        { "&errtext", "" },
-        { "&ERRTYPE", "" },
-        { "&errtype", "" },
-        { "&FTRACE", "" },
-        { "&ftrace", "" },
-        { "&FULLSCAN", "" },
-        { "&fullscan", "" },
-        { "&INPUT", "" },
-        { "&input", "" },
-        { "&MAXLENGTH", "" },
-        { "&maxlength", "" },
-        { "&OUTPUT", "" },
-        { "&output", "" },
-        { "&PROFILE", "" },
-        { "&profile", "" },
-        { "&TRACE", "" },
-        { "&trace", "" },
-        { "&TRIM", "" },
-        { "&trim", "" },
         { "INPUT", "" },
         { "input", "" },
         { "OUTPUT", "" },
@@ -161,6 +131,12 @@ public partial class Executive
         StarFunctionList = [];
         StreamReadersBySymbol = new Dictionary<string, StreamReader>();  // Dictionary associating labels to line numbers
         StreamReadersByChannel = new Dictionary<string, StreamReader>();  // Dictionary associating labels to line numbers;
+
+        AmpCurrentFile = "";
+        AmpLastFile = "";
+        AmpLastStatement = "";
+        AmpReturnType = "";
+        AmpOutput = "";
 
         TraceTableIdentifierAccess = new Dictionary<string, string>();
         TraceTableIdentifierKeyword = new Dictionary<string, string>();
@@ -373,15 +349,16 @@ public partial class Executive
         };
 
         var alphabet = Enumerable.Range(0, 255).Select(i => (char)i).ToArray();
-        Amp_LowerCase = "";
-        Amp_UpperCase = "";
+        AmpAlphabet = "";
+        AmpLowerCaseLetters = "";
+        AmpUpperCaseLetters = "";
         foreach (var letter in alphabet)
         {
             // Use the culture-specific method for case conversion
-            Amp_Alphabet += letter;
+            AmpAlphabet += letter;
             if (!char.IsLower(letter)) continue;
-            Amp_LowerCase += letter;
-            Amp_UpperCase += char.ToUpper(letter, CultureInfo.CurrentCulture);
+            AmpLowerCaseLetters += letter;
+            AmpUpperCaseLetters += char.ToUpper(letter, CultureInfo.CurrentCulture);
         }
 
         IdentifierTable = new IdentifierTable(this)
@@ -390,43 +367,6 @@ public partial class Executive
             // See Emmer MB, Quillen EK, and Dewar RBK. pp 187-193
             // SPITBOL: Tutorial and Program Reference Manual. 2000.
             
-            //{"&abend", new IntegerVar(0, "&abend", true)},
-            //{"&abort", new PatternVar(new AbortPattern(), "&abort", true , true)},
-            //{"&alphabet", new StringVar(new string(alphabet), "&alphabet", true , true)},
-            //{"&anchor", new IntegerVar(0, "&anchor", true)},
-            {"&arb", new PatternVar(ArbPattern.Structure(), "&arb", true , true)},
-            {"&bal", new PatternVar(BalPattern.Structure(), "&bal", true, true)},
-            {"&case", new IntegerVar(1, "&case", true)},
-            {"&code", new IntegerVar(0, "&code", true)},
-            {"&compare", new IntegerVar(0, "&compare", true)},
-            {"&dump", new IntegerVar(0, "&dump", true)},
-            {"&errlimit", new IntegerVar(999999, "&errlimit", true)},
-            {"&errtext", new StringVar("", "&errtext",true)},
-            {"&errtype", new IntegerVar(0, "&errtype", true)},
-            {"&fail", new PatternVar(new FailPattern(), "&fail", true , true)},
-            {"&fence", new PatternVar(new AlternatePattern(new NullPattern(), new AbortPattern()), "&fence", true , true)},
-            {"&file", new StringVar("", "&file", true, true)},
-            {"&fnclevel", new IntegerVar(0, "&fnclevel",true, true)},
-            {"&ftrace", new IntegerVar(0, "&ftrace", true)},
-            {"&fullscan", new IntegerVar(0, "&fullscan", true)},
-            {"&input", new IntegerVar(0, "&input", true)},
-            {"&lastfile", new StringVar("", "&lastfile", true , true)},
-            {"&lastline", new IntegerVar(0, "&lastline", true , true)},
-            {"&lastno", new IntegerVar(0, "&lastno", true , true)},
-            //{"&lcase", new StringVar(lowerCase, "&lcase", true , true)},
-            {"&line", new IntegerVar(0, "&line", true , true)},
-            {"&maxlength", new IntegerVar(1073741791, "&maxlength", true)},  // 1,073,741,791
-            {"&output", new StringVar("", "&output", true)},
-            {"&profile", new IntegerVar(0, "&profile", true)},
-            {"&rem", new PatternVar(new RemPattern(), "&rem", true , true)},
-            {"&rtntype", new StringVar("", "&rtntype", true, true)},
-            //{"&stcount", new IntegerVar(0, "&stcount",true , true)},
-            //{"&stlimit", new IntegerVar(9223372036854775807, "&stlimit", true)},
-            {"&stno", new IntegerVar(0, "&stno", true , true)},
-            {"&succeed", new PatternVar(new SucceedPattern(), "&succeed", true , true)},
-            {"&trace", new IntegerVar(0, "&trace", true)},
-            {"&trim", new IntegerVar(0, "&trim", true)},
-            //{"&ucase", new StringVar(upperCase, "&ucase", true , true)},
             {"abort", new PatternVar(new AbortPattern(), "abort", true, true)},
             {"arb", new PatternVar(ArbPattern.Structure(), "arb", true , true)},
             {"bal", new PatternVar(BalPattern.Structure(), "bal", true, true)},
@@ -436,46 +376,9 @@ public partial class Executive
             {"null", new PatternVar(new NullPattern(),"null", true , true)},
             {"output", new StringVar("","output")},
             {"rem", new PatternVar(new RemPattern(), "rem", true, true)},
-            {"succeed", new PatternVar(new SucceedPattern(), "&succeed", true , true)},
+            {"succeed", new PatternVar(new SucceedPattern(), "succeed", true , true)},
             {"terminal", new StringVar("", "terminal")},
 
-            //{"&ABEND", new IntegerVar(0, "&abend", true)},
-            //{"&ABORT", new PatternVar(new AbortPattern(), "&abort", true , true)},
-            //{"&ALPHABET", new StringVar(new string(alphabet), "&alphabet", true , true)},
-            //{"&ANCHOR", new IntegerVar(0, "&anchor", true)},
-            {"&ARB", new PatternVar(ArbPattern.Structure(), "&arb", true , true)},
-            {"&BAL", new PatternVar(BalPattern.Structure(), "&bal", true, true)},
-            {"&CASE", new IntegerVar(1, "&case", true)},
-            {"&CODE", new IntegerVar(0, "&code", true)},
-            {"&COMPARE", new IntegerVar(0, "&compare", true)},
-            {"&DUMP", new IntegerVar(0, "&dump", true)},
-            {"&ERRLIMIT", new IntegerVar(999999, "&errlimit", true)},
-            {"&ERRTEXT", new StringVar("", "&errtext",true)},
-            {"&ERRTYPE", new IntegerVar(0, "&errtype", true)},
-            {"&FAIL", new PatternVar(new FailPattern(), "&fail", true , true)},
-            {"&FENCE", new PatternVar(new AlternatePattern(new NullPattern(), new AbortPattern()), "&fence", true , true)},
-            {"&FILE", new StringVar("", "&file", true, true)},
-            {"&FNCLEVEL", new IntegerVar(0, "&fnclevel",true, true)},
-            {"&FTRACE", new IntegerVar(0, "&ftrace", true)},
-            {"&FULLSCAN", new IntegerVar(0, "&fullscan", true)},
-            {"&INPUT", new IntegerVar(0, "&input", true)},
-            {"&LASTFILE", new StringVar("", "&lastfile", true , true)},
-            {"&LASTLINE", new IntegerVar(0, "&lastline", true , true)},
-            {"&LASTNO", new IntegerVar(0, "&lastno", true , true)},
-            //{"&LCASE", new StringVar(lowerCase, "&lcase", true , true)},
-            {"&LINE", new IntegerVar(0, "&line", true , true)},
-            {"&MAXLENGTH", new IntegerVar(1073741791, "&maxlength", true)},  // 1,073,741,791
-            {"&OUTPUT", new StringVar("", "&output", true)},
-            {"&PROFILE", new IntegerVar(0, "&profile", true)},
-            {"&REM", new PatternVar(new RemPattern(), "&rem", true , true)},
-            {"&RTNTYPE", new StringVar("", "&rtntype", true, true)},
-            //{"&STCOUNT", new IntegerVar(0, "&stcount",true , true)},
-            //{"&STLIMIT", new IntegerVar(9223372036854775807, "&stlimit", true)},
-            {"&STNO", new IntegerVar(0, "&stno", true , true)},
-            {"&SUCCEED", new PatternVar(new SucceedPattern(), "&succeed", true , true)},
-            {"&TRACE", new IntegerVar(0, "&trace", true)},
-            {"&TRIM", new IntegerVar(0, "&trim", true)},
-            //{"&UCASE", new StringVar(upperCase, "&ucase", true , true)},
             {"ABORT", new PatternVar(new AbortPattern(), "abort", true, true)},
             {"ARB", new PatternVar(ArbPattern.Structure(), "arb", true , true)},
             {"BAL", new PatternVar(BalPattern.Structure(), "bal", true, true)},
@@ -485,39 +388,86 @@ public partial class Executive
             {"NULL", new PatternVar(new NullPattern(),"null", true , true)},
             {"OUTPUT", new StringVar("","output")},
             {"REM", new PatternVar(new RemPattern(), "rem", true, true)},
-            {"SUCCEED", new PatternVar(new SucceedPattern(), "&succeed", true , true)},
+            {"SUCCEED", new PatternVar(new SucceedPattern(), "succeed", true , true)},
             {"TERMINAL", new StringVar("", "terminal")}
         };
 
         KeywordTable = new()
         {
-            { "&ABEND", HandleAbend },
-            { "&abend", HandleAbend },
+            // Unprotected keywords
 
             { "&ABORT", HandleAbort },
             { "&abort", HandleAbort },
-
             { "&ALPHABET", HandleAlphabet },
             { "&alphabet", HandleAlphabet },
+            { "&ARB", HandleArb },
+            { "&arb", HandleArb },
+            { "&BAL", HandleBal },
+            { "&bal", HandleBal },
+            { "&FAIL", HandleFail },
+            { "&fail", HandleFail },
+            { "&FENCE", HandleFence },
+            { "&fence", HandleFence },
+            { "&FILE", HandleFile },
+            { "&file", HandleFile },
+            { "&FNCLEVEL", HandleFncLevel },
+            { "&fnclevel", HandleFncLevel },
+            { "&LASTFILE", HandleLastFile },
+            { "&lastfile", HandleLastFile },
+            { "&LASTLINE", HandleLastLine },
+            { "&lastline", HandleLastLine },
+            { "&LASTNO", HandleLastNo },
+            { "&lastno", HandleLastNo },
+            { "&LCASE", HandleLCase },
+            { "&lcase", HandleLCase },
+            { "&LINE", HandleLine },
+            { "&line", HandleLine },
+            { "&REM", HandleRem },
+            { "&rem", HandleRem },
+            { "&RTNTYPE", HandleRtnType },
+            { "&rtntype", HandleRtnType },
+            { "&STCOUNT", HandleStCount },
+            { "&stcount", HandleStCount },
+            { "&STNO", HandleStNo },
+            { "&stno", HandleStNo },
+            { "&SUCCEED", HandleSucceed },
+            { "&succeed", HandleSucceed },
+            { "&UCASE", HandleUCase },
+            { "&ucase", HandleUCase },
 
+            // Unprotected keywords
+
+            { "&ABEND", HandleAbend },
+            { "&abend", HandleAbend },
             { "&ANCHOR", HandleAnchor },
             { "&anchor", HandleAnchor },
-
-            { "&LCASE", HandleLowerCase },
-            { "&lcase", HandleLowerCase },
-
-            { "&STCOUNT", HandleStatementCount },
-            { "&stcount", HandleStatementCount },
-
+            { "&CASE", HandleCase },
+            { "&case", HandleCase },
+            { "&CODE", HandleCode },
+            { "&code", HandleCode },
+            { "&COMPARE", HandleCompare },
+            { "&compare", HandleCompare },
+            { "&DUMP", HandleDump },
+            { "&dump", HandleDump },
+            { "&ERRLIMIT", HandleErrLimit },
+            { "&errlimit", HandleErrLimit },
+            { "&ERRTEXT", HandleErrText },
+            { "&errtext", HandleErrText },
+            { "&ERRTYPE", HandleErrType },
+            { "&errtype", HandleErrType },
+            { "&FTRACE", HandleFTrace },
+            { "&ftrace", HandleFTrace },
+            { "&FULLSCAN", HandleFullScan },
+            { "&fullscan", HandleFullScan },
+            { "&INPUT", HandleInput },
+            { "&input", HandleInput },
             { "&STLIMIT", HandleStatementLimit },
             { "&stlimit", HandleStatementLimit },
-
-            { "&UCASE", HandleUpperCase },
-            { "&ucase", HandleUpperCase },
-
+            { "&TRIM", HandleTrim },
+            { "&trim", HandleTrim },
 
         };
-        
+
         IdentifierTable["output"].OutputChannel = "+console-output";
         IdentifierTable["terminal"].OutputChannel = "+terminal-output";
         IdentifierTable["input"].InputChannel = "+console-input";

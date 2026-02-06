@@ -134,7 +134,7 @@ end
 ";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
-        Assert.AreEqual(2, build.ErrorCodeHistory.Count);
+        Assert.AreEqual(1, build.ErrorCodeHistory.Count);
         Assert.AreEqual(235, build.ErrorCodeHistory[0]);
     }
 
@@ -176,7 +176,7 @@ end
 ";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s); 
-        Assert.AreEqual(3, build.ErrorCodeHistory.Count);
+        Assert.AreEqual(1, build.ErrorCodeHistory.Count);
         Assert.AreEqual(67, build.ErrorCodeHistory[0]);
     }
 

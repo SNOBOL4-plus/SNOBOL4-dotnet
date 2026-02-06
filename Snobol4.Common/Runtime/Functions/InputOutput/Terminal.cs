@@ -14,7 +14,7 @@ public partial class Executive
         if (string.IsNullOrEmpty(s)) 
             return StringVar.Null();
         
-        if (((IntegerVar)IdentifierTable["&trim"]).Data != 0)
+        if (AmpTrim != 0)
             s = s.TrimEnd();
 
         return new StringVar(s, "terminal", true);

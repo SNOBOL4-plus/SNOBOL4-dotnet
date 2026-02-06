@@ -7,6 +7,16 @@ public partial class Executive
 {
     private void CreateAlternatePattern(List<Var> arguments)
     {
+        if (arguments[0] is ExpressionVar expressionVar0)
+        {
+            arguments[0] = new PatternVar(UnevaluatedPattern.Structure(expressionVar0.FunctionName));
+        }
+
+        if (arguments[1] is ExpressionVar expressionVar1)
+        {
+            arguments[1] = new PatternVar(UnevaluatedPattern.Structure(expressionVar1.FunctionName));
+        }
+
         if (!arguments[0].Convert(VarType.PATTERN, out _, out var patternLeft, this))
         {
             LogRuntimeException(5);

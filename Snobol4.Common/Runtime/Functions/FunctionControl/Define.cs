@@ -93,7 +93,7 @@ public partial class Executive
         }
 
         // Get entry label
-        var entryLabel = "";
+        string entryLabel;
         if (arguments[1] is StringVar entryVar && entryVar.Data == "")
         {
             entryLabel = functionName;
@@ -184,9 +184,9 @@ public partial class Executive
         entry.StateStack.Push(saveVars);
 
         // Update keywords
-        ((IntegerVar)IdentifierTable["&fnclevel"]).Data++;
+        AmpFunctionLevel++;
 
-        if (((IntegerVar)IdentifierTable["&ftrace"]).Data > 0)
+        if (AmpFunctionTrace > 0)
         {
             FunctionTraceEntry(arguments, functionName);
         }
@@ -209,10 +209,10 @@ public partial class Executive
 
         SystemStack.Push(returnVar);
         IdentifierTable[functionName] = StringVar.Null(functionName); // Clear function name variable
-        ((IntegerVar)IdentifierTable["&fnclevel"]).Data--;
+        AmpFunctionLevel--;
 
         // Post-processing
-        if (((IntegerVar)IdentifierTable["&ftrace"]).Data > 0)
+        if (AmpFunctionTrace > 0)
         {
             FunctionTraceExit(functionName);
         }
@@ -228,9 +228,9 @@ public partial class Executive
 
     private void FunctionTraceEntry(List<Var> arguments, string functionName)
     {
-        var line = ((IntegerVar)IdentifierTable["&line"]).Data + 1;
+        var line = (int)SourceLineNumbers[AmpCurrentLineNumber - 1];
         var linePad = line.ToString().PadRight(8, '*');
-        var r = (int)((IntegerVar)IdentifierTable["&fnclevel"]).Data;
+        var r = (int)AmpFunctionLevel;
         var args = "";
 
         for (var i = 1; i < arguments.Count; ++i)
@@ -239,16 +239,16 @@ public partial class Executive
         }
 
         Console.Error.WriteLine($@"****{linePad} {new string('i', r - 1)} {functionName}({args})");
-        ((IntegerVar)IdentifierTable["&ftrace"]).Data--;
+        AmpFunctionTrace--;
     }
 
     private void FunctionTraceExit(string functionName)
     {
-        var line = ((IntegerVar)IdentifierTable["&line"]).Data + 1;
+        var line = AmpFunctionTrace + 1;
         var linePad = line.ToString().PadRight(8, '*');
-        var r = (int)((IntegerVar)IdentifierTable["&fnclevel"]).Data;
+        var r = (int)AmpFunctionLevel;
         Console.Error.WriteLine($@"****{linePad} {new string('i', r)} return {functionName} = {SystemStack.Peek()}");
-        ((IntegerVar)IdentifierTable["&ftrace"]).Data--;
+        AmpFunctionTrace--;
     }
 
 }

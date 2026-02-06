@@ -40,8 +40,7 @@ public partial class Executive
         subject.Symbol = arguments[0].Symbol;
 
         // Try the match
-        //var anchor = ((IntegerVar)IdentifierTable["&anchor"]).Data;
-        var anchor = Amp_Anchor;
+        var anchor = AmpAnchor;
         Scanner scanner = new(this);
         var mr = scanner.PatternMatch((string)subjectValue, (Pattern)patternValue, 0, anchor != 0);
 

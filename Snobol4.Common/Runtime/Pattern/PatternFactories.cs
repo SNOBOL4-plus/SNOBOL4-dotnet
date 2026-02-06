@@ -90,6 +90,11 @@ public partial class Executive
 
     public void CreateArbNoPattern(List<Var> arguments)
     {
+        if (arguments[0] is ExpressionVar expressionVar0)
+        {
+            arguments[0] = new PatternVar(UnevaluatedPattern.Structure(expressionVar0.FunctionName));
+        }
+
         if (!arguments[0].Convert(VarType.PATTERN, out _, out var pattern, this))
         {
             LogRuntimeException(70);
@@ -153,6 +158,11 @@ public partial class Executive
 
     public void CreateFenceFunction(List<Var> arguments)
     {
+        if (arguments[0] is ExpressionVar expressionVar0)
+        {
+            arguments[0] = new PatternVar(UnevaluatedPattern.Structure(expressionVar0.FunctionName));
+        }
+
         if (!arguments[0].Convert(VarType.PATTERN, out _, out var p, this))
         {
             LogRuntimeException(259);

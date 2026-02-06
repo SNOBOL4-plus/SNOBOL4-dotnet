@@ -13,7 +13,7 @@ public partial class Executive
         };
 
         var previousCaseFolding = Parent.CaseFolding;
-        Parent.CaseFolding = ((IntegerVar)IdentifierTable["&case"]).Data != 0;
+        Parent.CaseFolding = AmpCaseFolding != 0;
         Parent.CodeMode = true;
 
         switch (arguments[0])

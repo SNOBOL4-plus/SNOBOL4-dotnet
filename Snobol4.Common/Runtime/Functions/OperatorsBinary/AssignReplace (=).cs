@@ -85,7 +85,6 @@ public partial class Executive
                 return;
             }
 
-            // Eventually, the next two checks should be moved into each keyword handler
 
             // If leftVar side is &errtext, rightVar side must be a string
             if (leftVar.Symbol == "&errtext" && leftVar is not StringVar)
@@ -95,7 +94,7 @@ public partial class Executive
             }
 
             // Otherwise, right side must be an integer
-            if (rightVar is not IntegerVar)
+            if (rightVar is not IntegerVar integerVar)
             {
                 LogRuntimeException(208);
                 return;

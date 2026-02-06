@@ -51,9 +51,6 @@ internal class AlternatePattern : NonTerminalPattern
     /// <exception cref="ApplicationException">Thrown if either pattern is null</exception>
     internal AlternatePattern(Pattern leftPattern, Pattern rightPattern)
     {
-        if (leftPattern == null || rightPattern == null)
-            throw new ApplicationException("AlternatePattern");
-
         LeftPattern = leftPattern;
         RightPattern = rightPattern;
     }

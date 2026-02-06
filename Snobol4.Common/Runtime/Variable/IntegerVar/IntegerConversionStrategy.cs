@@ -61,7 +61,7 @@ public sealed class IntegerConversionStrategy : IConversionStrategy
             case Executive.VarType.EXPRESSION:
                 {
                     var previousCaseFolding = exec.Parent.CaseFolding;
-                    exec.Parent.CaseFolding = ((IntegerVar)exec.IdentifierTable["&case"]).Data != 0;
+                    exec.Parent.CaseFolding = exec.AmpCaseFolding != 0;
                     exec.Parent.CodeMode = true;
                     exec.Parent.Code = new SourceCode(exec.Parent);
                     

@@ -43,13 +43,12 @@ public partial class Executive
         Console.Error.WriteLine("");
         Console.Error.WriteLine("");
         Console.Error.WriteLine("");
-        if (((IntegerVar)IdentifierTable["&code"]).Data == 0)
+        if (AmpErrorType == 0)
             Console.Error.WriteLine(@"normal end");
-        Console.Error.WriteLine(@$"in file              {((StringVar)IdentifierTable["&file"]).Data}");
-        Console.Error.WriteLine(@$"in line              {((IntegerVar)IdentifierTable["&line"]).Data}");
-        Console.Error.WriteLine(@$"in statement         {((IntegerVar)IdentifierTable["&stno"]).Data}");
-        //Console.Error.WriteLine(@$"stmts executed       {((IntegerVar)IdentifierTable["&stcount"]).Data}");
-        Console.Error.WriteLine(@$"stmts executed       {Amp_StatementCount}");
+        Console.Error.WriteLine(@$"in file              {AmpCurrentFile}");
+        Console.Error.WriteLine(@$"in line              {AmpCurrentLineNumber}");
+        Console.Error.WriteLine(@$"in statement         {SourceLineNumbers[AmpCurrentLineNumber-1]}");
+        Console.Error.WriteLine(@$"stmts executed       {AmpStatementCount}");
         Console.Error.WriteLine(@$"execution time sec   {_timerExecute.Elapsed}");
         Console.Error.WriteLine(@$"regenerations        {GC.CollectionCount(memInfo.Generation)}");
         Console.Error.WriteLine(@$"memory used (bytes)  {memoryUsed}");
