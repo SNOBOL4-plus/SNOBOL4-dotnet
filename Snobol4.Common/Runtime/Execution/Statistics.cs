@@ -6,8 +6,6 @@ namespace Snobol4.Common;
 
 public partial class Executive
 {
-    public bool ProfileStatements = false;
-
     // ReSharper disable once UnusedMember.Global
     public void SaveStatus(bool bSaveStatus)
     {
@@ -27,12 +25,9 @@ public partial class Executive
             throw new ApplicationException("internal void Execute(Assembly dll, AssemblyLoadContext _, string fullClassName)");
         instance.Run(this);
         _timerExecute.Stop();
-        PrintExecutionStatistics();
-        DisplayVariableValues();
-        CloseAllStreams();
     }
 
-    private void PrintExecutionStatistics()
+    internal void PrintExecutionStatistics()
     {
         if (!Parent.ShowExecutionStatistics)
             return;
@@ -45,18 +40,29 @@ public partial class Executive
         Console.Error.WriteLine("");
         if (AmpErrorType == 0)
             Console.Error.WriteLine(@"normal end");
-        Console.Error.WriteLine(@$"in file              {AmpCurrentFile}");
-        Console.Error.WriteLine(@$"in line              {AmpCurrentLineNumber}");
-        Console.Error.WriteLine(@$"in statement         {SourceLineNumbers[AmpCurrentLineNumber-1]}");
-        Console.Error.WriteLine(@$"stmts executed       {AmpStatementCount}");
-        Console.Error.WriteLine(@$"execution time sec   {_timerExecute.Elapsed}");
-        Console.Error.WriteLine(@$"regenerations        {GC.CollectionCount(memInfo.Generation)}");
-        Console.Error.WriteLine(@$"memory used (bytes)  {memoryUsed}");
-        Console.Error.WriteLine(@$"memory left (bytes)  {memoryLeft}");
+        var fi = new FileInfo(SourceFiles[AmpCurrentLineNumber - 1]);
+        Console.Error.WriteLine(@$"in file                  {fi.Name}");
+        Console.Error.WriteLine(@$"in line                  {SourceLineNumbers[AmpCurrentLineNumber - 1]}");
+        Console.Error.WriteLine(@$"in statement             {AmpCurrentLineNumber}");
+        Console.Error.WriteLine(@$"statements executed      {AmpStatementCount}");
+        Console.Error.WriteLine(@$"execution time seconds   {_timerExecute.ElapsedTicks/10000000.0}");
+        Console.Error.WriteLine(@$"regenerations            {GC.CollectionCount(memInfo.Generation)}");
+        Console.Error.WriteLine(@$"memory used (bytes)      {memoryUsed}");
+        Console.Error.WriteLine(@$"memory left (bytes)      {memoryLeft}");
         Console.Error.WriteLine("");
+
+
+        if (AmpProfile != 1)
+            return;
+
+        foreach (var entry in ProfileCount)
+        {
+            Console.WriteLine($@"{entry.Key},{entry.Value},{ProfileTotal[entry.Key]/10000000.0},{ProfileTotal[entry.Key] / (entry.Value*10000000.0)}");
+        }
+
     }
 
-    private void CloseAllStreams()
+    internal void CloseAllStreams()
     {
         // Close all writers
         foreach (var streamReader in StreamReadersBySymbol)
@@ -71,32 +77,26 @@ public partial class Executive
             //  if (writeStream.Value is FileStream)
             writeStream.Value.Close();
     }
-
 }
 
 public class Profiler : IDisposable
 {
-    private readonly Stopwatch _timer;
-    private readonly string _statement = "";
-    private readonly bool _enable = false;
+    private Executive _exec;
+    private readonly Stopwatch? _timer;
+    private readonly string _statement;
 
-    public Profiler(string statement, bool enable)
+    public Profiler(string statement, Executive exec)
     {
-        _enable = enable;
-        if (!_enable)
-        {
-            return;
-        }
-
+        _exec = exec;
         _statement = statement;
         _timer = Stopwatch.StartNew();
     }
 
-    public static Profiler? Start(string statement, bool enable)
+    public static Profiler? Start(string statement, Executive exec)
     {
-        if (enable)
+        if (exec.AmpProfile == 1)
         {
-            return new Profiler(statement, enable);
+            return new Profiler(statement, exec);
         }
 
         return null;
@@ -104,12 +104,16 @@ public class Profiler : IDisposable
 
     public void Dispose()
     {
-        if (!_enable)
+        _timer.Stop();
+
+        if (!_exec.ProfileTotal.ContainsKey(_statement))
         {
+            _exec.ProfileCount[_statement] = 1;
+            _exec.ProfileTotal[_statement] = _timer.ElapsedTicks;
             return;
         }
-
-        _timer.Stop();
-        Console.WriteLine($@"{_statement},{_timer.Elapsed.ToString()[6..^1]}");
+        _exec.ProfileCount[_statement]++;
+        _exec.ProfileTotal[_statement] += _timer.ElapsedTicks;
+        //Console.WriteLine($@"{_statement},{_timer.Elapsed.ToString()[6..^1]}");
     }
 }

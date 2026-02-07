@@ -17,7 +17,7 @@ public partial class Executive
     /// <param name="argumentCount">Number of supplied arguments</param>
     public void Function(int argumentCount)
     {
-        using var profiler1 = Profiler.Start($"Function", ProfileStatements);
+        using var profiler1 = Profiler.Start($"Function", this);
 
         // Get all arguments and check for prior failure
         List<Var> arguments = [];
@@ -46,7 +46,7 @@ public partial class Executive
         arguments.Add(functionStringVar);
 
         profiler1?.Dispose();
-        using var profiler2 = Profiler.Start($"F_{functionStringVar.Data}", ProfileStatements);
+        using var profiler2 = Profiler.Start($"F_{functionStringVar.Data}", this);
 
         // Invoke the function obtained from the Function Table
         functionEntry.Handler(arguments);

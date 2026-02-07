@@ -121,6 +121,7 @@ public partial class Lexer
         return _parent.ErrorCodeHistory.Count <= 0;
     }
 
+
     /// <summary>
     /// Converts a line of SNOBOL4 code into a list of lexeme tokens.
     /// </summary>

@@ -195,16 +195,23 @@ public partial class Executive
         var nextIndex = ExecuteLoop(Labels[definition.EntryLabel]);
         var returnVar = IdentifierTable[functionName];
 
-        if (nextIndex == -2) // RETURN
+        switch (nextIndex)
         {
-            returnVar.Succeeded = true;
-            Failure = false;
-        }
+            case -2:
+                AmpReturnType = "RETURN";
+                returnVar.Succeeded = true;
+                Failure = false;
+                break;
 
-        if (nextIndex == -3) // FRETURN
-        {
-            returnVar = StringVar.Null(functionName);
-            Failure = true;
+            case -3:
+                AmpReturnType = "FRETURN";
+                returnVar = StringVar.Null(functionName);
+                Failure = true;
+                break;
+
+            case -4:
+                AmpReturnType = "NRETURN";
+                break;
         }
 
         SystemStack.Push(returnVar);

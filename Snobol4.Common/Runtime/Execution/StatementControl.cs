@@ -9,12 +9,15 @@ public partial class Executive
             if (Parent.TraceStatements)
                 Console.Error.WriteLine(@$"{i} {SourceCode[i]}");
 
+            if (AmpStatementLimit >= 0)
+                AmpStatementCount++;
+
             i = Statements[i](this);
 
             if (AmpStatementLimit <= 0)
                 continue;
 
-            if (AmpStatementCount <= AmpStatementLimit)
+            if (AmpStatementCount < AmpStatementLimit)
                 continue;
 
             LogRuntimeException(244);

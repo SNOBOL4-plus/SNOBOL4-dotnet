@@ -24,11 +24,8 @@ public partial class Executive
     internal Pattern AmpBalPattern = new BalPattern();
     internal Pattern AmpFailPattern = new FailPattern();
     internal Pattern AmpFencePattern = new AlternatePattern(new NullPattern(), new AbortPattern());
-    internal string AmpCurrentFile;
     internal long AmpFunctionLevel;
-    internal string AmpLastFile;
     internal int AmpLastLineNumber;
-    internal string AmpLastStatement;
     internal string AmpLowerCaseLetters;
     internal int AmpCurrentLineNumber;
     internal Pattern AmpRemPattern = new RemPattern();
@@ -41,19 +38,19 @@ public partial class Executive
     internal long AmpAbnormalEnd;
     internal long AmpAnchor;
     internal long AmpCaseFolding = 1;
-    internal long AmpCode = 0;
-    internal long AmpCompare = 0;
-    internal long AmpDump = 0;
-    internal long AmpErrorLimit = 0;
+    public static int AmpCode;
+    internal long AmpCompare;
+    internal long AmpDump;
+    internal long AmpErrorLimit;
     internal string AmpErrorText = "";
-    internal long AmpErrorType = 0;
+    internal long AmpErrorType;
     internal long AmpFunctionTrace;
-    internal long AmpFullscan = 1;
+    internal long AmpFullScan = 1;
     internal long AmpInput = 1;
     internal long AmpMaxlength = 4194304;
     internal string AmpOutput;
     internal long AmpProfile;
-    internal long AmpStatementLimit = 22147483647;
+    internal long AmpStatementLimit = 2147483647;
     internal long AmpTrace;
     internal long AmpTrim;
 
@@ -161,7 +158,8 @@ public partial class Executive
     internal void HandleFile(Var value, bool set)
     {
         if (ReadOnlyHandler(set)) return;
-        SystemStack.Push(new StringVar(SourceFiles[AmpCurrentLineNumber - 1], "&file", true, true));
+        var fi = new FileInfo(SourceFiles[AmpCurrentLineNumber - 1]);
+        SystemStack.Push(new StringVar(fi.Name, "$file", true, true));
     }
 
     internal void HandleFncLevel(Var value, bool set)
@@ -173,13 +171,8 @@ public partial class Executive
     internal void HandleLastFile(Var value, bool set)
     {
         if (ReadOnlyHandler(set)) return;
-        SystemStack.Push(new StringVar(SourceFiles[AmpLastLineNumber - 1], "&file", true, true));
-    }
-
-    internal void HandleLastLine(Var value, bool set)
-    {
-        if (ReadOnlyHandler(set)) return;
-        SystemStack.Push(new IntegerVar(AmpLastLineNumber, "&lastline", true, true));
+        var fi = new FileInfo(SourceFiles[AmpLastLineNumber-1]);
+        SystemStack.Push(new StringVar(fi.Name, "&lastfile", true, true));
     }
 
     internal void HandleLastNo(Var value, bool set)
@@ -188,13 +181,19 @@ public partial class Executive
         SystemStack.Push(new IntegerVar(AmpLastLineNumber, "&lastno", true, true));
     }
 
+    internal void HandleLastLine(Var value, bool set)
+    {
+        if (ReadOnlyHandler(set)) return;
+        SystemStack.Push(new IntegerVar(SourceLineNumbers[AmpLastLineNumber - 1], "&lastline", true, true));
+    }
+
     internal void HandleLCase(Var value, bool set)
     {
         if (ReadOnlyHandler(set)) return;
         SystemStack.Push(new StringVar(AmpLowerCaseLetters, "&lcase", true, true));
     }
 
-    internal void HandleLine(Var value, bool set)
+    internal void HandleStNo(Var value, bool set)
     {
         if (ReadOnlyHandler(set)) return;
         SystemStack.Push(new IntegerVar(AmpCurrentLineNumber, "&line", true, true));
@@ -218,10 +217,10 @@ public partial class Executive
         SystemStack.Push(new IntegerVar(AmpStatementCount, "&stcount", true, true));
     }
 
-    internal void HandleStNo(Var value, bool set)
+    internal void HandleLine(Var value, bool set)
     {
         if (ReadOnlyHandler(set)) return;
-        SystemStack.Push(new IntegerVar(SourceLineNumbers[AmpCurrentLineNumber - 1] - 1, "&stno", true, true));
+        SystemStack.Push(new IntegerVar(SourceLineNumbers[AmpCurrentLineNumber - 1], "&stno", true, true));
     }
 
     internal void HandleSucceed(Var value, bool set)
@@ -277,7 +276,7 @@ public partial class Executive
         if (set)
         {
             if (IntegerHandler(value, out IntegerVar integerVar)) return;
-            AmpCode = integerVar.Data;
+            AmpCode = (int)integerVar.Data;
         }
 
         SystemStack.Push(new IntegerVar(AmpCode, "&code", true));
@@ -354,10 +353,10 @@ public partial class Executive
         if (set)
         {
             if (IntegerHandler(value, out IntegerVar integerVar)) return;
-            AmpFullscan = integerVar.Data;
+            AmpFullScan = integerVar.Data;
         }
 
-        SystemStack.Push(new IntegerVar(AmpFullscan, "&fullscan", true));
+        SystemStack.Push(new IntegerVar(AmpFullScan, "&fullscan", true));
     }
 
 

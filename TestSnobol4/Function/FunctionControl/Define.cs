@@ -82,7 +82,7 @@ end
         // Not the way to do fibonacci, but a good stress test of recursion
         var s = @"
                     define('fibonacci(n)')  :(fibonacci_end)
-fibonacci           output = n
+fibonacci           output = n '  (' &fnclevel ')'
                     le(n,1)  :s(next)
                     fibonacci = fibonacci(n - 1) 
                     fibonacci = fibonacci + fibonacci(n - 2)  

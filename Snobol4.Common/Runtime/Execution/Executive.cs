@@ -109,6 +109,9 @@ public partial class Executive
     internal Dictionary<string, string> TraceTableFunctionCall;
     internal Dictionary<string, string> TraceTableFunctionReturn;
 
+    internal Dictionary<string, long> ProfileTotal;
+    internal Dictionary<string, long> ProfileCount;
+
     public Executive(Builder parent)
     {
         Parent = parent;
@@ -132,9 +135,6 @@ public partial class Executive
         StreamReadersBySymbol = new Dictionary<string, StreamReader>();  // Dictionary associating labels to line numbers
         StreamReadersByChannel = new Dictionary<string, StreamReader>();  // Dictionary associating labels to line numbers;
 
-        AmpCurrentFile = "";
-        AmpLastFile = "";
-        AmpLastStatement = "";
         AmpReturnType = "";
         AmpOutput = "";
 
@@ -144,6 +144,9 @@ public partial class Executive
         TraceTableLabel = new Dictionary<string, string>();
         TraceTableFunctionCall = new Dictionary<string, string>();
         TraceTableFunctionReturn = new Dictionary<string, string>();
+
+        ProfileCount = new Dictionary<string, long>();
+        ProfileTotal = new Dictionary<string, long>();
 
         FunctionTable = new SymbolTable<string, FunctionTableEntry>
         {
@@ -461,11 +464,14 @@ public partial class Executive
             { "&fullscan", HandleFullScan },
             { "&INPUT", HandleInput },
             { "&input", HandleInput },
+            { "&PROFILE", HandleProfile },
+            { "&profile", HandleProfile },
             { "&STLIMIT", HandleStatementLimit },
             { "&stlimit", HandleStatementLimit },
             { "&TRIM", HandleTrim },
             { "&trim", HandleTrim },
-
+            { "&TRACE", HandleTrace },
+            { "&trace", HandleTrace },
         };
 
         IdentifierTable["output"].OutputChannel = "+console-output";

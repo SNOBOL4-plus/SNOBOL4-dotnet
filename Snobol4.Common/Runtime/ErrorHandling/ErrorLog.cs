@@ -12,8 +12,8 @@ public partial class Executive
         var ce = new CompilerException(code);
         Parent.ErrorCodeHistory.Add(code);
         Parent.ColumnHistory.Add(0);
-        var fi = new FileInfo(SourceFiles[AmpCurrentLineNumber - 1]);
-        ce.Message = $"{Environment.NewLine}{fi.Name}({SourceLineNumbers[AmpCurrentLineNumber - 1] - 1}) : error {code} -- {CompilerException.ErrorMessage[code]}{Environment.NewLine}{SourceCode[AmpCurrentLineNumber - 1].Split('\n')[1]}";
+        var fi = new FileInfo(SourceFiles[AmpCurrentLineNumber]);
+        ce.Message = $"{Environment.NewLine}{fi.Name}({SourceLineNumbers[AmpCurrentLineNumber - 1]}) : error {code} -- {CompilerException.ErrorMessage[code]}{Environment.NewLine}{SourceCode[AmpCurrentLineNumber - 1].Split('\n')[1]}";
 
         AmpErrorText = ce.Message[2..];
 

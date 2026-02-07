@@ -128,6 +128,7 @@ public partial class Builder
 
     public void BuildMain()
     {
+        Execute = new Executive(this);
         try
         {
             GetNameSpaceAndClassName(GenerateCSharpCode.CompileTarget.PROGRAM);
@@ -144,7 +145,7 @@ public partial class Builder
             if (MessageHistory.Count > 0 || SuppressExecution)
                 return;
 
-            Execute = new Executive(this);
+            //Execute = new Executive(this);
             Execute.Execute(dll, loadContext, _fullClassName);
         }
         catch (CompilerException)
@@ -156,6 +157,9 @@ public partial class Builder
             ReportProgrammingError(e);
         }
 
+        Execute.PrintExecutionStatistics();
+        Execute.DisplayVariableValues();
+        Execute.CloseAllStreams();
         ListFileWriter?.Close();
     }
 

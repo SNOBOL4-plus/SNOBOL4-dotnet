@@ -15,7 +15,7 @@ internal class MainConsole
         if (args.Length == 0)
         {
             Builder.DisplayManual();
-            return 0;
+            return Executive.AmpCode;
         }
 
         Console.WriteLine(Environment.CurrentDirectory);
@@ -27,7 +27,7 @@ internal class MainConsole
         {
             builder.ParseCommandLine(args);
             builder.RunDll(Path.GetFullPath(args[^1]));
-            return 0;
+            return Executive.AmpCode;
         }
 
         // Otherwise, run the compiler
@@ -35,7 +35,7 @@ internal class MainConsole
         builder.DisplaySignOnBanner();
         builder.Code.ReadAllFiles();
         builder.BuildMain();
-        return 0;
+        return Executive.AmpCode;
     }
 }
 

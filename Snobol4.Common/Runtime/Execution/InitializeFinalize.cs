@@ -5,7 +5,8 @@ public partial class Executive
     // ReSharper disable once UnusedMember.Global
     public void InitializeStatement(int lineNumber)
     {
-        using var profiler1 = Profiler.Start($"InitializeStatement", ProfileStatements);
+        using var profiler1 = Profiler.Start("InitializeStatement", this);
+
 
         if (Parent.TraceStatements)
             Console.Error.WriteLine($"""
@@ -15,7 +16,6 @@ public partial class Executive
                                """);
 
         AmpCurrentLineNumber = lineNumber;
-        AmpStatementCount++;
         Failure = false;
         AlphaStack.Clear(); // Used for conditional variable association
         BetaStack.Clear();  // Used for conditional variable association
@@ -25,7 +25,7 @@ public partial class Executive
     // ReSharper disable once UnusedMember.Global
     public void FinalizeStatement()
     {
-        using var profiler1 = Profiler.Start($"FinalizeStatement", ProfileStatements);
+        using var profiler1 = Profiler.Start($"FinalizeStatement", this);
 
         if (Parent.TraceStatements)
             Console.Error.WriteLine("""
