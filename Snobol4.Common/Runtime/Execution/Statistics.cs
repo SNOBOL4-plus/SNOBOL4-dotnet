@@ -52,7 +52,7 @@ public partial class Executive
         Console.Error.WriteLine("");
 
 
-        if (AmpProfile != 1)
+        if (AmpProfile != 1 && AmpProfile != 3)
             return;
 
         foreach (var entry in ProfileCount)
