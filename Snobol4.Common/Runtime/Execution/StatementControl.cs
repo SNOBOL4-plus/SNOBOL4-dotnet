@@ -6,6 +6,8 @@ public partial class Executive
     {
         while (i >= 0)
         {
+            using var profiler1 = Profiler.Start1($"Statement{AmpCurrentLineNumber:000000}", this);
+
             if (Parent.TraceStatements)
                 Console.Error.WriteLine(@$"{i} {SourceCode[i]}");
 

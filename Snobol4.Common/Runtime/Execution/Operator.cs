@@ -13,7 +13,7 @@ public partial class Executive
     // ReSharper disable once UnusedMember.Global
     public void Operator(string functionName, int argumentCount)
     {
-        using var profiler = Profiler.Start($"Op_{functionName}", this);
+        using var profiler = Profiler.Start3($"Op_{functionName}", this);
 
         if (Parent.TraceStatements)
         {

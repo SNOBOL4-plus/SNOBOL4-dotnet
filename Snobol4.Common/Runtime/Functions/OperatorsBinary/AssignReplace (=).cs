@@ -13,7 +13,7 @@ public partial class Executive
 {
     public void _BinaryEquals()
     {
-        using var profile1 = Profiler.Start("_BinaryEquals", this);
+        using var profile1 = Profiler.Start3("_BinaryEquals", this);
 
         if (Parent.TraceStatements)
             Console.Error.WriteLine(@"_BinaryEquals");

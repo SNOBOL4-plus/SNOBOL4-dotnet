@@ -92,9 +92,19 @@ public class Profiler : IDisposable
         _timer = Stopwatch.StartNew();
     }
 
-    public static Profiler? Start(string statement, Executive exec)
+    public static Profiler? Start1(string statement, Executive exec)
     {
         if (exec.AmpProfile == 1)
+        {
+            return new Profiler(statement, exec);
+        }
+
+        return null;
+    }
+
+    public static Profiler? Start3(string statement, Executive exec)
+    {
+        if (exec.AmpProfile == 3)
         {
             return new Profiler(statement, exec);
         }
@@ -114,6 +124,5 @@ public class Profiler : IDisposable
         }
         _exec.ProfileCount[_statement]++;
         _exec.ProfileTotal[_statement] += _timer.ElapsedTicks;
-        //Console.WriteLine($@"{_statement},{_timer.Elapsed.ToString()[6..^1]}");
     }
 }

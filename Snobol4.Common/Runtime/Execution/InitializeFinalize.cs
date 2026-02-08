@@ -5,7 +5,7 @@ public partial class Executive
     // ReSharper disable once UnusedMember.Global
     public void InitializeStatement(int lineNumber)
     {
-        using var profiler1 = Profiler.Start("InitializeStatement", this);
+        using var profiler1 = Profiler.Start3("InitializeStatement", this);
 
 
         if (Parent.TraceStatements)
@@ -25,7 +25,7 @@ public partial class Executive
     // ReSharper disable once UnusedMember.Global
     public void FinalizeStatement()
     {
-        using var profiler1 = Profiler.Start($"FinalizeStatement", this);
+        using var profiler1 = Profiler.Start3($"FinalizeStatement", this);
 
         if (Parent.TraceStatements)
             Console.Error.WriteLine("""

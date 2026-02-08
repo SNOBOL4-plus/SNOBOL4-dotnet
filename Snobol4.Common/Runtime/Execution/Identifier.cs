@@ -27,7 +27,7 @@ public partial class Executive
     // ReSharper disable once UnusedMember.Global
     public void FunctionName(string name)
     {
-        using var profiler = Profiler.Start($"FunctionName", this);
+        using var profiler = Profiler.Start3($"FunctionName", this);
         SystemStack.Push(new StringVar(name));
     }
 }
