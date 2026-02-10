@@ -23,15 +23,9 @@ public class ArrayCloningStrategy : ICloningStrategy
             Succeeded = arraySelf.Succeeded
         };
 
-        // Deep copy dimension metadata with exact capacity pre-allocation
         CloneDimensionMetadata(arraySelf, clonedArray, dimensions);
-
-        // Deep copy data elements with exact capacity pre-allocation
         CloneDataElements(arraySelf, clonedArray, totalSize);
-
-        // Clone fill value
-        clonedArray.Fill = arraySelf.Fill.Clone();
-
+        clonedArray.Fill = arraySelf.Fill;
         return clonedArray;
     }
 

@@ -66,10 +66,7 @@ internal class AlternatePattern : NonTerminalPattern
     /// <exception cref="ApplicationException">Thrown if left or right pattern is null (should never happen)</exception>
     internal override Pattern Clone()
     {
-        if (LeftPattern == null || RightPattern == null)
-            throw new ApplicationException("Pattern.Clone");
-
-        return new AlternatePattern(LeftPattern.Clone(), RightPattern.Clone());
+        return new AlternatePattern(LeftPattern, RightPattern);
     }
 
     #endregion

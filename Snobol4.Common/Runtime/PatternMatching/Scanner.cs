@@ -1,4 +1,4 @@
-﻿    using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace Snobol4.Common;
 
@@ -37,7 +37,6 @@ public class Scanner
 
     internal MatchResult PatternMatch(string subject, Pattern pattern, int startPosition, bool anchor)
     {
-        pattern = pattern.Clone();
         _ast = AbstractSyntaxTree.Build(pattern);
         _state = new ScannerState(subject, startPosition);
 

@@ -128,7 +128,7 @@ internal class ArbNoPattern : TerminalPattern
     /// <returns>A new ArbNoPattern with a cloned child pattern</returns>
     internal override Pattern Clone()
     {
-        return new ArbNoPattern(_arbPattern.Clone());
+        return new ArbNoPattern(_arbPattern);
     }
 
     /// <summary>

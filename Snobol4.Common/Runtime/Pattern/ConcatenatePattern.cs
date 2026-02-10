@@ -174,9 +174,6 @@ internal class ConcatenatePattern : NonTerminalPattern
     /// </example>
     internal override Pattern Clone()
     {
-        if (LeftPattern == null || RightPattern == null)
-            throw new ApplicationException("Pattern.Clone");
-
         return new ConcatenatePattern(LeftPattern, RightPattern);
     }
 

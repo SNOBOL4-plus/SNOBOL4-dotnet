@@ -1,77 +1,68 @@
 using BenchmarkDotNet.Attributes;
 using Snobol4.Common;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using Microsoft.VSDiagnostics;
 
 namespace Snobol4.Benchmarks;
 [CPUUsageDiagnoser]
-[DotNetObjectAllocDiagnoser]
 public class PatternMatchBenchmark
 {
-    [Benchmark]
-    public void SimplePatternMatch()
+    private Executive _executive = null !;
+    private Scanner _scanner = null !;
+    private Pattern _simplePattern = null !;
+    private Pattern _complexPattern = null !;
+    private Pattern _arbPattern = null !;
+    private string _shortSubject = null !;
+    private string _longSubject = null !;
+    [GlobalSetup]
+    public void Setup()
     {
-        var builder = CreateAndBuildScript("-b -i", @"
-            &anchor = 0
-            subject = 'test'
-            pattern = 'test'
-            result = subject ? pattern
-        end");
+        // Initialize Executive (required for pattern matching)
+        _executive = new Executive();
+        _scanner = new Scanner(_executive);
+        // Simple literal pattern: "test"
+        _simplePattern = new LiteralPattern("test");
+        // Complex pattern with concatenation: "pro" + ANY("aeiou") + "ram"
+        var anyVowel = new AnyPattern("aeiou");
+        var pro = new LiteralPattern("pro");
+        var ram = new LiteralPattern("ram");
+        _complexPattern = new ConcatenatePattern(pro, new ConcatenatePattern(anyVowel, ram));
+        // ARB pattern (more complex matching)
+        var arbLeft = new LiteralPattern("p");
+        var arbRight = new LiteralPattern("er");
+        var arb = ArbPattern.Structure();
+        _arbPattern = new ConcatenatePattern(arbLeft, new ConcatenatePattern(arb, arbRight));
+        // Test subjects
+        _shortSubject = "test";
+        _longSubject = "This is a test string for pattern matching with test in the middle and at the end test";
     }
 
     [Benchmark]
-    public void ComplexPatternMatch()
+    public void SimplePatternMatch_ShortString_Anchored()
     {
-        var builder = CreateAndBuildScript("-b -i", @"
-            &anchor = 0
-            subject = 'programmer'
-            pattern = 'pro' any('aeiou') 'ram'
-            result = subject ? pattern
-        end");
+        _scanner.PatternMatch(_shortSubject, _simplePattern, 0, anchor: true);
     }
 
     [Benchmark]
-    public void ArbPatternMatch()
+    public void SimplePatternMatch_ShortString_Unanchored()
     {
-        var builder = CreateAndBuildScript("-b -i", @"
-            &anchor = 0
-            subject = 'programmer'
-            pattern = 'p' arb 'er'
-            result = subject ? pattern
-        end");
+        _scanner.PatternMatch(_shortSubject, _simplePattern, 0, anchor: false);
     }
 
     [Benchmark]
-    public void LongStringPatternMatch()
+    public void SimplePatternMatch_LongString_Unanchored()
     {
-        var builder = CreateAndBuildScript("-b -i", @"
-            &anchor = 0
-            subject = 'This is a test string for pattern matching with test in the middle and at the end test'
-            pattern = 'test'
-            result = subject ? pattern
-        end");
+        _scanner.PatternMatch(_longSubject, _simplePattern, 0, anchor: false);
     }
 
-    private static Builder CreateAndBuildScript(string directives, string script)
+    [Benchmark]
+    public void ComplexPatternMatch_Unanchored()
     {
-        var commands = new List<string>(
-            directives.Split(" ", StringSplitOptions.RemoveEmptyEntries));
+        _scanner.PatternMatch("programmer", _complexPattern, 0, anchor: false);
+    }
 
-        var testDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "BenchmarkSuite1");
-        var testFilePath = Path.Combine(testDirectory, "Test.sno");
-        Directory.CreateDirectory(testDirectory);
-
-        List<string> files = new List<string> { testFilePath };
-        var args = commands.Concat(files).ToArray();
-
-        Builder builder = new();
-        builder.ParseCommandLine(args);
-        builder.Code.ReadTestScript(new MemoryStream(Encoding.UTF8.GetBytes(script)));
-        builder.BuildMain();
-        return builder;
+    [Benchmark]
+    public void ArbPatternMatch_Unanchored()
+    {
+        _scanner.PatternMatch("programmer", _arbPattern, 0, anchor: false);
     }
 }
