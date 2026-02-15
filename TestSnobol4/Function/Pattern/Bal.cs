@@ -31,7 +31,7 @@ public class Bal
                  """;
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
-        Assert.AreEqual("((A+(B*C))+D);(A+(B*C));(A+(B*C))+;(A+(B*C))+D;A;A+;A+(B*C);+;+(B*C);(B*C);B;B*;B*C;*;*C;C;+;+D;D;", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","lines")]).Data);
+        Assert.AreEqual("((A+(B*C))+D);(A+(B*C));(A+(B*C))+;(A+(B*C))+D;A;A+;A+(B*C);+;+(B*C);(B*C);B;B*;B*C;*;*C;C;+;+D;D;", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("lines")]).Data);
     }
 
     [TestMethod]
@@ -57,6 +57,6 @@ public class Bal
                  """;
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
-        Assert.AreEqual("((A+(B*C))+D);(A+(B*C));(A+(B*C))+;(A+(B*C))+D;A;A+;A+(B*C);+;+(B*C);(B*C);B;B*;B*C;*;*C;C;+;+D;D;", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","LINES")]).Data);
+        Assert.AreEqual("((A+(B*C))+D);(A+(B*C));(A+(B*C))+;(A+(B*C))+D;A;A+;A+(B*C);+;+(B*C);(B*C);B;B*;B*C;*;*C;C;+;+D;D;", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("LINES")]).Data);
     }
 }

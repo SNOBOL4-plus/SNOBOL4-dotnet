@@ -121,7 +121,7 @@ public partial class Executive
 
         var channel = (string)channelNameStr;
         var fileName = (string)fileNameStr;
-        var symbol = Parent.FoldCase("Output()",((StringVar)identifierNameVar).Data);
+        var symbol = Parent.FoldCase(((StringVar)identifierNameVar).Data);
         var fileModeInt = (long)fileModeObj;
         var fileShareInt = (long)fileShareObj;
 

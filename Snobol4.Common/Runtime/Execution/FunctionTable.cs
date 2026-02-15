@@ -6,14 +6,7 @@ public class FunctionTable(Executive exec) : Dictionary<string, FunctionTableEnt
 
     public new FunctionTableEntry? this[string symbol]
     {
-        get
-        {
-            return TryGetValue(symbol, out FunctionTableEntry? entry) ? entry : null;
-        }
-
-        set
-        {
-            base[value.Symbol] = value;
-        }
+        get => TryGetValue(symbol, out FunctionTableEntry? entry) ? entry : null;
+        set => base[value.Symbol] = value;
     }
 }

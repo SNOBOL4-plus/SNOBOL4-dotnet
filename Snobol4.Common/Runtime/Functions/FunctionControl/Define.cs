@@ -31,7 +31,7 @@ public partial class Executive
             return;
         }
 
-        var prototype = Parent.FoldCase("CreateProgramDefinedFunction", (string)value).Trim();
+        var prototype = Parent.FoldCase((string)value).Trim();
 
         // define argument cannot be null string
         if (prototype == "")

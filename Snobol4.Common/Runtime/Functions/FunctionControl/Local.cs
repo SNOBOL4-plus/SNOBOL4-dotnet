@@ -14,7 +14,7 @@ public partial class Executive
             return;
         }
 
-        functionName = Parent.FoldCase("Local", (string)functionName);
+        functionName = Parent.FoldCase((string)functionName);
 
         if (!UserFunctionTable.TryGetValue((string)functionName, out var entry))
         {

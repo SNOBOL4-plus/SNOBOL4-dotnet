@@ -19,8 +19,8 @@ END";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("IMAG", ((StringVar)(build.Execute!.IdentifierTable[build.FoldCase("","i")])).Data);
-        Assert.AreEqual("REAL", ((StringVar)(build.Execute!.IdentifierTable[build.FoldCase("","r")])).Data);
+        Assert.AreEqual("IMAG", ((StringVar)(build.Execute!.IdentifierTable[build.FoldCase("i")])).Data);
+        Assert.AreEqual("REAL", ((StringVar)(build.Execute!.IdentifierTable[build.FoldCase("r")])).Data);
     }
 
 }

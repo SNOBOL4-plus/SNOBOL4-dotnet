@@ -303,13 +303,7 @@ public partial class Builder
         }
     }
 
-    public string FoldCase(string location, string input)
-    {
-        var result = CaseFolding ? input.ToUpper() : input;
-        if (location!="Lexer" && input != result)
-            Console.WriteLine(@$"{location}: {input} ==> {result}");
-        return result;
-    }
+    public string FoldCase(string input) => CaseFolding ? input.ToUpper() : input;
 
     #region Display Statistics
 

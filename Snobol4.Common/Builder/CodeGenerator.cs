@@ -123,7 +123,9 @@ public class GenerateCSharpCode(Builder parent)
         // Map methods to line numbers
 
         foreach (var _ in _parent.Code.SourceLines)
+        {
             _csharpCode.AppendLine($"        x.Statements.Add(Statement{statementNumber++:D7});");
+        }
 
         _csharpCode.AppendLine();
         statementNumber = _parent.StatementCount;
@@ -138,7 +140,9 @@ public class GenerateCSharpCode(Builder parent)
         }
 
         for (var iStar = _parent.RecordedExpressionCount; iStar < _parent.ExpressionList.Count; ++iStar)
+        {
             _csharpCode.AppendLine($"        x.StarFunctionList.Add(Star{iStar++:D8});");
+        }
 
         _csharpCode.AppendLine();
         _csharpCode.AppendLine("        x.PreviousStarFunctionCount = x.StarFunctionList.Count;");
@@ -173,7 +177,9 @@ public class GenerateCSharpCode(Builder parent)
     private void GenerateStatements()
     {
         if (_compileTarget == CompileTarget.EVAL)
+        {
             return;
+        }
 
         var statementNumber = _parent.StatementCount;
 
@@ -207,7 +213,9 @@ public class GenerateCSharpCode(Builder parent)
             }
 
             if (line.ParseBody.Count > 0)
+            {
                 _csharpCode.Append(ToCSharp(line.ParseBody));
+            }
 
             _csharpCode.AppendLine("        x.FinalizeStatement();");
 
@@ -227,9 +235,13 @@ public class GenerateCSharpCode(Builder parent)
                         _csharpCode.AppendLine("        x.SaveStatus(bSaveStatus);");
 
                         if (line.DirectGotoFirst)
+                        {
                             DirectGoto();
+                        }
                         else
+                        {
                             LabelGoto();
+                        }
 
                         _csharpCode.AppendLine("        return -1;");
                         break;
@@ -247,9 +259,13 @@ public class GenerateCSharpCode(Builder parent)
                     _csharpCode.AppendLine("                x.LogRuntimeException(20);");
 
                     if (line.DirectGotoFirst)
+                    {
                         DirectGoto();
+                    }
                     else
+                    {
                         LabelGoto();
+                    }
 
                     _csharpCode.AppendLine("            return -1;");
                     _csharpCode.AppendLine("        }");
@@ -270,9 +286,13 @@ public class GenerateCSharpCode(Builder parent)
                     _csharpCode.AppendLine("        x.Failure = true;");
 
                     if (line.DirectGotoFirst)
+                    {
                         DirectGoto();
+                    }
                     else
+                    {
                         LabelGoto();
+                    }
 
                     _csharpCode.AppendLine("            return -1;");
                     _csharpCode.AppendLine("        }");
@@ -282,9 +302,13 @@ public class GenerateCSharpCode(Builder parent)
                 }
 
                 if (line.DirectGotoSecond)
+                {
                     DirectGoto();
+                }
                 else
+                {
                     LabelGoto();
+                }
 
                 _csharpCode.AppendLine("        return -1;");
             }
@@ -298,9 +322,13 @@ public class GenerateCSharpCode(Builder parent)
                 _csharpCode.AppendLine("            x.LogRuntimeException(20);");
 
                 if (line.DirectGotoFirst)
+                {
                     DirectGoto();
+                }
                 else
+                {
                     LabelGoto();
+                }
 
                 _csharpCode.AppendLine("        return -1;");
             }
@@ -316,9 +344,13 @@ public class GenerateCSharpCode(Builder parent)
                 _csharpCode.AppendLine("        x.Failure = true;");
 
                 if (line.DirectGotoFirst)
+                {
                     DirectGoto();
+                }
                 else
+                {
                     LabelGoto();
+                }
 
                 _csharpCode.AppendLine("        return -1;");
             }
@@ -495,7 +527,10 @@ public class GenerateCSharpCode(Builder parent)
     {
         //var iStar = 0;
         if (_parent.Execute != null)
+        {
             _parent.RecordedExpressionCount = _parent.Execute.PreviousStarFunctionCount;
+        }
+
         for (; _parent.RecordedExpressionCount < _parent.ParseExpression.Count; ++_parent.RecordedExpressionCount)
         {
             _csharpCode.AppendLine("");
@@ -509,7 +544,9 @@ public class GenerateCSharpCode(Builder parent)
     private void MarkCodeAsCompiled()
     {
         foreach (var line in _parent.Code.SourceLines)
+        {
             line.Compiled = true;
+        }
     }
 
     private void WriteCode(string fileName)

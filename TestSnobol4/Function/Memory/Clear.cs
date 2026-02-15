@@ -24,12 +24,12 @@ end";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","a")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","b")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","c")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","aa")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","bb")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","cc")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("a")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("b")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("c")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("aa")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("bb")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("cc")]).Data);
     }
 
     [TestMethod]
@@ -49,12 +49,12 @@ end";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","a")]).Data);
-        Assert.AreEqual("b", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","b")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","c")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","aa")]).Data);
-        Assert.AreEqual("2", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","bb")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","cc")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("a")]).Data);
+        Assert.AreEqual("b", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("b")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("c")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("aa")]).Data);
+        Assert.AreEqual("2", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("bb")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("cc")]).Data);
     }
 
     [TestMethod]
@@ -74,12 +74,12 @@ end";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","a")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","b")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","c")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","aa")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","bb")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","cc")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("a")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("b")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("c")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("aa")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("bb")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("cc")]).Data);
     }
 
     [TestMethod]
@@ -139,12 +139,12 @@ end";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","a")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","b")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","c")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","aa")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","bb")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","cc")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("a")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("b")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("c")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("aa")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("bb")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("cc")]).Data);
     }
 
     [TestMethod]
@@ -164,12 +164,12 @@ end";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","a")]).Data);
-        Assert.AreEqual("b", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","b")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","c")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","aa")]).Data);
-        Assert.AreEqual("2", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","bb")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","cc")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("a")]).Data);
+        Assert.AreEqual("b", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("b")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("c")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("aa")]).Data);
+        Assert.AreEqual("2", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("bb")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("cc")]).Data);
     }
 
     [TestMethod]
@@ -189,12 +189,12 @@ end";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","a")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","b")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","c")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","aa")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","bb")]).Data);
-        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","cc")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("a")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("b")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("c")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("aa")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("bb")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("cc")]).Data);
     }
 
     [TestMethod]

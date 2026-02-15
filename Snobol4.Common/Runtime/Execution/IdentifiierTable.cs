@@ -11,8 +11,7 @@ public class IdentifierTable(Executive exec) : Dictionary<string, Var>
         {
             if (!TryGetValue(symbol, out Var value))
             {
-                value = StringVar.Null(symbol);
-                base[symbol] = value;
+                base[symbol] = value = StringVar.Null(symbol);
             }
 
             Exec.TraceIdentifierAccess(symbol);

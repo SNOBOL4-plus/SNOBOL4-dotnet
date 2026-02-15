@@ -177,7 +177,7 @@ public partial class Lexer
                     return false;
                 }
 
-                var label = _parent.FoldCase("Lexer", m.Value);
+                var label = _parent.FoldCase(m.Value);
 
                 if (_parent.Code.Labels.ContainsKey(label))
                 {
@@ -210,7 +210,7 @@ public partial class Lexer
             case 3: // IDENTIFIER
                 m = CompiledRegex.IdentifierPattern().Match(sourceLine.Text[_cursorCurrent..]);
                 _cursorCurrent += m.Groups[1].Length;
-                var identifier = _parent.FoldCase("Lexer", m.Groups[1].Value);
+                var identifier = _parent.FoldCase(m.Groups[1].Value);
 
                 sourceLine.LexBody.Add(new Token(GetOpenBracketToken(m.Groups[2].Value), identifier, _bracketStack.Count));
                 break;

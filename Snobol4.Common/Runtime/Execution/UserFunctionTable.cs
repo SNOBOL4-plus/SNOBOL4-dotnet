@@ -6,14 +6,7 @@ public class UserFunctionTable(Executive exec) : Dictionary<string, UserFunction
 
     public new UserFunctionTableEntry? this[string symbol]
     {
-        get
-        {
-            return TryGetValue(symbol, out UserFunctionTableEntry? entry) ? entry : null;
-        }
-
-        set
-        {
-            base[symbol] = value;
-        }
+        get => TryGetValue(symbol, out UserFunctionTableEntry? entry) ? entry : null;
+        set => base[symbol] = value;
     }
 }

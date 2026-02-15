@@ -21,10 +21,10 @@ end";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("kharma", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","dog")]).Data);
-        Assert.AreEqual("DOG", ((NameVar)build.Execute!.IdentifierTable[build.FoldCase("","a")]).Pointer);
-        Assert.AreEqual("kharma", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","b")]).Data);
-        Assert.AreEqual("KHARMA", ((NameVar)build.Execute!.IdentifierTable[build.FoldCase("","c")]).Pointer);
+        Assert.AreEqual("kharma", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("dog")]).Data);
+        Assert.AreEqual("DOG", ((NameVar)build.Execute!.IdentifierTable[build.FoldCase("a")]).Pointer);
+        Assert.AreEqual("kharma", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("b")]).Data);
+        Assert.AreEqual("KHARMA", ((NameVar)build.Execute!.IdentifierTable[build.FoldCase("c")]).Pointer);
     }
 
     [TestMethod]
@@ -89,9 +89,9 @@ end";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("something", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","x")]).Data);
-        Assert.AreEqual("something", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","y")]).Data);
-        Assert.AreEqual("string", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","z")]).Data);
+        Assert.AreEqual("something", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("x")]).Data);
+        Assert.AreEqual("something", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("y")]).Data);
+        Assert.AreEqual("string", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("z")]).Data);
     }
 
 
@@ -115,9 +115,9 @@ end";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("else", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","x")]).Data);
-        Assert.AreEqual("else", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","y")]).Data);
-        Assert.AreEqual("string", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","z")]).Data);
+        Assert.AreEqual("else", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("x")]).Data);
+        Assert.AreEqual("else", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("y")]).Data);
+        Assert.AreEqual("string", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("z")]).Data);
     }
 
     [TestMethod]
@@ -140,9 +140,9 @@ end";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("else", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","x")]).Data);
-        Assert.AreEqual("else", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","y")]).Data);
-        Assert.AreEqual("string", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","z")]).Data);
+        Assert.AreEqual("else", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("x")]).Data);
+        Assert.AreEqual("else", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("y")]).Data);
+        Assert.AreEqual("string", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("z")]).Data);
     }
 
 
@@ -161,9 +161,9 @@ end";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("something", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","x")]).Data);
-        Assert.AreEqual("something", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","y")]).Data);
-        Assert.AreEqual("string", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","z")]).Data);
+        Assert.AreEqual("something", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("x")]).Data);
+        Assert.AreEqual("something", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("y")]).Data);
+        Assert.AreEqual("string", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("z")]).Data);
     }
 
     [TestMethod]
@@ -186,9 +186,9 @@ end";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("else", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","x")]).Data);
-        Assert.AreEqual("else", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","y")]).Data);
-        Assert.AreEqual("string", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","z")]).Data);
+        Assert.AreEqual("else", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("x")]).Data);
+        Assert.AreEqual("else", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("y")]).Data);
+        Assert.AreEqual("string", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("z")]).Data);
     }
 
     [TestMethod]
@@ -210,8 +210,8 @@ end";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("else", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","x")]).Data);
-        Assert.AreEqual("else", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","y")]).Data);
-        Assert.AreEqual("string", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","z")]).Data);
+        Assert.AreEqual("else", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("x")]).Data);
+        Assert.AreEqual("else", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("y")]).Data);
+        Assert.AreEqual("string", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("z")]).Data);
     }
 }

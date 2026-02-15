@@ -46,7 +46,7 @@ public partial class Executive
         }
 
         // data argument cannot be null
-        var prototype = Parent.FoldCase("Prototype", (string)value).Trim();
+        var prototype = Parent.FoldCase((string)value).Trim();
         if (prototype == "")
         {
             LogRuntimeException(76);
@@ -98,7 +98,7 @@ public partial class Executive
         var fields = new List<string>(match.Groups[3].Value.Split(','));
         for (var i = 0; i < fields.Count; i++)
         {
-            fields[i] = Parent.FoldCase("Fields", fields[i].Trim());
+            fields[i] = Parent.FoldCase(fields[i].Trim());
 
             // field name cannot be null
             if (fields[i] == "")

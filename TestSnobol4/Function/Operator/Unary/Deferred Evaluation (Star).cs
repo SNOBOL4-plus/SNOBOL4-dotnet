@@ -25,7 +25,7 @@ end
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s + ";end");
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("two, strings, alike, ", build.Execute!.IdentifierTable[build.FoldCase("","list")].ToString());
+        Assert.AreEqual("two, strings, alike, ", build.Execute!.IdentifierTable[build.FoldCase("list")].ToString());
     }
 
     [TestMethod]
@@ -47,7 +47,7 @@ end
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("two, strings, alike, ", build.Execute!.IdentifierTable[build.FoldCase("","list")].ToString());
+        Assert.AreEqual("two, strings, alike, ", build.Execute!.IdentifierTable[build.FoldCase("list")].ToString());
     }
 
     [TestMethod]
@@ -70,7 +70,7 @@ end
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("twostringsfortesting", build.Execute!.IdentifierTable[build.FoldCase("","list")].ToString());
+        Assert.AreEqual("twostringsfortesting", build.Execute!.IdentifierTable[build.FoldCase("list")].ToString());
     }
 
     [TestMethod]
@@ -89,7 +89,7 @@ end
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("oorree", build.Execute!.IdentifierTable[build.FoldCase("","list")].ToString());
+        Assert.AreEqual("oorree", build.Execute!.IdentifierTable[build.FoldCase("list")].ToString());
     }
 
     [TestMethod]
@@ -111,7 +111,7 @@ end
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("The largest word is: ATTENDANCE. The largest number is: 4,807,884.", build.Execute!.IdentifierTable[build.FoldCase("","result")].ToString());
+        Assert.AreEqual("The largest word is: ATTENDANCE. The largest number is: 4,807,884.", build.Execute!.IdentifierTable[build.FoldCase("result")].ToString());
     }
 
     [TestMethod]
@@ -126,7 +126,7 @@ end
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("bbba", build.Execute!.IdentifierTable[build.FoldCase("","match")].ToString());
+        Assert.AreEqual("bbba", build.Execute!.IdentifierTable[build.FoldCase("match")].ToString());
     }
 
     [TestMethod]
@@ -141,7 +141,7 @@ end
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("bbba", build.Execute!.IdentifierTable[build.FoldCase("","match")].ToString());
+        Assert.AreEqual("bbba", build.Execute!.IdentifierTable[build.FoldCase("match")].ToString());
     }
 
     [TestMethod]
@@ -173,10 +173,10 @@ end
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("this is a test", build.Execute!.IdentifierTable[build.FoldCase("", "a")].ToString());
-        Assert.AreEqual("this is a test", build.Execute!.IdentifierTable[build.FoldCase("", "b")].ToString());
-        Assert.AreEqual("this is a test", build.Execute!.IdentifierTable[build.FoldCase("", "x")].ToString());
-        Assert.AreEqual("string", build.Execute!.IdentifierTable[build.FoldCase("","y")].ToString());
+        Assert.AreEqual("this is a test", build.Execute!.IdentifierTable[build.FoldCase("a")].ToString());
+        Assert.AreEqual("this is a test", build.Execute!.IdentifierTable[build.FoldCase("b")].ToString());
+        Assert.AreEqual("this is a test", build.Execute!.IdentifierTable[build.FoldCase("x")].ToString());
+        Assert.AreEqual("string", build.Execute!.IdentifierTable[build.FoldCase("y")].ToString());
 
     }
 
@@ -194,9 +194,9 @@ end
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("expression", build.Execute!.IdentifierTable[build.FoldCase("","b")].ToString());
-        Assert.AreEqual("6.28", build.Execute!.IdentifierTable[build.FoldCase("","c")].ToString());
-        Assert.AreEqual("real", build.Execute!.IdentifierTable[build.FoldCase("","d")].ToString());
+        Assert.AreEqual("expression", build.Execute!.IdentifierTable[build.FoldCase("b")].ToString());
+        Assert.AreEqual("6.28", build.Execute!.IdentifierTable[build.FoldCase("c")].ToString());
+        Assert.AreEqual("real", build.Execute!.IdentifierTable[build.FoldCase("d")].ToString());
     }
 
 }

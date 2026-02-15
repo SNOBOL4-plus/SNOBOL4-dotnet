@@ -58,7 +58,7 @@ end";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("PRODUCT", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","b")]).Data);
+        Assert.AreEqual("PRODUCT", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("b")]).Data);
     }
 
     [TestMethod]
@@ -71,7 +71,7 @@ end";
         var directives = "-b -f";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("lower case", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","a")]).Data);
-        Assert.AreEqual("upper case", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("","A")]).Data);
+        Assert.AreEqual("lower case", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("a")]).Data);
+        Assert.AreEqual("upper case", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("A")]).Data);
     }
 }
