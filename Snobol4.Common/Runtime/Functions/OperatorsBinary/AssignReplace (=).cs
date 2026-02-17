@@ -15,7 +15,7 @@ public partial class Executive
     {
         using var profile1 = Profiler.Start3("_BinaryEquals", this);
 
-        if (Parent.TraceStatements)
+        if (Parent.BuildOptions.TraceStatements)
             Console.Error.WriteLine(@"_BinaryEquals");
         // Do not delete. Used by DLL
 

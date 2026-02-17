@@ -15,7 +15,7 @@ public partial class Executive
     {
         if (arguments[0] is IntegerVar { Data: 0 })
         {
-            SystemStack.Push(new StringVar(Parent.HostParameter));
+            SystemStack.Push(new StringVar(Parent.BuildOptions.HostParameter));
             return;
         }
 

@@ -7,7 +7,7 @@ public partial class Executive
     {
         using var profiler = Profiler.Start3($"Op_{functionName}", this);
 
-        if (Parent.TraceStatements)
+        if (Parent.BuildOptions.TraceStatements)
         {
             Console.Error.WriteLine($@"Operator {functionName} {argumentCount}");
         }

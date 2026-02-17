@@ -29,7 +29,7 @@ public partial class Executive
         Console.Error.WriteLine($@"{ce.Message}");
         AmpErrorText = ce.Message;
 
-        if (!Parent.CodeMode && (errorLimit < 1 || Parent.StopOnRuntimeError))
+        if (!Parent.CodeMode && (errorLimit < 1 || Parent.BuildOptions.StopOnRuntimeError))
         {
             AmpErrorType = ce.Code;
             throw ce;

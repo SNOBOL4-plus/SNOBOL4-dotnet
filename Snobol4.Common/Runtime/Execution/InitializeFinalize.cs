@@ -8,7 +8,7 @@ public partial class Executive
         using var profiler1 = Profiler.Start3("InitializeStatement", this);
 
 
-        if (Parent.TraceStatements)
+        if (Parent.BuildOptions.TraceStatements)
             Console.Error.WriteLine($"""
 
                                InitializeStatement {lineNumber}
@@ -27,7 +27,7 @@ public partial class Executive
     {
         using var profiler1 = Profiler.Start3($"FinalizeStatement", this);
 
-        if (Parent.TraceStatements)
+        if (Parent.BuildOptions.TraceStatements)
             Console.Error.WriteLine("""
 
                               FinalizeStatement

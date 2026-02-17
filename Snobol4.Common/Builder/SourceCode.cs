@@ -110,7 +110,7 @@ public class SourceCode
                         continue;
                 }
 
-                SourceLines.Add(new SourceLine(pathName, _includeDepth, subLine, this, _parent.ErrorOnUnhandledFail));
+                SourceLines.Add(new SourceLine(pathName, _includeDepth, subLine, this, _parent.BuildOptions.ErrorOnUnhandledFail));
             }
         }
     }
@@ -138,7 +138,7 @@ public class SourceCode
                     continue;
                 }
 
-                SourceLines.Add(new SourceLine(pathName, _includeDepth, subLine, this, _parent.ErrorOnUnhandledFail));
+                SourceLines.Add(new SourceLine(pathName, _includeDepth, subLine, this, _parent.BuildOptions.ErrorOnUnhandledFail));
 
                 if (!IsEndStatement(subLine))
                     continue;
@@ -196,7 +196,7 @@ public class SourceCode
 
     private void ListSource(string line)
     {
-        if (_parent.ListSource)
+        if (_parent.BuildOptions.ListSource)
             Console.Error.WriteLine(@$"{LineCountTotal:0000} {LineCountFile:0000} {_includeDepth:00} {line}");
     }
 
@@ -255,19 +255,19 @@ public class SourceCode
                 break;
 
             case "fail":
-                _parent.ErrorOnUnhandledFail = true;
+                _parent.BuildOptions.ErrorOnUnhandledFail = true;
                 break;
 
             case "list":
-                _parent.ListSource = true;
+                _parent.BuildOptions.ListSource = true;
                 break;
 
             case "nolist":
-                _parent.ListSource = false;
+                _parent.BuildOptions.ListSource = false;
                 break;
 
             case "nofail":
-                _parent.ErrorOnUnhandledFail = false;
+                _parent.BuildOptions.ErrorOnUnhandledFail = false;
                 break;
 
             case "print":

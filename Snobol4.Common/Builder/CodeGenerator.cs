@@ -30,7 +30,7 @@ public class GenerateCSharpCode(Builder parent)
         _csharpCode.AppendLine("}");
         MarkCodeAsCompiled();
 
-        if (_parent.WriteCSharpCode)
+        if (_parent.BuildOptions.WriteCSharpCode)
             WriteCode(className + "_" + nameSpace + ".cs");
 
         return _csharpCode.ToString();
@@ -126,10 +126,10 @@ public class GenerateCSharpCode(Builder parent)
 
     private void GenerateInitialSettings()
     {
-        _csharpCode.AppendLine($"        x.Parent.SuppressListingHeader = {_parent.SuppressListingHeader.ToString().ToLower()};");
+        _csharpCode.AppendLine($"        x.Parent.BuildOptions.SuppressListingHeader = {_parent.BuildOptions.SuppressListingHeader.ToString().ToLower()};");
         _csharpCode.AppendLine($"        x.Parent.FilesToCompile.Add(@\"{_parent.FilesToCompile[^1]}\");");
         _csharpCode.AppendLine($"        x.Parent.ListFileName = @\"{_parent.ListFileName}\";");
-        _csharpCode.AppendLine($"        x.Parent.ShowExecutionStatistics = {_parent.ShowExecutionStatistics.ToString().ToLower()};");
+        _csharpCode.AppendLine($"        x.Parent.BuildOptions.ShowExecutionStatistics = {_parent.BuildOptions.ShowExecutionStatistics.ToString().ToLower()};");
         _csharpCode.AppendLine();
     }
 

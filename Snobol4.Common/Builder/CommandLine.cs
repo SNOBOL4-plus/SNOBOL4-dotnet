@@ -58,7 +58,7 @@ public partial class Builder
         {
             if (_u)
             {
-                HostParameter = arg;
+                BuildOptions.HostParameter = arg;
                 _u = false;
                 continue;
             }
@@ -88,23 +88,23 @@ public partial class Builder
         switch (command[..2])
         {
             case "-a":
-                ShowCompilerStatistics = true;
-                ShowExecutionStatistics = true;
-                ShowListing = true;
+                BuildOptions.ShowCompilerStatistics = true;
+                BuildOptions.ShowExecutionStatistics = true;
+                BuildOptions.ShowListing = true;
                 break;
 
             case "-b":
-                SuppressSignOnMessage = true;
+                BuildOptions.SuppressSignOnMessage = true;
                 break;
 
             case "-c":
                 if (command.Length > 2 && command[..3] == "-cs")
                 {
-                    WriteCSharpCode = true;
+                    BuildOptions.WriteCSharpCode = true;
                     break;
                 }
 
-                ShowCompilerStatistics = true;
+                BuildOptions.ShowCompilerStatistics = true;
                 break;
 
             case "-F":
@@ -116,19 +116,19 @@ public partial class Builder
                 break;
 
             case "-h":
-                SuppressListingHeader = true;
+                BuildOptions.SuppressListingHeader = true;
                 break;
 
             case "-k":
-                StopOnRuntimeError = true;
+                BuildOptions.StopOnRuntimeError = true;
                 break;
 
             case "-l":
-                ShowListing = true;
+                BuildOptions.ShowListing = true;
                 break;
 
             case "-n":
-                SuppressExecution = true;
+                BuildOptions.SuppressExecution = true;
                 break;
 
             case "-o":
@@ -146,24 +146,24 @@ public partial class Builder
                 break;
 
             case "-r":
-                InputAfterEndStatement = true;
+                BuildOptions.InputAfterEndStatement = true;
                 break;
 
             case "-u":
                 _u = true;
-                HostParameter = "";
+                BuildOptions.HostParameter = "";
                 break;
 
             case "-v":
-                GenerateDebugSymbols = true;
+                BuildOptions.GenerateDebugSymbols = true;
                 break;
 
             case "-w":
-                WriteDll = true;
+                BuildOptions.WriteDll = true;
                 break;
 
             case "-x":
-                ShowExecutionStatistics = true;
+                BuildOptions.ShowExecutionStatistics = true;
                 break;
 
             case "-?":

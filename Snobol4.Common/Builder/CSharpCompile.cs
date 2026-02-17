@@ -49,7 +49,7 @@ public partial class Builder
         var syntaxRootNode = (CSharpSyntaxNode)syntaxTree.GetRoot();
         Debug.Assert(syntaxRootNode != null, nameof(syntaxRootNode) + " != null");
         var encoded = CSharpSyntaxTree.Create(syntaxRootNode, null, fileName, encoding);
-        var optimizationLevel = GenerateDebugSymbols ? OptimizationLevel.Debug : OptimizationLevel.Release;
+        var optimizationLevel = BuildOptions.GenerateDebugSymbols ? OptimizationLevel.Debug : OptimizationLevel.Release;
         var compilation = CSharpCompilation.Create(
             assemblyName,
             syntaxTrees: [encoded],
@@ -77,7 +77,7 @@ public partial class Builder
 
         if (result.Success)
         {
-            if (WriteDll)
+            if (BuildOptions.WriteDll)
             {
                 using Stream fileStream = File.Open(assemblyName, FileMode.Create);
                 assemblyStream.Position = 0;

@@ -24,7 +24,7 @@ public partial class Executive
 
     internal void PrintExecutionStatistics()
     {
-        if (!Parent.ShowExecutionStatistics)
+        if (!Parent.BuildOptions.ShowExecutionStatistics)
             return;
 
         var memoryUsed = Process.GetCurrentProcess().WorkingSet64;

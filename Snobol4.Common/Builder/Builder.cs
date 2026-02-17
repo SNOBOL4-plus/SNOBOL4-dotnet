@@ -22,6 +22,9 @@ public class BuilderOptions
     public bool GenerateDebugSymbols;             // -v
     public bool WriteDll;                         // -w
     public bool ShowExecutionStatistics;          // -x
+    public bool TraceStatements;                  // True if tracing is on
+    public bool ListSource = false;               // LIST/NOLIST
+    internal bool ErrorOnUnhandledFail;           // FAIL/NOFAIL
 
     public BuilderOptions()
     {
@@ -29,7 +32,7 @@ public class BuilderOptions
         ShowCompilerStatistics = false;           // -c
         WriteCSharpCode = false;                  // -cs
         CaseFolding = true;                       // -F and -f
-        SuppressListingHeader = false;              // -h
+        SuppressListingHeader = false;            // -h
         StopOnRuntimeError = false;               // -k
         ShowListing = false;                      // -l
         SuppressExecution = false;                // -n
@@ -38,6 +41,9 @@ public class BuilderOptions
         GenerateDebugSymbols = true;              // -v
         WriteDll = false;                         // -w
         ShowExecutionStatistics = false;          // -x
+        TraceStatements = false;                  // True if tracing is on
+        ListSource = false;                       // LIST/NOLIST
+        ErrorOnUnhandledFail = false;             // FAIL/NOFAIL
     }
 }
 
@@ -51,7 +57,6 @@ public partial class Builder
 
     public static long CreationOrder;
 
-    public bool TraceStatements = false;
 
     // Timers for statistics
     private readonly Stopwatch _timerBuild = new();   // Timer for statistics
@@ -66,54 +71,35 @@ public partial class Builder
     internal int StatementCount;
     internal string EntryLabel;
 
-    // Command line options
-    internal bool SuppressSignOnMessage;            // -b
-    internal bool ShowCompilerStatistics;           // -c
-    internal bool WriteCSharpCode;                  // -cs
-    //public bool BuildOptions.CaseFolding = true;                // -F and -f
-    public bool SuppressListingHeader;              // -h
-    public bool StopOnRuntimeError;                 // -k
-    public bool ShowListing;                        // -l
-    internal bool SuppressExecution;                // -n
-    internal bool InputAfterEndStatement;           // -r
-    internal string HostParameter = "";                  // -u
-    internal bool GenerateDebugSymbols = true;      // -v
-    internal bool WriteDll;                         // -w
-    public bool ShowExecutionStatistics;            // -x
-
     public string ListFileName = "";                // Name of list file;
     public StreamWriter? ListFileWriter;
 
     // Command line data
     public List<string> FilesToCompile = [];        // Files to compile based on command line TODO redundant with PathList[]?
-    //internal readonly string[] CommandLine;         // List of command line options
     public string[] Arguments = [];                 // List of command line arguments
-
-    // OptionListing controls
-    internal bool ListSource = false;               // Current state of LIST/NOLIST
 
     // SNOBOL4 source code
     public SourceCode Code;                       // Object containing all source code information
-
-    // Compiler directives
-    internal bool ErrorOnUnhandledFail = false;     // FAIL/NOFAIL
 
     // Run time
     public Executive? Execute;                      // Runtime object
     internal List<DeferredExpression> ExpressionList = [];
     internal List<List<Token>> ParseExpression = [];
 
-    // Error handling for CODE and EVAL
+    // Tracking for whether current build is for CODE or EVAL
     public bool CodeMode;
 
+    // Serial number for CODE and EVAL builds to ensure unique class names and namespaces
     public int EvalNum;
     public int CodeNum;
 
+    // Move to specific methods
     private string _fileName = "";
     private string _className = "";
     private string _nameSpace = "";
     private string _fullClassName = "";
 
+    // Move into COde generator
     public int RecordedExpressionCount = 0;
 
     #endregion
@@ -165,7 +151,7 @@ public partial class Builder
             _timerBuild.Stop();
             PrintCompilationStatistics();
 
-            if (MessageHistory.Count > 0 || SuppressExecution)
+            if (MessageHistory.Count > 0 || BuildOptions.SuppressExecution)
                 return;
 
             Execute.Execute(dll, loadContext, _fullClassName);
@@ -303,7 +289,7 @@ public partial class Builder
 
     internal void Run(Assembly dll, AssemblyLoadContext loadContext, string fullClassName)
     {
-        if (SuppressExecution)
+        if (BuildOptions.SuppressExecution)
             return;
 
         Execute = new Executive(this);
@@ -347,7 +333,7 @@ public partial class Builder
 
     private void PrintCompilationStatistics()
     {
-        if (!ShowCompilerStatistics)
+        if (!BuildOptions.ShowCompilerStatistics)
             return;
 
         var memoryUsed = Process.GetCurrentProcess().WorkingSet64;

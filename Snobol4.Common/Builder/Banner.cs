@@ -4,14 +4,14 @@ public partial class Builder
 {
     public void DisplaySignOnBanner()
     {
-        if (!SuppressSignOnMessage)
+        if (!BuildOptions.SuppressSignOnMessage)
             DisplayBanner(false);
 
     }
 
     public void DisplayListingBanner()
     {
-        if ((ShowListing || ListFileName != "") && !SuppressListingHeader)
+        if ((BuildOptions.ShowListing || ListFileName != "") && !BuildOptions.SuppressListingHeader)
             DisplayBanner(true);
     }
 
