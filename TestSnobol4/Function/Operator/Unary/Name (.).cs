@@ -23,7 +23,7 @@ end";
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
         Assert.AreEqual("kharma", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("dog")]).Data);
 
-        if (build.CaseFolding)
+        if (build.BuildOptions.CaseFolding)
         {
             Assert.AreEqual("DOG", ((NameVar)build.Execute!.IdentifierTable[build.FoldCase("a")]).Pointer);
             Assert.AreEqual("KHARMA", ((NameVar)build.Execute!.IdentifierTable[build.FoldCase("c")]).Pointer);

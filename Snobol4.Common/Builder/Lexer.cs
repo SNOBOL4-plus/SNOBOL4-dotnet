@@ -188,7 +188,7 @@ public partial class Lexer
                 sourceLine.Label = label;
 
                 // Stop when the end label is found
-                if (_parent.CaseFolding)
+                if (_parent.BuildOptions.CaseFolding)
                 {
                     if (string.Equals(label.ToUpper(), "END"))
                     {

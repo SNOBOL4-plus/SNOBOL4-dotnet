@@ -56,8 +56,8 @@ public sealed class IntegerConversionStrategy : IConversionStrategy
 
             case Executive.VarType.EXPRESSION:
                 {
-                    var previousCaseFolding = exec.Parent.CaseFolding;
-                    exec.Parent.CaseFolding = exec.AmpCaseFolding != 0;
+                    var previousCaseFolding = exec.Parent.BuildOptions.CaseFolding;
+                    exec.Parent.BuildOptions.CaseFolding = exec.AmpCaseFolding != 0;
                     exec.Parent.CodeMode = true;
                     exec.Parent.Code = new SourceCode(exec.Parent);
                     
@@ -65,7 +65,7 @@ public sealed class IntegerConversionStrategy : IConversionStrategy
                     exec.Parent.Code.ReadCodeInString($" A = *({trimmedValue})", exec.Parent.FilesToCompile[^1]);
                     exec.Parent.BuildEval();
                     
-                    exec.Parent.CaseFolding = previousCaseFolding;
+                    exec.Parent.BuildOptions.CaseFolding = previousCaseFolding;
                     exec.Parent.CodeMode = false;
                     
                     varOut = new ExpressionVar(exec.StarFunctionList[^1]);

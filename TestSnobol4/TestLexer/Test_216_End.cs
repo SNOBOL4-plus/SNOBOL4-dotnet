@@ -77,7 +77,7 @@ public partial class TestLexer
         var s = "eNd";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
-        if (build.CaseFolding)
+        if (build.BuildOptions.CaseFolding)
         {
             Assert.AreEqual(0, build.ErrorCodeHistory.Count);
         }

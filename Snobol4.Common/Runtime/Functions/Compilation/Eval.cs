@@ -34,13 +34,13 @@ public partial class Executive
                     return;
                 }
 
-                var previousCaseFolding = Parent.CaseFolding;
-                Parent.CaseFolding = AmpCaseFolding!= 0;
+                var previousCaseFolding = Parent.BuildOptions.CaseFolding;
+                Parent.BuildOptions.CaseFolding = AmpCaseFolding!= 0;
                 Parent.CodeMode = true;
                 Parent.Code = new SourceCode(Parent);
                 Parent.Code.ReadCodeInString($" A = *({stringVar.Data.Trim()})", Parent.FilesToCompile[^1]);
                 Parent.BuildEval();
-                Parent.CaseFolding = previousCaseFolding;
+                Parent.BuildOptions.CaseFolding = previousCaseFolding;
                 Parent.CodeMode = false;
                 StarFunctionList[^1](this);
                 return;

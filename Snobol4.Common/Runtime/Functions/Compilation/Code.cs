@@ -12,8 +12,8 @@ public partial class Executive
             Data = ""
         };
 
-        var previousCaseFolding = Parent.CaseFolding;
-        Parent.CaseFolding = AmpCaseFolding != 0;
+        var previousCaseFolding = Parent.BuildOptions.CaseFolding;
+        Parent.BuildOptions.CaseFolding = AmpCaseFolding != 0;
         Parent.CodeMode = true;
 
         switch (arguments[0])
@@ -25,7 +25,7 @@ public partial class Executive
                     code.Data = stringVar1.Data;
                     Parent.Code.ReadCodeInString(code.Data, Parent.FilesToCompile[^1]);
                     Parent.BuildCode();
-                    Parent.CaseFolding = previousCaseFolding;
+                    Parent.BuildOptions.CaseFolding = previousCaseFolding;
                     Parent.CodeMode = false;
                     SystemStack.Push(code);
                     return;
@@ -39,7 +39,7 @@ public partial class Executive
                 code.Data = stringVar.Data;
                 Parent.Code.ReadCodeInString(code.Data, Parent.FilesToCompile[^1]);
                 Parent.BuildCode();
-                Parent.CaseFolding = previousCaseFolding;
+                Parent.BuildOptions.CaseFolding = previousCaseFolding;
                 Parent.CodeMode = false;
                 SystemStack.Push(code);
                 return;

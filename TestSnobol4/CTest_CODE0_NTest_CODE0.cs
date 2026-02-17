@@ -19,7 +19,7 @@ public class CTest_CODE0
     {
         Executive.BreakPoint();
 
-        x.Parent.CaseFolding = true;
+        x.Parent.BuildOptions.CaseFolding = true;
         x.Parent.DisplayListingHeader = false;
         x.Parent.ErrorsToStdout = false;
         x.Parent.FilesToCompile.Add(@"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net.Net\TestSnobol4\Test.sno");

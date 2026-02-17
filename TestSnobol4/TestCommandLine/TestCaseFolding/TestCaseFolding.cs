@@ -16,7 +16,7 @@ TEST    a = b
 end";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
-        if (build.CaseFolding)
+        if (build.BuildOptions.CaseFolding)
         {
             Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
             Assert.AreEqual(217, build.ErrorCodeHistory[0]);
@@ -37,7 +37,7 @@ end
 ";
         var directives = "-b ";
         var build = SetupTests.SetupScript(directives, s);
-        if (build.CaseFolding)
+        if (build.BuildOptions.CaseFolding)
         {
             Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
             Assert.AreEqual(217, build.ErrorCodeHistory[0]);
@@ -58,7 +58,7 @@ end
 ";
         var directives = "-b ";
         var build = SetupTests.SetupScript(directives, s);
-        if (build.CaseFolding)
+        if (build.BuildOptions.CaseFolding)
         {
             Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
             Assert.AreEqual(217, build.ErrorCodeHistory[0]);

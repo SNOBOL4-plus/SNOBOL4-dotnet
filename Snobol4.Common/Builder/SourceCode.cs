@@ -176,7 +176,7 @@ public class SourceCode
         var m = CompiledRegex.EndPattern().Match(line);
         if (!m.Success)
             return false;
-        return _parent.CaseFolding ? m.Value.TrimEnd().ToUpper() == "END" : m.Value.TrimEnd() == "end";
+        return _parent.BuildOptions.CaseFolding ? m.Value.TrimEnd().ToUpper() == "END" : m.Value.TrimEnd() == "end";
     }
 
 
@@ -251,7 +251,7 @@ public class SourceCode
                     return;
                 }
 
-                _parent.CaseFolding = i != 0;
+                _parent.BuildOptions.CaseFolding = i != 0;
                 break;
 
             case "fail":

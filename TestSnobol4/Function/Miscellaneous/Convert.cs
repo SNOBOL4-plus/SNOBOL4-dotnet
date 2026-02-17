@@ -1298,7 +1298,7 @@ end";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        if (build.CaseFolding)
+        if (build.BuildOptions.CaseFolding)
         {
             Assert.AreEqual("ABC", build.Execute!.IdentifierTable[build.FoldCase("a")].ToString());
         }

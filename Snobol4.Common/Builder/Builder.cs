@@ -7,9 +7,47 @@ using System.Runtime.Loader;
 
 namespace Snobol4.Common;
 
+public class BuilderOptions
+{
+    public bool SuppressSignOnMessage;            // -b
+    public bool ShowCompilerStatistics;           // -c
+    public bool WriteCSharpCode;                  // -cs
+    public bool CaseFolding;                      // -F and -f
+    public bool SuppressListingHeader;            // -h
+    public bool StopOnRuntimeError;               // -k
+    public bool ShowListing;                      // -l
+    public bool SuppressExecution;                // -n
+    public bool InputAfterEndStatement;           // -r
+    public string HostParameter;                  // -u
+    public bool GenerateDebugSymbols;             // -v
+    public bool WriteDll;                         // -w
+    public bool ShowExecutionStatistics;          // -x
+
+    public BuilderOptions()
+    {
+        SuppressSignOnMessage = false;            // -b
+        ShowCompilerStatistics = false;           // -c
+        WriteCSharpCode = false;                  // -cs
+        CaseFolding = true;                       // -F and -f
+        SuppressListingHeader = false;              // -h
+        StopOnRuntimeError = false;               // -k
+        ShowListing = false;                      // -l
+        SuppressExecution = false;                // -n
+        InputAfterEndStatement = false;           // -r
+        HostParameter = "";                       // -u
+        GenerateDebugSymbols = true;              // -v
+        WriteDll = false;                         // -w
+        ShowExecutionStatistics = false;          // -x
+    }
+}
+
+
 public partial class Builder
 {
     #region Members
+
+    public BuilderOptions BuildOptions = new();
+
 
     public static long CreationOrder;
 
@@ -24,7 +62,6 @@ public partial class Builder
     public List<string> MessageHistory = [];
 
     // Source code
-    //internal List<string> PathList = [];          // List of source paths
     internal List<string> IncludeList = [];         // List of include paths
     internal int StatementCount;
     internal string EntryLabel;
@@ -33,7 +70,7 @@ public partial class Builder
     internal bool SuppressSignOnMessage;            // -b
     internal bool ShowCompilerStatistics;           // -c
     internal bool WriteCSharpCode;                  // -cs
-    public bool CaseFolding = true;                // -F and -f
+    //public bool BuildOptions.CaseFolding = true;                // -F and -f
     public bool SuppressListingHeader;              // -h
     public bool StopOnRuntimeError;                 // -k
     public bool ShowListing;                        // -l
@@ -304,7 +341,7 @@ public partial class Builder
         }
     }
 
-    public string FoldCase(string input) => CaseFolding ? input.ToUpper() : input;
+    public string FoldCase(string input) => BuildOptions.CaseFolding ? input.ToUpper() : input;
 
     #region Display Statistics
 

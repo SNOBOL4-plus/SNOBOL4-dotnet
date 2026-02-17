@@ -193,7 +193,7 @@ public class GenerateCSharpCode(Builder parent)
         var statementNumber = _parent.StatementCount;
         foreach (var line in _parent.Code.SourceLines)
         {
-            if (line.Label.Length > 0 && !line.Compiled && ((_parent.CaseFolding && line.Label.ToUpper() is not "END") || (!_parent.CaseFolding && line.Label is not "end")))
+            if (line.Label.Length > 0 && !line.Compiled && ((_parent.BuildOptions.CaseFolding && line.Label.ToUpper() is not "END") || (!_parent.BuildOptions.CaseFolding && line.Label is not "end")))
             {
                 _csharpCode.AppendLine($"        x.LabelTable[\"{line.Label}\"] = {statementNumber};");
             }
@@ -269,7 +269,7 @@ public class GenerateCSharpCode(Builder parent)
         GenerateStatementComment(line);
         _csharpCode.AppendLine($"        x.InitializeStatement({statementNumber});");
 
-        if ((_parent.CaseFolding && line.Label.ToUpper() is "END") || (!_parent.CaseFolding && line.Label is "end"))
+        if ((_parent.BuildOptions.CaseFolding && line.Label.ToUpper() is "END") || (!_parent.BuildOptions.CaseFolding && line.Label is "end"))
         {
             _csharpCode.AppendLine("        return -1;");
             _csharpCode.AppendLine("    }");

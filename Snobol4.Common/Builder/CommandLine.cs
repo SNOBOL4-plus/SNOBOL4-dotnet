@@ -108,11 +108,11 @@ public partial class Builder
                 break;
 
             case "-F":
-                CaseFolding = true;
+                BuildOptions.CaseFolding = true;
                 break;
 
             case "-f":
-                CaseFolding = false;
+                BuildOptions.CaseFolding = false;
                 break;
 
             case "-h":
