@@ -13,7 +13,7 @@ public partial class Builder
 
     public BuilderOptions BuildOptions = new();
 
-
+    private CompilerTargets _compilerTarget = new();
     public static long CreationOrder;
 
 
@@ -53,11 +53,11 @@ public partial class Builder
     public int CodeNum;
 
     // Move to specific methods
-    private string _fileName = "";
+    //private string _fileName = "";
     private string _className = "";
     private string _nameSpace = "";
 
-    // Move into COde generator
+    // Move into Code generator
     public int RecordedExpressionCount = 0;
 
     #endregion
@@ -111,7 +111,7 @@ public partial class Builder
                     if (MessageHistory.Count > 0 || BuildOptions.SuppressExecution)
                         return;
 
-                    Execute.Execute(dll, loadContext, _nameSpace + "." + _className);
+                    Execute.Execute(dll, loadContext, _compilerTarget.FullClassName);
                 });
 
             if (result)
@@ -201,7 +201,7 @@ public partial class Builder
         StatementCount += Code.SourceLines.Count;
 
         var loadContext = new AssemblyLoadContext(null, true);
-        var dll = Compile(loadContext, _fileName, cSharpCode);
+        var dll = Compile(loadContext, _compilerTarget.FileName, cSharpCode);
 
         return onSuccess(dll, loadContext);
     }
@@ -223,7 +223,7 @@ public partial class Builder
         StatementCount += Code.SourceLines.Count;
 
         var loadContext = new AssemblyLoadContext(null, true);
-        var dll = Compile(loadContext, _fileName, cSharpCode);
+        var dll = Compile(loadContext, _compilerTarget.FileName, cSharpCode);
 
         onSuccess(dll, loadContext);
         return true;
@@ -234,18 +234,18 @@ public partial class Builder
         if (FilesToCompile.Count == 0 || string.IsNullOrWhiteSpace(FilesToCompile[0]))
             throw new InvalidOperationException("No source files specified for compilation.");
 
-        _fileName = $"{Path.GetFileNameWithoutExtension(FilesToCompile[0])}";
+        _compilerTarget.FileName = $"{Path.GetFileNameWithoutExtension(FilesToCompile[0])}";
         string type;
 
         switch (target)
         {
             case GenerateCSharpCode.CompileTarget.CODE:
-                _fileName += $"_CODE{CodeNum++}";
+                _compilerTarget.FileName += $"_CODE{CodeNum++}";
                 type = "CODE";
                 break;
 
             case GenerateCSharpCode.CompileTarget.EVAL:
-                _fileName += $"_EVAL{EvalNum++}";
+                _compilerTarget.FileName += $"_EVAL{EvalNum++}";
                 type = "EVAL";
                 break;
 
@@ -257,9 +257,10 @@ public partial class Builder
                 throw new ArgumentOutOfRangeException(nameof(target), target, null);
         }
 
-        _className = $"C{_fileName}";
-        _nameSpace = $"N{_fileName}";
-        _fileName += ".cs";
+        _className = $"C{_compilerTarget.FileName}";
+        _nameSpace = $"N{_compilerTarget.FileName}";
+        _compilerTarget.FullClassName = $"N{_compilerTarget.FileName}.C{_compilerTarget.FileName}";
+        _compilerTarget.FileName += ".cs";
         if (target != GenerateCSharpCode.CompileTarget.PROGRAM)
             FilesToCompile.Add($"{type}{FilesToCompile.Count}");
     }
