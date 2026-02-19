@@ -7,7 +7,7 @@ using System.Runtime.Loader;
 
 namespace Snobol4.Common;
 
-public partial class Builder
+public partial class Builder : IDisposable
 {
     #region Members
 
@@ -54,7 +54,7 @@ public partial class Builder
 
     // Move to specific methods
     //private string _fileName = "";
-    private string _className = "";
+    //private string _className = "";
     private string _nameSpace = "";
 
     // Move into Code generator
@@ -141,7 +141,7 @@ public partial class Builder
                 firstInit: false,
                 onSuccess: (dll, loadContext) =>
                 {
-                    dynamic? instance = dll.CreateInstance(_nameSpace + "." + _className);
+                    dynamic? instance = dll.CreateInstance(_nameSpace + "." + _compilerTarget.ClassName);
                     instance?.Run(Execute);
                 });
         }
@@ -164,7 +164,7 @@ public partial class Builder
                 firstInit: false,
                 onSuccess: (dll, loadContext) =>
                 {
-                    dynamic? instance = dll.CreateInstance(_nameSpace + "." + _className);
+                    dynamic? instance = dll.CreateInstance(_nameSpace + "." + _compilerTarget.ClassName);
                     if (instance == null)
                         return false;
 
@@ -197,7 +197,7 @@ public partial class Builder
         Lex(this);
         Parse(this);
 
-        var cSharpCode = Generate(_nameSpace, _className, firstInit, compileTarget, this);
+        var cSharpCode = Generate(_nameSpace, _compilerTarget.ClassName, firstInit, compileTarget, this);
         StatementCount += Code.SourceLines.Count;
 
         var loadContext = new AssemblyLoadContext(null, true);
@@ -219,7 +219,7 @@ public partial class Builder
         Lex(this);
         Parse(this);
 
-        var cSharpCode = Generate(_nameSpace, _className, firstInit, compileTarget, this);
+        var cSharpCode = Generate(_nameSpace, _compilerTarget.ClassName, firstInit, compileTarget, this);
         StatementCount += Code.SourceLines.Count;
 
         var loadContext = new AssemblyLoadContext(null, true);
@@ -257,7 +257,7 @@ public partial class Builder
                 throw new ArgumentOutOfRangeException(nameof(target), target, null);
         }
 
-        _className = $"C{_compilerTarget.FileName}";
+        _compilerTarget.ClassName = $"C{_compilerTarget.FileName}";
         _nameSpace = $"N{_compilerTarget.FileName}";
         _compilerTarget.FullClassName = $"N{_compilerTarget.FileName}.C{_compilerTarget.FileName}";
         _compilerTarget.FileName += ".cs";
@@ -331,5 +331,57 @@ public partial class Builder
 
     #endregion
 
+    #region Members
 
+    // ... existing members ...
+
+    // Track AssemblyLoadContext instances for proper disposal
+    private readonly List<AssemblyLoadContext> _loadContexts = [];
+    private bool _disposed;
+
+    #endregion
+
+    #region IDisposable Implementation
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+            return;
+
+        if (disposing)
+        {
+            // Dispose managed resources
+            ListFileWriter?.Dispose();
+
+            // Unload and dispose all assembly load contexts
+            foreach (var context in _loadContexts)
+            {
+                try
+                {
+                    context.Unload();
+                }
+                catch (Exception ex)
+                {
+                    // Log but don't throw during disposal
+                    Console.Error.WriteLine($"Warning: Failed to unload context: {ex.Message}");
+                }
+            }
+            _loadContexts.Clear();
+        }
+
+        _disposed = true;
+    }
+
+    ~Builder()
+    {
+        Dispose(false);
+    }
+
+    #endregion
 }
