@@ -138,23 +138,31 @@ public partial class Builder
     public void BuildMain()
     {
         Execute = new Executive(this);
+
         try
         {
-            GetNameSpaceAndClassName(GenerateCSharpCode.CompileTarget.PROGRAM);
             _timerBuild.Restart();
-            Lex(this);
-            Parse(this);
-            var cSharpCode = Generate(_nameSpace, _className, true, GenerateCSharpCode.CompileTarget.PROGRAM, this);
-            StatementCount += Code.SourceLines.Count;
-            var loadContext = new AssemblyLoadContext(null, true);
-            var dll = Compile(loadContext, _fileName, cSharpCode);
-            _timerBuild.Stop();
-            PrintCompilationStatistics();
+            var result = BuildInternal(
+                GenerateCSharpCode.CompileTarget.PROGRAM,
+                firstInit: true,
+                onSuccess: (dll, loadContext) =>
+                {
+                    _timerBuild.Stop();
+                    PrintCompilationStatistics();
 
-            if (MessageHistory.Count > 0 || BuildOptions.SuppressExecution)
-                return;
+                    if (MessageHistory.Count > 0 || BuildOptions.SuppressExecution)
+                        return;
 
-            Execute.Execute(dll, loadContext, _fullClassName);
+                    Execute.Execute(dll, loadContext, _fullClassName);
+                });
+
+            if (result)
+            {
+                Execute.PrintExecutionStatistics();
+                Execute.DisplayVariableValues();
+                Execute.CloseAllStreams();
+                ListFileWriter?.Close();
+            }
         }
         catch (CompilerException)
         {
@@ -164,30 +172,20 @@ public partial class Builder
         {
             ReportProgrammingError(e);
         }
-
-        Execute.PrintExecutionStatistics();
-        Execute.DisplayVariableValues();
-        Execute.CloseAllStreams();
-        ListFileWriter?.Close();
     }
 
     public void BuildEval()
     {
         try
         {
-            GetNameSpaceAndClassName(GenerateCSharpCode.CompileTarget.EVAL);
-            Lex(this);
-            Parse(this);
-            var cSharpCode = Generate(_nameSpace, _className, false, GenerateCSharpCode.CompileTarget.EVAL, this);
-            StatementCount += Code.SourceLines.Count;
-            var loadContext = new AssemblyLoadContext(null, true);
-            var dll = Compile(loadContext, _fileName, cSharpCode);
-            dynamic? instance = dll.CreateInstance(_fullClassName);
-
-            if (instance == null)
-                return;
-
-            instance.Run(Execute);
+            BuildInternal(
+                GenerateCSharpCode.CompileTarget.EVAL,
+                firstInit: false,
+                onSuccess: (dll, loadContext) =>
+                {
+                    dynamic? instance = dll.CreateInstance(_fullClassName);
+                    instance?.Run(Execute);
+                });
         }
         catch (CompilerException)
         {
@@ -203,20 +201,18 @@ public partial class Builder
     {
         try
         {
-            GetNameSpaceAndClassName(GenerateCSharpCode.CompileTarget.CODE);
-            Lex(this);
-            Parse(this);
-            var cSharpCode = Generate(_nameSpace, _className, false, GenerateCSharpCode.CompileTarget.CODE, this);
-            StatementCount += Code.SourceLines.Count;
-            var loadContext = new AssemblyLoadContext(null, true);
-            var dll = Compile(loadContext, _fileName, cSharpCode);
-            dynamic? instance = dll.CreateInstance(_fullClassName);
+            return BuildInternal(
+                GenerateCSharpCode.CompileTarget.CODE,
+                firstInit: false,
+                onSuccess: (dll, loadContext) =>
+                {
+                    dynamic? instance = dll.CreateInstance(_fullClassName);
+                    if (instance == null)
+                        return false;
 
-            if (instance == null)
-                return false;
-
-            instance.Run(Execute);
-            return true;
+                    instance.Run(Execute);
+                    return true;
+                });
         }
         catch (CompilerException)
         {
@@ -229,6 +225,150 @@ public partial class Builder
 
         return false;
     }
+
+    /// <summary>
+    /// Core build logic shared by all build methods
+    /// </summary>
+    private TResult BuildInternal<TResult>(
+        GenerateCSharpCode.CompileTarget compileTarget,
+        bool firstInit,
+        Func<Assembly, AssemblyLoadContext, TResult> onSuccess)
+    {
+        GetNameSpaceAndClassName(compileTarget);
+
+        Lex(this);
+        Parse(this);
+
+        var cSharpCode = Generate(_nameSpace, _className, firstInit, compileTarget, this);
+        StatementCount += Code.SourceLines.Count;
+
+        var loadContext = new AssemblyLoadContext(null, true);
+        var dll = Compile(loadContext, _fileName, cSharpCode);
+
+        return onSuccess(dll, loadContext);
+    }
+
+    /// <summary>
+    /// Overload for void return (BuildMain scenario)
+    /// </summary>
+    private bool BuildInternal(
+        GenerateCSharpCode.CompileTarget compileTarget,
+        bool firstInit,
+        Action<Assembly, AssemblyLoadContext> onSuccess)
+    {
+        GetNameSpaceAndClassName(compileTarget);
+
+        Lex(this);
+        Parse(this);
+
+        var cSharpCode = Generate(_nameSpace, _className, firstInit, compileTarget, this);
+        StatementCount += Code.SourceLines.Count;
+
+        var loadContext = new AssemblyLoadContext(null, true);
+        var dll = Compile(loadContext, _fileName, cSharpCode);
+
+        onSuccess(dll, loadContext);
+        return true;
+    }
+
+
+
+
+
+    //public void BuildMain()
+    //{
+    //    Execute = new Executive(this);
+    //    try
+    //    {
+    //        GetNameSpaceAndClassName(GenerateCSharpCode.CompileTarget.PROGRAM);
+    //        _timerBuild.Restart();
+    //        Lex(this);
+    //        Parse(this);
+    //        var cSharpCode = Generate(_nameSpace, _className, true, GenerateCSharpCode.CompileTarget.PROGRAM, this);
+    //        StatementCount += Code.SourceLines.Count;
+    //        var loadContext = new AssemblyLoadContext(null, true);
+    //        var dll = Compile(loadContext, _fileName, cSharpCode);
+    //        _timerBuild.Stop();
+    //        PrintCompilationStatistics();
+
+    //        if (MessageHistory.Count > 0 || BuildOptions.SuppressExecution)
+    //            return;
+
+    //        Execute.Execute(dll, loadContext, _fullClassName);
+    //    }
+    //    catch (CompilerException)
+    //    {
+    //        // Already handled
+    //    }
+    //    catch (Exception e)
+    //    {
+    //        ReportProgrammingError(e);
+    //    }
+
+    //    Execute.PrintExecutionStatistics();
+    //    Execute.DisplayVariableValues();
+    //    Execute.CloseAllStreams();
+    //    ListFileWriter?.Close();
+    //}
+
+    //public void BuildEval()
+    //{
+    //    try
+    //    {
+    //        GetNameSpaceAndClassName(GenerateCSharpCode.CompileTarget.EVAL);
+    //        Lex(this);
+    //        Parse(this);
+    //        var cSharpCode = Generate(_nameSpace, _className, false, GenerateCSharpCode.CompileTarget.EVAL, this);
+    //        StatementCount += Code.SourceLines.Count;
+    //        var loadContext = new AssemblyLoadContext(null, true);
+    //        var dll = Compile(loadContext, _fileName, cSharpCode);
+    //        dynamic? instance = dll.CreateInstance(_fullClassName);
+
+    //        if (instance == null)
+    //            return;
+
+    //        instance.Run(Execute);
+    //    }
+    //    catch (CompilerException)
+    //    {
+    //        // Already handled
+    //    }
+    //    catch (Exception e)
+    //    {
+    //        ReportProgrammingError(e);
+    //    }
+    //}
+
+    //public bool BuildCode()
+    //{
+    //    try
+    //    {
+    //        GetNameSpaceAndClassName(GenerateCSharpCode.CompileTarget.CODE);
+    //        Lex(this);
+    //        Parse(this);
+    //        var cSharpCode = Generate(_nameSpace, _className, false, GenerateCSharpCode.CompileTarget.CODE, this);
+    //        StatementCount += Code.SourceLines.Count;
+    //        var loadContext = new AssemblyLoadContext(null, true);
+    //        var dll = Compile(loadContext, _fileName, cSharpCode);
+    //        dynamic? instance = dll.CreateInstance(_fullClassName);
+
+    //        if (instance == null)
+    //            return false;
+
+    //        instance.Run(Execute);
+    //        return true;
+    //    }
+    //    catch (CompilerException)
+    //    {
+    //        // Already handled
+    //    }
+    //    catch (Exception e)
+    //    {
+    //        ReportProgrammingError(e);
+    //    }
+
+    //    return false;
+    //}
 
     private void ReportProgrammingError(Exception e)
     {
