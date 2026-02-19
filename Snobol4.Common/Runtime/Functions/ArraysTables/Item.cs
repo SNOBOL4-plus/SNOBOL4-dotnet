@@ -4,8 +4,6 @@ public partial class Executive
 {
     internal void Item(List<Var> arguments)
     {
-
-        //Debug.WriteLine("Item()");
         SystemStack.Push(arguments[0]);
         arguments.RemoveAt(0);
         arguments.RemoveAt(arguments.Count - 1);

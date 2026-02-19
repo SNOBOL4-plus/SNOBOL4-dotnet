@@ -7,47 +7,6 @@ using System.Runtime.Loader;
 
 namespace Snobol4.Common;
 
-public class BuilderOptions
-{
-    public bool SuppressSignOnMessage;            // -b
-    public bool ShowCompilerStatistics;           // -c
-    public bool WriteCSharpCode;                  // -cs
-    public bool CaseFolding;                      // -F and -f
-    public bool SuppressListingHeader;            // -h
-    public bool StopOnRuntimeError;               // -k
-    public bool ShowListing;                      // -l
-    public bool SuppressExecution;                // -n
-    public bool InputAfterEndStatement;           // -r
-    public string HostParameter;                  // -u
-    public bool GenerateDebugSymbols;             // -v
-    public bool WriteDll;                         // -w
-    public bool ShowExecutionStatistics;          // -x
-    public bool TraceStatements;                  // True if tracing is on
-    public bool ListSource = false;               // LIST/NOLIST
-    internal bool ErrorOnUnhandledFail;           // FAIL/NOFAIL
-
-    public BuilderOptions()
-    {
-        SuppressSignOnMessage = false;            // -b
-        ShowCompilerStatistics = false;           // -c
-        WriteCSharpCode = false;                  // -cs
-        CaseFolding = true;                       // -F and -f
-        SuppressListingHeader = false;            // -h
-        StopOnRuntimeError = false;               // -k
-        ShowListing = false;                      // -l
-        SuppressExecution = false;                // -n
-        InputAfterEndStatement = false;           // -r
-        HostParameter = "";                       // -u
-        GenerateDebugSymbols = true;              // -v
-        WriteDll = false;                         // -w
-        ShowExecutionStatistics = false;          // -x
-        TraceStatements = false;                  // True if tracing is on
-        ListSource = false;                       // LIST/NOLIST
-        ErrorOnUnhandledFail = false;             // FAIL/NOFAIL
-    }
-}
-
-
 public partial class Builder
 {
     #region Members
@@ -270,20 +229,6 @@ public partial class Builder
         return true;
     }
 
-    private void ReportProgrammingError(Exception e)
-    {
-        Console.Error.WriteLine(@"***UNEXPECTED EXCEPTION");
-        Console.Error.WriteLine(@$"{e.StackTrace}");
-        SaveException(e);
-        WriteException(e);
-
-        if (e.InnerException == null)
-            return;
-
-        SaveException(e.InnerException);
-        WriteException(e.InnerException);
-    }
-
     private void GetNameSpaceAndClassName(GenerateCSharpCode.CompileTarget target)
     {
         if (FilesToCompile.Count == 0 || string.IsNullOrWhiteSpace(FilesToCompile[0]))
@@ -317,13 +262,6 @@ public partial class Builder
         _fileName += ".cs";
         if (target != GenerateCSharpCode.CompileTarget.PROGRAM)
             FilesToCompile.Add($"{type}{FilesToCompile.Count}");
-    }
-
-    private void ClearExceptionHistory()
-    {
-        ErrorCodeHistory.Clear();
-        ColumnHistory.Clear();
-        MessageHistory.Clear();
     }
 
     internal void Run(Assembly dll, AssemblyLoadContext loadContext, string fullClassName)
@@ -392,63 +330,5 @@ public partial class Builder
 
     #endregion
 
-    #region Exception Handling
 
-    public void LogCompilerException(int code, int cursorCurrent, string message = "")
-    {
-        if (Execute != null)
-            Execute.Failure = true;
-
-        var ce = new CompilerException(code)
-        {
-            Message = message + Environment.NewLine
-        };
-
-        ErrorCodeHistory.Add(code);
-        ColumnHistory.Add(cursorCurrent);
-        MessageHistory.Add(ce.Message);
-        Console.Error.WriteLine(ce.Message);
-    }
-
-    public void LogCompilerException(int code, int cursorCurrent, SourceLine source)
-    {
-        if (Execute != null)
-            Execute.Failure = true;
-
-        var ce = new CompilerException(code, cursorCurrent);
-        ErrorCodeHistory.Add(code);
-        ColumnHistory.Add(cursorCurrent);
-        var fi = new FileInfo(source.PathName);
-        ce.Message = $"{Environment.NewLine}{source.Text.Replace('\t', ' ')}{Environment.NewLine}";  // Changed
-        if (cursorCurrent > 0)
-            ce.Message += $"{new string(' ', cursorCurrent)}!{Environment.NewLine}";  // Changed
-        ce.Message += $"{fi.Name}({source.LineCountFile},{cursorCurrent + 1}) : error {code} -- {CompilerException.ErrorMessage[code]}";
-        MessageHistory.Add(ce.Message);
-        Console.Error.WriteLine(ce.Message);
-    }
-
-    public void SaveException(Exception e)
-    {
-        if (e is CompilerException)
-            return;
-
-        ErrorCodeHistory.Add(1000);
-        ColumnHistory.Add(0);
-        MessageHistory.Add(e.Message);
-    }
-
-    public void WriteException(Exception e)
-    {
-        if (e is CompilerException ce)
-        {
-            Console.Error.WriteLine(@"");
-            Console.Error.WriteLine(ce.Message);
-            Console.Error.WriteLine(@"");
-            return;
-        }
-
-        Console.Error.WriteLine(e.Message);
-    }
-
-    #endregion
 }

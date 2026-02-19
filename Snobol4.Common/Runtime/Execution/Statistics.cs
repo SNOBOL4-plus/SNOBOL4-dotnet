@@ -12,7 +12,7 @@ public partial class Executive
         Failure = bSaveStatus;
     }
 
-                        internal void Execute(Assembly dll, AssemblyLoadContext _, string fullClassName)
+    internal void Execute(Assembly dll, AssemblyLoadContext _, string fullClassName)
     {
         _timerExecute.Restart();
         dynamic? instance = dll.CreateInstance(fullClassName);
@@ -40,7 +40,7 @@ public partial class Executive
         Console.Error.WriteLine(@$"in line                  {SourceLineNumbers[AmpCurrentLineNumber - 1]}");
         Console.Error.WriteLine(@$"in statement             {AmpCurrentLineNumber}");
         Console.Error.WriteLine(@$"statements executed      {AmpStatementCount}");
-        Console.Error.WriteLine(@$"execution time seconds   {_timerExecute.ElapsedTicks/10000000.0}");
+        Console.Error.WriteLine(@$"execution time seconds   {_timerExecute.ElapsedTicks / 10000000.0}");
         Console.Error.WriteLine(@$"regenerations            {GC.CollectionCount(memInfo.Generation)}");
         Console.Error.WriteLine(@$"memory used (bytes)      {memoryUsed}");
         Console.Error.WriteLine(@$"memory left (bytes)      {memoryLeft}");
@@ -52,7 +52,7 @@ public partial class Executive
 
         foreach (var entry in ProfileCount)
         {
-            Console.WriteLine($@"{entry.Key},{entry.Value},{ProfileTotal[entry.Key]/10000000.0},{ProfileTotal[entry.Key] / (entry.Value*10000000.0)}");
+            Console.WriteLine($@"{entry.Key},{entry.Value},{ProfileTotal[entry.Key] / 10000000.0},{ProfileTotal[entry.Key] / (entry.Value * 10000000.0)}");
         }
 
     }

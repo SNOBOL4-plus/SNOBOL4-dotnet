@@ -32,7 +32,7 @@ internal class AnyPattern : TerminalPattern
 
     internal override AnyPattern Clone()
     {
-        return _functionName != null
+        return _functionName is not null
             ? new AnyPattern(_functionName)
             : new AnyPattern(_charList);
     }

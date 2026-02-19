@@ -9,7 +9,7 @@ public class Scanner
         get => _state?.PreviousCursorPosition ?? 0;
         set
         {
-            if (_state != null)
+            if (_state is not null)
                 _state.PreviousCursorPosition = value;
         }
     }
@@ -19,7 +19,7 @@ public class Scanner
         get => _state?.CursorPosition ?? 0;
         set
         {
-            if (_state != null)
+            if (_state is not null)
                 _state.CursorPosition = value;
         }
     }
@@ -45,8 +45,6 @@ public class Scanner
         for (var cursorPosition = startPosition; cursorPosition <= length; ++cursorPosition)
         {
             _state.PreviousCursorPosition = _state.CursorPosition = cursorPosition;
-            Debug.Assert(_ast.StartNode != null);
-
             var mr = Match(_ast.StartNode);
             if (mr.IsSuccess || mr.IsAbort)
                 return mr;
@@ -62,7 +60,6 @@ public class Scanner
 
     private MatchResult Match(AbstractSyntaxTreeNode node)
     {
-        Debug.Assert(_state != null && _ast != null);
         _state.ClearAlternates();
 
         while (true)

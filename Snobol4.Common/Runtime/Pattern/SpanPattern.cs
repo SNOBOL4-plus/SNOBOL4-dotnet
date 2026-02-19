@@ -33,7 +33,7 @@ internal class SpanPattern : TerminalPattern
 
     internal override Pattern Clone()
     {
-        return _functionName != null
+        return _functionName is not null
             ? new SpanPattern(_functionName)
             : new SpanPattern(_charList);
     }
@@ -45,7 +45,7 @@ internal class SpanPattern : TerminalPattern
         if (scan.CursorPosition >= scan.Subject.Length)
             return MatchResult.Failure(scan);
 
-        if (_functionName != null)
+        if (_functionName is not null)
         {
             _functionName(scan.Exec);
             var result = scan.Exec.SystemStack.Pop();

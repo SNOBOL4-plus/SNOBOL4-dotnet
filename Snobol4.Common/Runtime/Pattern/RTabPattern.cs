@@ -32,7 +32,7 @@ internal class RTabPattern : TerminalPattern
 
     internal override Pattern Clone()
     {
-        return _functionName != null
+        return _functionName is not null
             ? new RTabPattern(_functionName)
             : new RTabPattern(_position);
     }
@@ -41,7 +41,7 @@ internal class RTabPattern : TerminalPattern
     {
         using var profile1 = Profiler.Start4("RTab", scan.Exec);
 
-        if (_functionName != null)
+        if (_functionName is not null)
         {
             _functionName(scan.Exec);
             var result = scan.Exec.SystemStack.Pop();

@@ -66,7 +66,7 @@ public sealed class TableConversionStrategy : IConversionStrategy
             long longValue => new IntegerVar(longValue),
             double doubleValue => new RealVar(doubleValue),
             string stringValue => new StringVar(stringValue),
-            _ => tableSelf.Collection != null && tableSelf.Key != null
+            _ => tableSelf.Collection is not null && tableSelf.Key is not null
                 ? ((TableVar)tableSelf.Collection).Data[tableSelf.Key]
                 : tableSelf
         };
@@ -82,6 +82,6 @@ public sealed class TableConversionStrategy : IConversionStrategy
     public object GetTableKey(Var self)
     {
         // Tables use their unique ID as table key
-        return self.CreationOrder;
+        return self.SequenceId;
     }
 }

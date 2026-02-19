@@ -32,7 +32,7 @@ internal class TabPattern : TerminalPattern
 
     internal override Pattern Clone()
     {
-        return _functionName != null
+        return _functionName is not null
             ? new TabPattern(_functionName)
             : new TabPattern(_position);
     }
@@ -41,7 +41,7 @@ internal class TabPattern : TerminalPattern
     {
         using var profile1 = Profiler.Start4("Tab", scan.Exec);
 
-        if (_functionName != null)
+        if (_functionName is not null)
         {
             _functionName(scan.Exec);
             var result = scan.Exec.SystemStack.Pop();

@@ -82,6 +82,6 @@ public class ArrayConversionStrategy : IConversionStrategy
     public object GetTableKey(Var self)
     {
         // Arrays use their unique ID as table key (reference equality)
-        return self.CreationOrder;
+        return self.SequenceId;
     }
 }

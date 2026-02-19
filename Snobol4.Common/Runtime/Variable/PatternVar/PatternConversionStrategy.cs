@@ -30,6 +30,6 @@ public class PatternConversionStrategy : IConversionStrategy
     public object GetTableKey(Var self)
     {
         // Patterns use their unique ID as table key
-        return self.CreationOrder;
+        return self.SequenceId;
     }
 }

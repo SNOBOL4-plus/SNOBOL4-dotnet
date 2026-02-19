@@ -17,7 +17,7 @@ public partial class Executive
 
         AmpErrorText = ce.Message[2..];
 
-        if (e != null)
+        if (e is not null)
         {
             ce.Message += $"{Environment.NewLine}{e.Message}";
             Console.Error.WriteLine(ce.Message);

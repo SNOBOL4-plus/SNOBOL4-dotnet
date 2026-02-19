@@ -117,7 +117,6 @@ public partial class Executive
         const BindingFlags flags = BindingFlags.DeclaredOnly | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField;
 
         // The current buffer of decoded characters
-        Debug.Assert(reader != null, nameof(reader) + " != null");
         var charBuffer = (char[])reader.GetType().InvokeMember("_charBuffer", flags, null, reader, null)!;
 
         // The index of the next char to be read from charBuffer

@@ -11,7 +11,7 @@ public class SourceCode
     internal int LineCountTotal;                   // Counter for numbers of lines in all files
     internal int SubLineCount;                     // Counter for semicolon delimited lines
     internal List<SourceLine> SourceLines = [];    // ListSource of source lines
-    internal string EntryLabel = "";               // Label to start execution
+    //internal string EntryLabel = "";               // Label to start execution
     internal Dictionary<string, int> Labels = [];  // Dictionary associating labels to line numbers
     private readonly Builder _parent;              // Builder invoking this class
     private int _includeDepth;                     // Depth of INCLUDE statements
@@ -40,7 +40,7 @@ public class SourceCode
         {
             foreach (var fileInfo in _parent.FilesToCompile.Select(AdjustFileExtension).Select(fileName => new FileInfo(fileName)))
             {
-                if (fileInfo.DirectoryName != null)
+                if (fileInfo.DirectoryName is not null)
                     Directory.SetCurrentDirectory(fileInfo.DirectoryName);
 
                 PathList.Add(fileInfo.FullName);
@@ -68,7 +68,7 @@ public class SourceCode
         var script = _parent.FilesToCompile[0];
         var fileInfo = new FileInfo(AdjustFileExtension(script));
 
-        if (fileInfo.DirectoryName != null)
+        if (fileInfo.DirectoryName is not null)
             Directory.SetCurrentDirectory(fileInfo.DirectoryName);
 
         PathList.Add(fileInfo.FullName);
@@ -300,7 +300,6 @@ public class SourceCode
         while (!reader.EndOfStream && (reader.Peek() == '.' || reader.Peek() == '+'))
         {
             line = reader.ReadLine();
-            Debug.Assert(line != null, nameof(line) + " != null");
             currentLine += line[1..];
         }
 

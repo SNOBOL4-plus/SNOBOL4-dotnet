@@ -15,7 +15,7 @@ public sealed class TableVar : Var
 
     #region Properties
 
-                public int Count => Data.Count;
+    public int Count => Data.Count;
 
     #endregion
 
@@ -37,14 +37,14 @@ public sealed class TableVar : Var
 
     #region Constructors
 
-                        internal TableVar(Var fill)
+    internal TableVar(Var fill)
     {
         ArgumentNullException.ThrowIfNull(fill);
         Data = [];
         Fill = fill;
     }
 
-                            internal TableVar(Var fill, int capacity)
+    internal TableVar(Var fill, int capacity)
     {
         ArgumentNullException.ThrowIfNull(fill);
         Data = new Dictionary<object, Var>(capacity);
@@ -55,7 +55,7 @@ public sealed class TableVar : Var
 
     #region Table-Specific Methods
 
-                        
+
     internal Var GetOrDefault(object key)
     {
         ArgumentNullException.ThrowIfNull(key);
@@ -74,7 +74,7 @@ public sealed class TableVar : Var
         return fillClone;
     }
 
-                        
+
     internal void Set(object key, Var value)
     {
         ArgumentNullException.ThrowIfNull(key);
@@ -85,40 +85,40 @@ public sealed class TableVar : Var
         Data[key] = value;
     }
 
-                        
+
     internal bool ContainsKey(object key)
     {
         ArgumentNullException.ThrowIfNull(key);
         return Data.ContainsKey(key);
     }
 
-                        
+
     internal bool Remove(object key)
     {
         ArgumentNullException.ThrowIfNull(key);
         return Data.Remove(key);
     }
 
-            
+
     internal void Clear()
     {
         Data.Clear();
     }
 
-                            
+
     internal bool TryGetValue(object key, out Var value)
     {
         ArgumentNullException.ThrowIfNull(key);
         return Data.TryGetValue(key, out value!);
     }
 
-                
+
     internal IEnumerable<object> GetKeys()
     {
         return Data.Keys;
     }
 
-                
+
     internal IEnumerable<Var> GetValues()
     {
         return Data.Values;

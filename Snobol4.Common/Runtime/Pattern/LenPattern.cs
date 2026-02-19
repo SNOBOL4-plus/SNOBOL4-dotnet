@@ -42,7 +42,7 @@ internal class LenPattern : TerminalPattern
         using var profile1 = Profiler.Start4("Len", scan.Exec);
 
 
-        if (_functionName != null)
+        if (_functionName is not null)
         {
             _functionName(scan.Exec);
             var result = scan.Exec.SystemStack.Pop();

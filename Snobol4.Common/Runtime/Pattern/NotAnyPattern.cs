@@ -32,7 +32,7 @@ internal class NotAnyPattern : TerminalPattern
 
     internal override Pattern Clone()
     {
-        return _functionName != null
+        return _functionName is not null
             ? new NotAnyPattern(_functionName)
             : new NotAnyPattern(_charList);
     }

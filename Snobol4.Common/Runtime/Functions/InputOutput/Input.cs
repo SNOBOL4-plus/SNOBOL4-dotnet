@@ -221,7 +221,7 @@ public partial class Executive
 
             case "+console-input":
             case "+terminal-input":
-                inputLine = ReadLineDelegate != null ? ReadLineDelegate() : Console.ReadLine();
+                inputLine = ReadLineDelegate is not null ? ReadLineDelegate() : Console.ReadLine();
                 break;
 
             default:
@@ -237,7 +237,7 @@ public partial class Executive
                 break;
         }
 
-        if (inputLine != null)
+        if (inputLine is not null)
             return new StringVar(inputLine);
 
         NonExceptionFailure();

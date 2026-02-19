@@ -33,7 +33,7 @@ public partial class Executive
 
         Assert.IsNotNull(handlerName);
 
-        if ((string)handlerName != "" && FunctionTable[(string)handlerName] != null)
+        if ((string)handlerName != "" && FunctionTable[(string)handlerName] is not null)
         {
             LogRuntimeException(197);
             return;

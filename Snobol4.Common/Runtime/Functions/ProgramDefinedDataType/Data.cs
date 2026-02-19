@@ -72,7 +72,7 @@ public partial class Executive
 
         // datatype name cannot be an existing function
         //if (FunctionTable.ContainsKey(dataName))
-        if (FunctionTable[dataName] != null)
+        if (FunctionTable[dataName] is not null)
         {
             LogRuntimeException(248);
             return;
@@ -109,7 +109,7 @@ public partial class Executive
 
             // field name cannot be an existing function
             //if (FunctionTable.ContainsKey(fields[i]))
-            if (FunctionTable[fields[i]] != null)
+            if (FunctionTable[fields[i]] is not null)
             {
                 LogRuntimeException(248);
                 return;

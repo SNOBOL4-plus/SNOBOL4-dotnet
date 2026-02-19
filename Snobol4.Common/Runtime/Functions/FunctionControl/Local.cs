@@ -7,7 +7,6 @@ public partial class Executive
 {
     public void Local(List<Var> arguments)
     {
-        //Debug.WriteLine("Local()");
         if (!arguments[0].Convert(VarType.STRING, out _, out var functionName, this) || (string)functionName == "")
         {
             LogRuntimeException(60);

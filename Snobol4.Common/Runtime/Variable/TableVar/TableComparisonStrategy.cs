@@ -14,7 +14,7 @@ public sealed class TableComparisonStrategy : IComparisonStrategy
         // Tables of the same type compare by creation time (chronological ordering)
         if (other is TableVar otherTable)
         {
-            return tableSelf.CreationOrder.CompareTo(otherTable.CreationOrder);
+            return tableSelf.SequenceId.CompareTo(otherTable.SequenceId);
         }
 
         // Different types compare by data type name (lexicographical ordering)
@@ -39,6 +39,6 @@ public sealed class TableComparisonStrategy : IComparisonStrategy
         ArgumentNullException.ThrowIfNull(other);
 
         // Tables are identical only if they have the same unique ID (same instance)
-        return other.CreationOrder == self.CreationOrder;
+        return other.SequenceId == self.SequenceId;
     }
 }

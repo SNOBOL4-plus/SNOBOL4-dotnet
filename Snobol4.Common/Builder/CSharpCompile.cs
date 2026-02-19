@@ -12,33 +12,24 @@ namespace Snobol4.Common;
 
 public partial class Builder
 {
-    #region Members
-
-    private static readonly MetadataReference[] _references =
+    static MetadataReference[] _references =
     [
         MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-        MetadataReference.CreateFromFile(typeof(Console).Assembly.Location),
-        MetadataReference.CreateFromFile(typeof(AssemblyTargetedPatchBandAttribute).Assembly.Location),
-        MetadataReference.CreateFromFile(Assembly.Load("System.Runtime").Location),
-        MetadataReference.CreateFromFile(Assembly.Load("System.Collections").Location),
-        MetadataReference.CreateFromFile(Assembly.Load("Snobol4.Common").Location)
+            MetadataReference.CreateFromFile(typeof(Console).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(AssemblyTargetedPatchBandAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(Assembly.Load("System.Runtime").Location),
+            MetadataReference.CreateFromFile(Assembly.Load("System.Collections").Location),
+            MetadataReference.CreateFromFile(Assembly.Load("Snobol4.Common").Location)
     ];
-
-    #endregion
-
-    #region public Methods
 
     public Assembly Compile(AssemblyLoadContext loadContext, string filePath, string code)
     {
         return CreateAssembly(loadContext, code, filePath);
     }
 
-    #endregion
-
-    #region Private Methods
-
     private Assembly CreateAssembly(AssemblyLoadContext loadContext, string code, string filePath)
     {
+
         var encoding = Encoding.UTF8;
         var fileName = Path.GetFileName(filePath);
         var assemblyName = Path.ChangeExtension(fileName, "dll");
@@ -47,7 +38,6 @@ public partial class Builder
         var sourceText = SourceText.From(buffer, buffer.Length, encoding, canBeEmbedded: true);
         var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, new CSharpParseOptions(), path: fileName);
         var syntaxRootNode = (CSharpSyntaxNode)syntaxTree.GetRoot();
-        Debug.Assert(syntaxRootNode != null, nameof(syntaxRootNode) + " != null");
         var encoded = CSharpSyntaxTree.Create(syntaxRootNode, null, fileName, encoding);
         var optimizationLevel = BuildOptions.GenerateDebugSymbols ? OptimizationLevel.Debug : OptimizationLevel.Release;
         var compilation = CSharpCompilation.Create(
@@ -96,6 +86,4 @@ public partial class Builder
         var errors = failures.Aggregate("", (current, error) => current + (error + Environment.NewLine));
         throw new ApplicationException(errors);
     }
-
-    #endregion
 }

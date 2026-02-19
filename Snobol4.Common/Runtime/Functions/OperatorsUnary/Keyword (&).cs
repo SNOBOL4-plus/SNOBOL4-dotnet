@@ -69,7 +69,7 @@ public partial class Executive
         // &operator must be existing keyword
         var newSymbol = "&" + v.Symbol;
 
-        if (KeywordTable.TryGetValue(newSymbol, out KeywordHandler? handler))
+        if (KeywordTable.TryGetValue(newSymbol, out var handler))
         {
             handler(v, false);
             return;
@@ -242,7 +242,7 @@ public partial class Executive
     {
         if (set)
         {
-            if (IntegerHandler(value, out IntegerVar integerVar)) return;
+            if (IntegerHandler(value, out var integerVar)) return;
             AmpAbnormalEnd = integerVar.Data;
         }
 
@@ -253,7 +253,7 @@ public partial class Executive
     {
         if (set)
         {
-            if (IntegerHandler(value, out IntegerVar integerVar)) return;
+            if (IntegerHandler(value, out var integerVar)) return;
             AmpAnchor = integerVar.Data;
         }
 
@@ -264,7 +264,7 @@ public partial class Executive
     {
         if (set)
         {
-            if (IntegerHandler(value, out IntegerVar integerVar)) return;
+            if (IntegerHandler(value, out var integerVar)) return;
             AmpCaseFolding = integerVar.Data;
         }
 
@@ -275,7 +275,7 @@ public partial class Executive
     {
         if (set)
         {
-            if (IntegerHandler(value, out IntegerVar integerVar)) return;
+            if (IntegerHandler(value, out var integerVar)) return;
             AmpCode = (int)integerVar.Data;
         }
 
@@ -286,7 +286,7 @@ public partial class Executive
     {
         if (set)
         {
-            if (IntegerHandler(value, out IntegerVar integerVar)) return;
+            if (IntegerHandler(value, out var integerVar)) return;
             AmpCompare = integerVar.Data;
         }
 
@@ -297,7 +297,7 @@ public partial class Executive
     {
         if (set)
         {
-            if (IntegerHandler(value, out IntegerVar integerVar)) return;
+            if (IntegerHandler(value, out var integerVar)) return;
             AmpDump = integerVar.Data;
         }
 
@@ -308,7 +308,7 @@ public partial class Executive
     {
         if (set)
         {
-            if (IntegerHandler(value, out IntegerVar integerVar)) return;
+            if (IntegerHandler(value, out var integerVar)) return;
             AmpErrorLimit = integerVar.Data;
         }
 
@@ -319,7 +319,7 @@ public partial class Executive
     {
         if (set)
         {
-            if (StringHandler(value, out StringVar stringVar)) return;
+            if (StringHandler(value, out var stringVar)) return;
             AmpErrorText = stringVar.Data;
         }
 
@@ -330,7 +330,7 @@ public partial class Executive
     {
         if (set)
         {
-            if (IntegerHandler(value, out IntegerVar integerVar)) return;
+            if (IntegerHandler(value, out var integerVar)) return;
             AmpErrorType = integerVar.Data;
         }
 
@@ -341,7 +341,7 @@ public partial class Executive
     {
         if (set)
         {
-            if (IntegerHandler(value, out IntegerVar integerVar)) return;
+            if (IntegerHandler(value, out var integerVar)) return;
             AmpFunctionTrace = integerVar.Data;
         }
 
@@ -352,7 +352,7 @@ public partial class Executive
     {
         if (set)
         {
-            if (IntegerHandler(value, out IntegerVar integerVar)) return;
+            if (IntegerHandler(value, out var integerVar)) return;
             AmpFullScan = integerVar.Data;
         }
 
@@ -364,7 +364,7 @@ public partial class Executive
     {
         if (set)
         {
-            if (IntegerHandler(value, out IntegerVar integerVar)) return;
+            if (IntegerHandler(value, out var integerVar)) return;
             AmpInput = integerVar.Data;
         }
 
@@ -376,7 +376,7 @@ public partial class Executive
     {
         if (set)
         {
-            if (IntegerHandler(value, out IntegerVar integerVar)) return;
+            if (IntegerHandler(value, out var integerVar)) return;
             AmpMaxlength = integerVar.Data;
         }
 
@@ -387,7 +387,7 @@ public partial class Executive
     {
         if (set)
         {
-            if (StringHandler(value, out StringVar stringVar)) return;
+            if (StringHandler(value, out var stringVar)) return;
             AmpOutput = stringVar.Data;
         }
 
@@ -398,7 +398,7 @@ public partial class Executive
     {
         if (set)
         {
-            if (IntegerHandler(value, out IntegerVar integerVar)) return;
+            if (IntegerHandler(value, out var integerVar)) return;
             AmpProfile = integerVar.Data;
         }
 
@@ -409,7 +409,7 @@ public partial class Executive
     {
         if (set)
         {
-            if (IntegerHandler(value, out IntegerVar integerVar)) return;
+            if (IntegerHandler(value, out var integerVar)) return;
             AmpStatementLimit = integerVar.Data;
         }
 
@@ -420,7 +420,7 @@ public partial class Executive
     {
         if (set)
         {
-            if (IntegerHandler(value, out IntegerVar integerVar)) return;
+            if (IntegerHandler(value, out var integerVar)) return;
             AmpTrace = integerVar.Data;
         }
 
@@ -431,7 +431,7 @@ public partial class Executive
     {
         if (set)
         {
-            if (IntegerHandler(value, out IntegerVar integerVar)) return;
+            if (IntegerHandler(value, out var integerVar)) return;
             AmpTrim = integerVar.Data;
         }
 

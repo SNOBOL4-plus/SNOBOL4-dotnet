@@ -35,14 +35,14 @@ internal class BreakPattern : TerminalPattern
 
     internal override Pattern Clone()
     {
-        return _functionName != null
+        return _functionName is not null
             ? new BreakPattern(_functionName, _error)
             : new BreakPattern(_charList, _error);
     }
 
     internal override MatchResult Scan(int node, Scanner scan)
     {
-        if (_functionName != null)
+        if (_functionName is not null)
         {
             using var profile1 = Profiler.Start4("Break", scan.Exec);
             

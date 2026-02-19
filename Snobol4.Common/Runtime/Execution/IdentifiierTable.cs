@@ -9,7 +9,7 @@ public class IdentifierTable(Executive exec) : Dictionary<string, Var>
     {
         get
         {
-            if (!TryGetValue(symbol, out Var value))
+            if (!TryGetValue(symbol, out var value))
             {
                 base[symbol] = value = StringVar.Null(symbol);
             }

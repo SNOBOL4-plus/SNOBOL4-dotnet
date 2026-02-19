@@ -33,7 +33,7 @@ public partial class Executive
             PredicateSuccess();
         }
 
-        if (stream != null)
+        if (stream is not null)
         {
             stream.BaseStream.Position = 0;
             stream.DiscardBufferedData();

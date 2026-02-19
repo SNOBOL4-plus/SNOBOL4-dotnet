@@ -47,19 +47,27 @@
 
 public partial class Builder
 {
-    private bool _u = false;
-
     public void ParseCommandLine(string[] commandLine)
     {
         var commandMode = true;
         var count = 0;
+        var hostParameterIsNext = false;
+
+        // Default value of HOST(0) is the concatenationof all command line arguments.
+        BuildOptions.HostParameter = string.Join(" ", commandLine);
 
         foreach (var arg in commandLine)
         {
-            if (_u)
+            if (hostParameterIsNext)
             {
                 BuildOptions.HostParameter = arg;
-                _u = false;
+                hostParameterIsNext = false;
+                continue;
+            }
+
+            if (arg == "-u")
+            {
+                hostParameterIsNext = true;
                 continue;
             }
 
@@ -134,10 +142,10 @@ public partial class Builder
             case "-o":
                 if (command.Length > 3 || command[2] == '=')
                 {
-                    ListFileName = command[3..];
+                    BuildOptions.ListFileName = command[3..];
 
-                    if (Path.GetExtension(ListFileName) == "")
-                        ListFileName += ".lst";
+                    if (Path.GetExtension(BuildOptions.ListFileName) == "")
+                        BuildOptions.ListFileName += ".lst";
 
                     break;
                 }
@@ -147,11 +155,6 @@ public partial class Builder
 
             case "-r":
                 BuildOptions.InputAfterEndStatement = true;
-                break;
-
-            case "-u":
-                _u = true;
-                BuildOptions.HostParameter = "";
                 break;
 
             case "-v":
@@ -182,30 +185,17 @@ public partial class Builder
 
                           usage: snobol4 [options] files[.sno, .sbl, .spt]
                           source files are concatenated
-                           -a equal to -c -l -c                                       -b suppress signon message
-                           -c compiler statistics                                     -cs write c# file
-                           -f don't fold source code (don't ignore source code case)  -F fold source code case (ignore source code case)
-                           -h suppress sign-on message in listing                     -k stop on runtime error
-                           -l show listing                                            -n suppress execution
-                           -o=file[.lst] listing file                                 -v generate debug symbols
-                           -w write DLL                                               -x execution statistics
-                           -? display manual
+                           -a equal to -c -l -x                    -b suppress signon message
+                           -c compiler statistics                  -cs write c# file
+                           -f don't fold source code               -F fold source code case
+                           -h suppress sign-on message in listing  -k stop on runtime error
+                           -l show listing                         -n suppress execution
+                           -o=file[.lst] listing file              -u "host parameter string"
+                           -v generate debug symbols               -w write DLL
+                           -x execution statistics                 -? display manual
 
                           option defaults: -F
 
                           """);
     }
-
-    //public static void DisplayManualDll()
-    //{
-    //    Console.Error.WriteLine("""
-
-    //                      usage: snobol4 [options] file.dll
-    //                       -b suppress signon message  -k stop on runtime error
-    //                       -o=file[.lst] listing file  -x execution statistics
-    //                       -? display manual
-
-    //                      """);
-    //}
-
 }

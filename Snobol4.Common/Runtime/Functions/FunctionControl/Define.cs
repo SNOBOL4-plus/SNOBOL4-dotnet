@@ -42,8 +42,6 @@ public partial class Executive
 
         // define argument must not have a null datatype name
         var match = CompiledRegex.FunctionPrototypePattern().Match(prototype);
-        Debug.Assert(match.Success);  // regex should always match
-
         var functionName = match.Groups[1].Value.Trim();
 
         // function name cannot be null
@@ -55,7 +53,7 @@ public partial class Executive
 
         // function name cannot be an existing function
         //if (FunctionTable.ContainsKey(functionName))
-        if (FunctionTable[functionName] != null)
+        if (FunctionTable[functionName] is not null)
         {
             LogRuntimeException(248);
             return;
@@ -122,9 +120,8 @@ public partial class Executive
         ProgramDefinedFunctionStack.Push(functionName);
         var entry = FunctionTable[functionName];
         List<Var> saveVars = [];
-        var definition = UserFunctionTable[entry.Symbol];
-
-        var parametersCount = definition.Parameters.Count;
+        var definition = UserFunctionTable[entry?.Symbol!];
+        var parametersCount = definition!.Parameters.Count;
         var localsCount = definition.Locals.Count;
 
         for (var i = 0; i < parametersCount; ++i)

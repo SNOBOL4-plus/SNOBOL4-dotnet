@@ -7,7 +7,6 @@ public partial class Executive
 
     public void Arg(List<Var> arguments)
     {
-        //Debug.WriteLine("Arg()");
         if (!arguments[0].Convert(VarType.STRING, out _, out var str, this) || (string)str == "")
         {
             LogRuntimeException(60);

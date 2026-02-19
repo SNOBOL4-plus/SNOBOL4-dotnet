@@ -18,7 +18,7 @@ public sealed class ProgramDefinedDataComparisonStrategy : IComparisonStrategy
             // If same type, compare by creation time
             return typeComparison != 0
                 ? typeComparison
-                : dataSelf.CreationOrder.CompareTo(other.CreationOrder);
+                : dataSelf.SequenceId.CompareTo(other.SequenceId);
         }
 
         // Different base types compare by type name (ordinal for speed)
@@ -29,13 +29,13 @@ public sealed class ProgramDefinedDataComparisonStrategy : IComparisonStrategy
     public bool Equals(Var self, Var other)
     {
         // User-defined data is only equal if it's the same instance
-        return self.CreationOrder == other.CreationOrder;
+        return self.SequenceId == other.SequenceId;
     }
 
 
     public bool IsIdentical(Var self, Var other)
     {
         // User-defined data is identical only if they have the same unique ID
-        return self.CreationOrder == other.CreationOrder;
+        return self.SequenceId == other.SequenceId;
     }
 }

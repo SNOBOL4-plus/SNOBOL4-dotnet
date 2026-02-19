@@ -38,8 +38,6 @@ public partial class Executive
             case NameVar nameVar:
                 if (nameVar.Pointer == "")
                 {
-                    Debug.Assert(nameVar.Collection != null);
-                    Debug.Assert(nameVar.Key != null);
                     var v = IdentifierTable[nameVar.Collection.Symbol];
 
 

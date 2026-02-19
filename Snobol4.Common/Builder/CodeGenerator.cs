@@ -104,8 +104,6 @@ public class GenerateCSharpCode(Builder parent)
 
     private void GenerateEvalMode()
     {
-        Debug.Assert(_parent.Execute != null, nameof(_parent.Execute) + " != null");
-
         for (var jStar = _parent.Execute.PreviousStarFunctionCount; jStar < _parent.ExpressionList.Count; ++jStar)
         {
             _csharpCode.AppendLine($"        // jStar: {jStar}");
@@ -128,7 +126,7 @@ public class GenerateCSharpCode(Builder parent)
     {
         _csharpCode.AppendLine($"        x.Parent.BuildOptions.SuppressListingHeader = {_parent.BuildOptions.SuppressListingHeader.ToString().ToLower()};");
         _csharpCode.AppendLine($"        x.Parent.FilesToCompile.Add(@\"{_parent.FilesToCompile[^1]}\");");
-        _csharpCode.AppendLine($"        x.Parent.ListFileName = @\"{_parent.ListFileName}\";");
+        _csharpCode.AppendLine($"        x.Parent.BuildOptions.ListFileName = @\"{_parent.BuildOptions.ListFileName}\";");
         _csharpCode.AppendLine($"        x.Parent.BuildOptions.ShowExecutionStatistics = {_parent.BuildOptions.ShowExecutionStatistics.ToString().ToLower()};");
         _csharpCode.AppendLine();
     }
@@ -617,7 +615,7 @@ public class GenerateCSharpCode(Builder parent)
 
     private void GenerateExpressions()
     {
-        if (_parent.Execute != null)
+        if (_parent.Execute is not null)
         {
             _parent.RecordedExpressionCount = _parent.Execute.PreviousStarFunctionCount;
         }

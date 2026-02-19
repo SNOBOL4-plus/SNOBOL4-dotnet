@@ -32,7 +32,7 @@ internal class PosPattern : TerminalPattern
 
     internal override Pattern Clone()
     {
-        return _functionName != null
+        return _functionName is not null
             ? new RPosPattern(_functionName)
             : new RPosPattern(_position);
     }
@@ -41,7 +41,7 @@ internal class PosPattern : TerminalPattern
     {
         using var profile1 = Profiler.Start4("Pos", scan.Exec);
 
-        if (_functionName != null)
+        if (_functionName is not null)
         {
             _functionName(scan.Exec);
             var result = scan.Exec.SystemStack.Pop();
