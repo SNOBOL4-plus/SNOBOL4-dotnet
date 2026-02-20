@@ -385,4 +385,16 @@ public partial class Builder : IDisposable
     }
 
     #endregion
+
+
+
+    private AssemblyLoadContext CreateTrackedLoadContext(string? name = null)
+    {
+        var loadContext = new AssemblyLoadContext(name, isCollectible: true);
+        _loadContexts.Add(loadContext);
+        return loadContext;
+    }
+
+
+    
 }
