@@ -1,5 +1,4 @@
 ﻿using Snobol4.Common;
-using System.Globalization;
 
 public class IdentifierTable(Executive exec) : Dictionary<string, Var>
 {

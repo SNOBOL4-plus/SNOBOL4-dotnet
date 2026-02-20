@@ -1,5 +1,4 @@
 ﻿using Snobol4.Common;
-using System.Diagnostics;
 
 namespace AreaFunction;
 public class Area

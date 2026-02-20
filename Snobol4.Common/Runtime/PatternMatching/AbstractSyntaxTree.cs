@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace Snobol4.Common;
 
 internal class AbstractSyntaxTree

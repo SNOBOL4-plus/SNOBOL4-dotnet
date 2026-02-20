@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-namespace Snobol4.Common;
+﻿namespace Snobol4.Common;
 
 //"opsyn third argument is not integer" /* 152 */,
 //"opsyn third argument is negative or too large" /* 153 */,

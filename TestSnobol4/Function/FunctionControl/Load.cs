@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using Snobol4.Common;
 using Test.TestLexer;
 

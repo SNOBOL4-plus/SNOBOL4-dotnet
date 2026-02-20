@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Snobol4.Common;
+﻿namespace Snobol4.Common;
 
 //"define first argument is not a string" /* 81 */,
 //"define first argument is null" /* 82 */,
