@@ -12,14 +12,14 @@ public class CompilerException : Exception
 
     #region Constructors
 
-                public CompilerException(int error, int column)
+    public CompilerException(int error, int column)
     {
         Code = error;
         Column = column;
         Message = "";
     }
 
-                public CompilerException(int error)
+    public CompilerException(int error)
     {
         Code = error;
         Column = 0;
@@ -30,7 +30,7 @@ public class CompilerException : Exception
 
     #region Error Messages
 
-                            internal static readonly string[] ErrorMessage =
+    internal static readonly string[] ErrorMessage =
     [
         "no error" /* 0 */,
         "addition left operand is not numeric" /* 1 */,
@@ -368,7 +368,7 @@ public class CompilerException : Exception
         "date argument is not integer" /* 330 */,
         "goto scontinue with no user interrupt" /* 331 */,
         "goto continue with error in failure goto" /* 332 */
-    ];
+];
 
     #endregion
 }

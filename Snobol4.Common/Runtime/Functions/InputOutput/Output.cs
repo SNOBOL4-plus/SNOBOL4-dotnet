@@ -12,13 +12,14 @@
 
 public partial class Executive
 {
-                    internal void OutputFileOpen(List<Var> arguments)
+    internal void OutputFileOpen(List<Var> arguments)
     {
         // arguments[0] Identifier name
         // arguments[1] Channel name (If blank, use STDIN or STDOUT
         // arguments[2] File name   (if blank, associate with channel)
         // arguments[3] File mode   (optional) Defaults to 4 - OpenOrCreate
         // arguments[4] File share  (optional) Defaults to 3 - Read and Write
+        // arguments[5] EOL mode  (optional) Defaults to 0 
 
         //"output third argument is not a string" /* 157 */,
         //"inappropriate second argument for output" /* 158 */,
@@ -34,7 +35,7 @@ public partial class Executive
         // A channel is a logical connection between a file or device and an identifier
         // A channel can be either an input channel or an output channel, but not both
         // A channel can be associated with one file or device at a time
-        // A blank channel name and a blank file name indicates standard input or standard output
+        // A channel name that is not associated with a file and a blank file name indicates standard input or standard output
         // A non-blank channel name and a blank file name indicates that the identifier is to be associated with the specified channel
         // The association between a channel and a file stream is maintained in either StreamOutputs or StreamInputs
 
@@ -43,7 +44,6 @@ public partial class Executive
         // Multiple identifiers can be associated with the same channel
         // Identifiers associated with the same channel are aliases for the same input or output stream
         // The relationship between an identifier and its input and output channels is maintained in the identifier's variable properties InputChannel and OutputChannel
-        // A channel can be valid, but creation or the channel may fail due to security restrictions
         // Access to the file associated with channel may fail due to security restrictions
 
         // A file can be associated with multiple channels for input or output 
@@ -68,6 +68,10 @@ public partial class Executive
         //                      If this flag is not specified, any request to open the file for reading or writing (by this process or another process) will fail until the file is closed.
         //                      However, even if this flag is specified, additional permissions might still be needed to access the file.
         // 4 - Allows subsequent deleting of a file.
+
+        // EOL mode options:
+        // 0 - Default: Outout EOL (Console.WriteLine)
+        // 1 - No EOL mode (Console.Write)
 
         // identifier name has to be a string 
         if (!arguments[0].Convert(VarType.STRING, out var identifierNameVar, out _, this))
@@ -119,6 +123,13 @@ public partial class Executive
             return;
         }
 
+        // EOL mode has to be an integer
+        if (!arguments[5].Convert(VarType.INTEGER, out _, out var eolMode, this))
+        {
+            LogRuntimeException(160);
+            return;
+        }
+
         var channel = (string)channelNameStr;
         var fileName = (string)fileNameStr;
         var symbol = Parent.FoldCase(((StringVar)identifierNameVar).Data);
@@ -137,11 +148,11 @@ public partial class Executive
         }
 
         // If both channel and file name are blank, associate the identifier with standard output  
-        if (channel == "" && fileName == "")
-        {
-            IdentifierTable[symbol].OutputChannel = "+console-output";
-            return;
-        }
+        //if (channel == "" && fileName == "")
+        //{
+        //    IdentifierTable[symbol].OutputChannel = "+console-output";
+        //    return;
+        //}
 
         if (fileName == "")
         {
@@ -162,9 +173,12 @@ public partial class Executive
                 return;
             }
 
+            IdentifierTable[symbol].OutputChannel = (long)eolMode == 1 ? "+console-output-nnl" : "+console-output";
+            return;
+
             // If the pathname is not valid, return an error
             // SPITBOL gives different errors depending on whether the channel is in use for input or output
-            LogRuntimeException(StreamInputs.ContainsKey(channel) ? 161 : 160);
+            //LogRuntimeException(StreamInputs.ContainsKey(channel) ? 161 : 160);
         }
 
         // If the filename is not blank, thw channel cannot be in use
@@ -183,7 +197,10 @@ public partial class Executive
         }
         catch (Exception e)
         {
-            LogRuntimeException(161, e);
+            LogRuntimeException(160);
+            Console.Error.WriteLine(e.Message);
+            Console.Error.WriteLine();
+            Console.Error.WriteLine(e.StackTrace);
             return;
         }
 

@@ -1,42 +1,31 @@
-﻿namespace Snobol4.Common;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+namespace Snobol4.Common;
 
 public partial class Executive
 {
+    public int ErrorJump;
 
-    public StringVar LogRuntimeException(int code, Exception? e = null)
+    public void LogRuntimeException(int code)
     {
         AmpErrorType = code;
-        Failure = true;
-        var nullStringVar = new StringVar(false);
-        SystemStack.Push(nullStringVar);
-        var ce = new CompilerException(code);
+        var fi = new FileInfo(SourceFiles[AmpCurrentLineNumber]);
+        AmpErrorText = $"{fi.Name}({SourceLineNumbers[AmpCurrentLineNumber]}) : error {code} -- {CompilerException.ErrorMessage[code]}{Environment.NewLine}{SourceCode[AmpCurrentLineNumber].Split('\n')[1]}";
         Parent.ErrorCodeHistory.Add(code);
         Parent.ColumnHistory.Add(0);
-        var fi = new FileInfo(SourceFiles[AmpCurrentLineNumber]);
-        ce.Message = $"{Environment.NewLine}{fi.Name}({SourceLineNumbers[AmpCurrentLineNumber - 1]}) : error {code} -- {CompilerException.ErrorMessage[code]}{Environment.NewLine}{SourceCode[AmpCurrentLineNumber - 1].Split('\n')[1]}";
-
-        AmpErrorText = ce.Message[2..];
-
-        if (e is not null)
-        {
-            ce.Message += $"{Environment.NewLine}{e.Message}";
-            Console.Error.WriteLine(ce.Message);
-            AmpErrorText = e.Message[2..];
-        }
-
+        Failure = true;
+        SystemStack.Push(new StringVar(false));
+        var ce = new CompilerException(code);
+        ce.Message = AmpErrorText;
         Parent.MessageHistory.Add(ce.Message);
-        var errorLimit = AmpErrorLimit;
-        Console.Error.WriteLine($@"{ce.Message}");
-        AmpErrorText = ce.Message;
+        ErrorJump = SetExitNumber;
+        AmpErrorLimit--;
 
-        if (!Parent.CodeMode && (errorLimit < 1 || Parent.BuildOptions.StopOnRuntimeError))
+        if (!Parent.CodeMode || AmpErrorLimit == 0)
         {
-            AmpErrorType = ce.Code;
+            Console.Error.WriteLine(AmpErrorText);
             throw ce;
         }
-
-        AmpErrorLimit--;
-        return nullStringVar;
     }
 
     public StringVar NonExceptionFailure()

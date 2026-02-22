@@ -45,6 +45,7 @@ public partial class Executive
             catch
             {
                 LogRuntimeException(errorIntegerOverflow);
+                return;
             }
         }
 

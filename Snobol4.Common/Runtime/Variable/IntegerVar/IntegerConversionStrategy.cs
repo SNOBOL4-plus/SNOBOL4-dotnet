@@ -60,16 +60,13 @@ public sealed class IntegerConversionStrategy : IConversionStrategy
                     exec.Parent.BuildOptions.CaseFolding = exec.AmpCaseFolding != 0;
                     exec.Parent.CodeMode = true;
                     exec.Parent.Code = new SourceCode(exec.Parent);
-                    
                     var trimmedValue = intSelf.Data.ToString(CultureInfo.CurrentCulture).Trim();
-                    exec.Parent.Code.ReadCodeInString($" A = *({trimmedValue})", exec.Parent.FilesToCompile[^1]);
+                    exec.Parent.Code.ReadCodeInString($" A_ = *({trimmedValue})", exec.Parent.FilesToCompile[^1]);
                     exec.Parent.BuildEval();
-                    
                     exec.Parent.BuildOptions.CaseFolding = previousCaseFolding;
-                    exec.Parent.CodeMode = false;
-                    
                     varOut = new ExpressionVar(exec.StarFunctionList[^1]);
                     valueOut = ((ExpressionVar)varOut).FunctionName;
+                    exec.Parent.CodeMode = false;
                     return true;
                 }
 

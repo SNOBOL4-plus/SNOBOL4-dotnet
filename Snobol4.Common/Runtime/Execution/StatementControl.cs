@@ -7,6 +7,9 @@ public partial class Executive
         if (LabelTable[Parent.FoldCase(Parent.EntryLabel)] != GotoNotFound)
             i = LabelTable[Parent.FoldCase(Parent.EntryLabel)];
 
+        var failure = ErrorJump > 0;
+        ErrorJump = 0;
+
         while (i >= 0)
         {
             using var profiler1 = Profiler.Start1($"Statement{AmpCurrentLineNumber:000000}", this);
@@ -17,6 +20,8 @@ public partial class Executive
             if (AmpStatementLimit >= 0)
                 AmpStatementCount++;
 
+            //Console.WriteLine(SourceCode[i]);
+            //Console.Write($"<{i}>");
             i = Statements[i](this);
 
             if (AmpStatementLimit <= 0)
@@ -29,6 +34,8 @@ public partial class Executive
             Failure = true;
             break;
         }
+
+        Failure = failure;
         return i;
     }
 

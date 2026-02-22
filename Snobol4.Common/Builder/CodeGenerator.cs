@@ -275,6 +275,13 @@ public class GenerateCSharpCode(Builder parent)
 
         GenerateStatementBody(line);
         _csharpCode.AppendLine("        x.FinalizeStatement();");
+        _csharpCode.AppendLine("        if (x.ErrorJump > 0) x.ExecuteLoop(x.ErrorJump);");
+        //_csharpCode.AppendLine("        {");
+        //_csharpCode.AppendLine("            var jump = x.ErrorJump;");
+        //_csharpCode.AppendLine("            x.ErrorJump = 0;");
+        //_csharpCode.AppendLine("            return jump;");
+        //_csharpCode.AppendLine("        }");
+
         GenerateStatementGotos(line, statementNumber + 1);
 
         _csharpCode.AppendLine("    }");
@@ -549,7 +556,12 @@ public class GenerateCSharpCode(Builder parent)
                     break;
 
                 case Token.Type.REAL:
-                    code.AppendLine($"        x.Constant({t.MatchedString});");
+                    // c# does not consider a trailing decimal point to be a valid real literal,
+                    // but snobol4 does, so add a zero if there is a trailing decimal point
+                    var matchedString = t.MatchedString;
+                    if(matchedString[^1] == '.')
+                        matchedString += "0";
+                    code.AppendLine($"        x.Constant({matchedString});");
                     break;
 
                 case Token.Type.STRING:

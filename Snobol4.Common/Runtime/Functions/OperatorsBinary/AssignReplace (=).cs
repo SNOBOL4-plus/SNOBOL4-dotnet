@@ -127,6 +127,7 @@ public partial class Executive
                 var newVar = rightVar is ArrayVar or TableVar ? rightVar : rightVar.Clone();
                 newVar.Symbol = leftVar.Symbol;
                 newVar.OutputChannel = leftVar.OutputChannel;
+                newVar.InputChannel = leftVar.InputChannel;
                 IdentifierTable[newVar.Symbol] = newVar;
                 SystemStack.Push(newVar);
                 break;
@@ -145,6 +146,10 @@ public partial class Executive
                 Console.Error.WriteLine(outputVar.ToString());
                 break;
 
+            case "+console-output-nnl":
+                Console.Error.Write(outputVar.ToString());
+                break;
+            
             default:
                 StreamOutputs[outputVar.OutputChannel].Write(Encoding.UTF8.GetBytes(outputVar + Environment.NewLine));
                 break;

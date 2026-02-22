@@ -153,6 +153,7 @@ public partial class Lexer
                 return;
         }
 
+
         ExtractGotoLexemes(sourceLine);
 
         CheckForUnbalancedBrackets(sourceLine);
@@ -1055,8 +1056,8 @@ public partial class Lexer
         if (lexLine.Count == 0)
             return;
 
-        if (_parent.ErrorCodeHistory.Count > 0)
-            return;
+        //if (_parent.ErrorCodeHistory.Count > 0)
+        //    return;
 
         List<int> unaryStars = [];
         for (var i = lexLine.Count - 1; i >= 0; --i)

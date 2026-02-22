@@ -4,8 +4,8 @@
 
 public partial class Executive
 {
-    internal string SetExitLabel = "";
-    internal bool InSetExit = false;
+    public string SetExitLabel;
+    public int SetExitNumber;
 
     internal void SetExit(List<Var> arguments)
     {
@@ -20,9 +20,9 @@ public partial class Executive
 
         if (arguments[0].Convert(VarType.NAME, out var name, out _, this))
         {
-            var label = ((NameVar)name).Pointer;
+            var label = Parent.FoldCase(((NameVar)name).Pointer);
 
-            if (LabelTable.TryGetValue(label, out var setExitLabel))
+            if (LabelTable.TryGetValue(label, out SetExitNumber))
             {
                 SetExitLabel = label;
                 SystemStack.Push(new StringVar(previousSetExitLabel));
@@ -32,5 +32,6 @@ public partial class Executive
 
         SystemStack.Push(new StringVar(previousSetExitLabel));
         LogRuntimeException(187);
+
     }
 }

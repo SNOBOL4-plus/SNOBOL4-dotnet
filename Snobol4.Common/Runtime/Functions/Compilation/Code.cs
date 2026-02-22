@@ -26,8 +26,8 @@ public partial class Executive
                     Parent.Code.ReadCodeInString(code.Data, Parent.FilesToCompile[^1]);
                     Parent.BuildCode();
                     Parent.BuildOptions.CaseFolding = previousCaseFolding;
-                    Parent.CodeMode = false;
                     SystemStack.Push(code);
+                    Parent.CodeMode = false;
                     return;
                 }
 
@@ -40,8 +40,8 @@ public partial class Executive
                 Parent.Code.ReadCodeInString(code.Data, Parent.FilesToCompile[^1]);
                 Parent.BuildCode();
                 Parent.BuildOptions.CaseFolding = previousCaseFolding;
-                Parent.CodeMode = false;
                 SystemStack.Push(code);
+                Parent.CodeMode = false;
                 return;
 
             default:

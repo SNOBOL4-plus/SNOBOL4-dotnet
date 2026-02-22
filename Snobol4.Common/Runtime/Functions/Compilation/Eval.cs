@@ -38,11 +38,11 @@ public partial class Executive
                 Parent.BuildOptions.CaseFolding = AmpCaseFolding!= 0;
                 Parent.CodeMode = true;
                 Parent.Code = new SourceCode(Parent);
-                Parent.Code.ReadCodeInString($" A = *({stringVar.Data.Trim()})", Parent.FilesToCompile[^1]);
+                Parent.Code.ReadCodeInString($" A_ = *({stringVar.Data.Trim()})", Parent.FilesToCompile[^1]);
                 Parent.BuildEval();
                 Parent.BuildOptions.CaseFolding = previousCaseFolding;
-                Parent.CodeMode = false;
                 StarFunctionList[^1](this);
+                Parent.CodeMode = false;
                 return;
 
             case ExpressionVar expression:

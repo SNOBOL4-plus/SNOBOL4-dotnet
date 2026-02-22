@@ -660,7 +660,6 @@ end
     [TestMethod]
     public void Test02110()
     {
-        // 160 -- inappropriate file specification for output
         var s = @"
         output('a','1','file562.txt')
         output('a','2')      :s(y)f(n)
@@ -671,14 +670,13 @@ end
 
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
-        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual(160, build.ErrorCodeHistory[0]);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("+console-output", build.Execute!.IdentifierTable[build.FoldCase("a")].OutputChannel);
     }
 
     [TestMethod]
     public void Test02111()
     {
-        // 160 -- inappropriate file specification for output
         var s = @"
         output('a','1','file580.txt')
         output('b','2')      :s(y)f(n)
@@ -689,8 +687,8 @@ end
 
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
-        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual(160, build.ErrorCodeHistory[0]);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("+console-output", build.Execute!.IdentifierTable[build.FoldCase("b")].OutputChannel);
     }
 
     [TestMethod]
@@ -982,7 +980,6 @@ end
     [TestMethod]
     public void Test12110()
     {
-        // error 160 -- inappropriate file specification for output
         var s = @"
         input('a','1','file992.txt')
         output('a','2')      :s(y)f(n)
@@ -993,14 +990,13 @@ end
 
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
-        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual(160, build.ErrorCodeHistory[0]);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("+console-output", build.Execute!.IdentifierTable[build.FoldCase("a")].OutputChannel);
     }
 
     [TestMethod]
     public void Test12111()
     {
-        // error 160 -- inappropriate file specification for output
         var s = @"
         input('a','1','file1010.txt')
         output('b','2')      :s(y)f(n)
@@ -1011,8 +1007,8 @@ end
 
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
-        Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual(160, build.ErrorCodeHistory[0]);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("+console-output", build.Execute!.IdentifierTable[build.FoldCase("b")].OutputChannel);
     }
 
 

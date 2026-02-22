@@ -175,7 +175,10 @@ public partial class Executive
         }
         catch (Exception e)
         {
-            LogRuntimeException(117, e);
+            LogRuntimeException(117);
+            Console.Error.WriteLine(e.Message);
+            Console.Error.WriteLine();
+            Console.Error.WriteLine(e.StackTrace);
             return;
         }
 

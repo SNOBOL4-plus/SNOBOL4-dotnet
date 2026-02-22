@@ -47,7 +47,7 @@ public partial class Executive
     internal long AmpFunctionTrace;
     internal long AmpFullScan = 1;
     internal long AmpInput = 1;
-    internal long AmpMaxlength = 4194304;
+    internal long AmpMaxLength = 4194304;
     internal string AmpOutput;
     internal long AmpProfile;
     internal long AmpStatementLimit = 2147483647;
@@ -377,10 +377,10 @@ public partial class Executive
         if (set)
         {
             if (IntegerHandler(value, out var integerVar)) return;
-            AmpMaxlength = integerVar.Data;
+            AmpMaxLength = integerVar.Data;
         }
 
-        SystemStack.Push(new IntegerVar(AmpMaxlength, "&maxlngth", true));
+        SystemStack.Push(new IntegerVar(AmpMaxLength, "&maxlngth", true));
     }
 
     internal void HandleOutput(Var value, bool set)

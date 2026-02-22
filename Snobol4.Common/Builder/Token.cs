@@ -79,19 +79,19 @@ internal class Token
 
     #region Constructors
 
-                internal Token()
+    internal Token()
     {
         MatchedString = "";
     }
 
-                            internal Token(Type type, string match, int index)
+    internal Token(Type type, string match, int index)
     {
         TokenType = type;
         MatchedString = match;
         Index = index;
     }
 
-                                internal Token(Type type, string match, int index, long value)
+    internal Token(Type type, string match, int index, long value)
     {
         TokenType = type;
         MatchedString = match;
@@ -99,7 +99,7 @@ internal class Token
         IntegerValue = value;
     }
 
-                                internal Token(Type type, string match, int index, double value)
+    internal Token(Type type, string match, int index, double value)
     {
         TokenType = type;
         MatchedString = match;

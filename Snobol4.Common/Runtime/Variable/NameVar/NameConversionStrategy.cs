@@ -103,7 +103,7 @@ public class NameConversionStrategy : IConversionStrategy
         exec.Parent.BuildOptions.CaseFolding = exec.AmpCaseFolding != 0;
         exec.Parent.CodeMode = true;
         exec.Parent.Code = new SourceCode(exec.Parent);
-        exec.Parent.Code.ReadCodeInString($" A = *({stringVarExpression.Data.Trim()})", exec.Parent.FilesToCompile[^1]);
+        exec.Parent.Code.ReadCodeInString($" A_ = *({stringVarExpression.Data.Trim()})", exec.Parent.FilesToCompile[^1]);
         exec.Parent.BuildEval();
         exec.Parent.BuildOptions.CaseFolding = previousCaseFolding;
         exec.Parent.CodeMode = false;

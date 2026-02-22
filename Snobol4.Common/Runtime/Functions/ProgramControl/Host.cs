@@ -40,7 +40,7 @@ public partial class Executive
             return;
         }
 
-        LogRuntimeException(254);
+        SystemStack.Push(StringVar.Null());
     }
 
 }

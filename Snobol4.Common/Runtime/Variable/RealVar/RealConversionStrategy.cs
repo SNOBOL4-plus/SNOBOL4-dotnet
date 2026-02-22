@@ -91,7 +91,7 @@ public sealed class RealConversionStrategy : IConversionStrategy
         exec.Parent.Code = new SourceCode(exec.Parent);
         
         var realString = realSelf.Data.ToString(CultureInfo.InvariantCulture).Trim();
-        exec.Parent.Code.ReadCodeInString($" A = *({realString})", exec.Parent.FilesToCompile[^1]);
+        exec.Parent.Code.ReadCodeInString($" A_ = *({realString})", exec.Parent.FilesToCompile[^1]);
         exec.Parent.BuildEval();
         
         exec.Parent.BuildOptions.CaseFolding = previousCaseFolding;
