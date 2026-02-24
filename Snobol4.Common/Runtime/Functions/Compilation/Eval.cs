@@ -29,16 +29,7 @@ public partial class Executive
                 Parent.Code.ReadCodeInString($" A_ = *({stringVar.Data.Trim()})", Parent.FilesToCompile[^1]);
                 Parent.BuildEval();
                 Parent.BuildOptions.CaseFolding = previousCaseFolding;
-
-                if (StarFunctionList.Count > 0)
-                {
-                    StarFunctionList[^1](this);
-                }
-                else
-                {
-                    SystemStack.Push(StringVar.Null());
-                }
-
+                StarFunctionList[^1](this);
                 Parent.CodeMode = false;
                 return;
 

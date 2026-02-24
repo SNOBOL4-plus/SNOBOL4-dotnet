@@ -4,7 +4,7 @@ public class Parser
 {
     #region Embedded class
 
-                    internal class Order
+    internal class Order
     {
         internal Association Associativity { get; }
         internal int Precedence { get; }
@@ -76,7 +76,7 @@ public class Parser
 
     #region Private Methods
 
-                    internal bool Parse()
+    internal bool Parse()
     {
         foreach (var sourceLine in _parent.Code.SourceLines.Where(sourceLine => !sourceLine.Compiled))
             ParseLine(sourceLine);
@@ -90,7 +90,7 @@ public class Parser
         return true;
     }
 
-                        private void ParseLine(SourceLine sourceLine)
+    private void ParseLine(SourceLine sourceLine)
     {
         _operatorStack.Clear();
         sourceLine.ParseBody = ShuntYardAlgorithm(sourceLine.LexBody);
@@ -99,7 +99,7 @@ public class Parser
         sourceLine.ParseFailureGoto = ShuntYardAlgorithm(sourceLine.LexFailureGoto);
     }
 
-                    private List<Token> ShuntYardAlgorithm(List<Token> lexTokenList)
+    private List<Token> ShuntYardAlgorithm(List<Token> lexTokenList)
     {
         List<Token> outputTokenList = [];
         foreach (var token in lexTokenList)

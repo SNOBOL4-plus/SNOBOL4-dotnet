@@ -105,6 +105,7 @@ public class GenerateCSharpCode(Builder parent)
     {
         for (var jStar = _parent.Execute.PreviousStarFunctionCount; jStar < _parent.ExpressionList.Count; ++jStar)
         {
+            Console.Write($"[{jStar}]");
             _csharpCode.AppendLine($"        // jStar: {jStar}");
             _csharpCode.AppendLine($"        x.StarFunctionList.Add(Star{jStar:D8});");
         }

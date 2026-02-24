@@ -148,15 +148,19 @@ public partial class Builder : IDisposable
         try
         {
             GetNameSpaceAndClassName(GenerateCSharpCode.CompileTarget.EVAL);
-            if (!Lex(this) && CodeMode) return;
+            if (!Lex(this))
+            {
+                // If Lex fails, substute a null
+                Code.SourceLines[0].Text = " A_ = *('')";
+                Lex(this);
+            }
             Parse(this);
             var cSharpCode = Generate(_compilerTarget.NameSpace, _compilerTarget.ClassName, false, GenerateCSharpCode.CompileTarget.EVAL, this);
             StatementCount += Code.SourceLines.Count;
             var loadContext = CreateTrackedLoadContext($"Eval_{_compilerTarget.EvalNum}");
             var dll = Compile(loadContext, _compilerTarget.FileName, cSharpCode);
             dynamic? instance = dll.CreateInstance(_compilerTarget.FullClassName);
-            if (instance == null) return;
-            instance.Run(Execute);
+            instance?.Run(Execute);
         }
         catch (CompilerException)
         {

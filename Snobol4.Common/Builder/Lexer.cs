@@ -88,6 +88,7 @@ public partial class Lexer
     {
         _parent = parent;
         _startState = startState;
+
     }
 
     #endregion
@@ -98,18 +99,19 @@ public partial class Lexer
     {
         foreach (var sourceLine in _parent.Code.SourceLines.Where(line => !line.Compiled))
         {
-            LexLine(sourceLine);
+            if (!LexLine(sourceLine))
+                return false;
             ConvertUnaryStarOperatorsToDeferredExpressions(sourceLine.LexBody);
             ConvertUnaryStarOperatorsToDeferredExpressions(sourceLine.LexFailureGoto);
             ConvertUnaryStarOperatorsToDeferredExpressions(sourceLine.LexSuccessGoto);
             ConvertUnaryStarOperatorsToDeferredExpressions(sourceLine.LexUnconditionalGoto);
         }
 
-        return _parent.ErrorCodeHistory.Count <= 0;
+        return true;
     }
 
 
-    private void LexLine(SourceLine sourceLine)
+    private bool LexLine(SourceLine sourceLine)
     {
         _bracketStack.Clear();
         _colonFound = false;
@@ -138,7 +140,7 @@ public partial class Lexer
             if (c > 127)
             {
                 _parent.LogCompilerException(230, _cursorCurrent, sourceLine);
-                return;
+                return false;
             }
 
             _state = Delta[_state, c];
@@ -146,17 +148,17 @@ public partial class Lexer
             if (_state > 100)
             {
                 _parent.LogCompilerException(_state, _cursorCurrent, sourceLine);
-                return;
+                return false;
             }
 
             if (!FindLexeme(sourceLine, ref _state))
-                return;
+                return false;
         }
 
 
         ExtractGotoLexemes(sourceLine);
 
-        CheckForUnbalancedBrackets(sourceLine);
+        return CheckForUnbalancedBrackets(sourceLine);
     }
 
     private bool FindLexeme(SourceLine sourceLine, ref int state)
@@ -701,7 +703,7 @@ public partial class Lexer
         return true;
     }
 
-    private void ProcessImplicitOperators(SourceLine sourceLine)
+    private bool ProcessImplicitOperators(SourceLine sourceLine)
     {
         switch (sourceLine.LexBody[^2].TokenType)
         {
@@ -760,27 +762,29 @@ public partial class Lexer
             case Token.Type.UNARY_STAR:
             case Token.Type.EXPRESSION:
             default:
-                return;
+                return false;
         }
 
         var m = CompiledRegex.RightOperandPattern().Match(sourceLine.Text[_cursorCurrent..]);
 
         if (!m.Success)
-            return;
+            return false;
 
         if (_patternMatchFound || _equalFound || _bracketStack.Count > 0)
         {
             sourceLine.LexBody.Add(new Token(Token.Type.BINARY_CONCAT, "┴", _bracketStack.Count));
             sourceLine.LexBody.Add(new Token(Token.Type.SPACE, " ", _bracketStack.Count));
-            return;
+            return true;
         }
 
         if (_startState != 1)
-            return;
+            return false;
 
         sourceLine.LexBody.Add(new Token(Token.Type.BINARY_QUESTION, " ", _bracketStack.Count));
         sourceLine.LexBody.Add(new Token(Token.Type.SPACE, " ", _bracketStack.Count));
         _patternMatchFound = true;
+
+        return true;
     }
 
     private void ProcessGoto(SourceLine sourceLine, Match m)
@@ -874,22 +878,24 @@ public partial class Lexer
         sourceLine.LexBody.RemoveRange(_colonPosition, sourceLine.LexBody.Count - _colonPosition);
     }
 
-    private void CheckForUnbalancedBrackets(SourceLine sourceLine)
+    private bool CheckForUnbalancedBrackets(SourceLine sourceLine)
     {
         if (_bracketStack.Count == 0)
-            return;
+            return true;
 
         switch (_bracketStack.Peek().Bracket)
         {
             case "(":
                 _parent.LogCompilerException(_colonFound ? 227 : 226, _cursorCurrent, sourceLine);
-                return;
+                return false;
 
             case "[":
             case "<":
                 _parent.LogCompilerException(_colonFound ? 228 : 229, _cursorCurrent, sourceLine);
-                return;
+                return false;
         }
+
+        return true;
     }
 
     #endregion
