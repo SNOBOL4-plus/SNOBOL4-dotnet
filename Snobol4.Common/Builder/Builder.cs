@@ -111,15 +111,12 @@ public partial class Builder : IDisposable
             // Lazy initialize timer only when needed
             _timerBuild ??= new Stopwatch();
             _timerBuild.Restart();
-
             Lex(this);
             Parse(this);
             var cSharpCode = Generate(_compilerTarget.NameSpace, _compilerTarget.ClassName, true, GenerateCSharpCode.CompileTarget.PROGRAM, this);
             StatementCount += Code.SourceLines.Count;
-
             var loadContext = CreateTrackedLoadContext($"Main_{_compilerTarget.ClassName}");
             var dll = Compile(loadContext, _compilerTarget.FileName, cSharpCode);
-
             _timerBuild.Stop();
             PrintCompilationStatistics();
 
@@ -148,12 +145,14 @@ public partial class Builder : IDisposable
         try
         {
             GetNameSpaceAndClassName(GenerateCSharpCode.CompileTarget.EVAL);
+    
             if (!Lex(this))
             {
-                // If Lex fails, substute a null
-                Code.SourceLines[0].Text = " A_ = *('')";
+                // If Lex fails, substute a null that is guaranteed to parse, so the lex error is not fatal
+                Code.SourceLines[0].Text = " *('')";
                 Lex(this);
             }
+            
             Parse(this);
             var cSharpCode = Generate(_compilerTarget.NameSpace, _compilerTarget.ClassName, false, GenerateCSharpCode.CompileTarget.EVAL, this);
             StatementCount += Code.SourceLines.Count;
@@ -181,15 +180,14 @@ public partial class Builder : IDisposable
             Parse(this);
             var cSharpCode = Generate(_compilerTarget.NameSpace, _compilerTarget.ClassName, false, GenerateCSharpCode.CompileTarget.CODE, this);
             StatementCount += Code.SourceLines.Count;
-
             var loadContext = CreateTrackedLoadContext($"Code_{_compilerTarget.CodeNum}");
             var dll = Compile(loadContext, _compilerTarget.FileName, cSharpCode);
             dynamic? instance = dll.CreateInstance(_compilerTarget.FullClassName);
 
             if (instance == null)
+            {
                 return false;
-
-
+            }
 
             instance.Run(Execute);
             return true;
@@ -246,7 +244,9 @@ public partial class Builder : IDisposable
 
         // Use cache to avoid repeated ToUpper() calls on same strings
         if (_caseFoldCache != null && _caseFoldCache.TryGetValue(input, out var cached))
+        {
             return cached;
+        }
 
         var folded = input.ToUpperInvariant();
 
@@ -258,7 +258,7 @@ public partial class Builder : IDisposable
 
         return folded;
     }
-
+    
     #endregion
 
     #region Private Members

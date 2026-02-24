@@ -337,18 +337,9 @@ public partial class Lexer
 
                         switch (op)
                         {
-                            //case "~":
-                            //    sourceLine.LexBody.Add(new Token(Token.Type.UNARY_NEGATION, op, _bracketStack.Count));
-                            //    break;
-
-                            //case "?":
-                            //    sourceLine.LexBody.Add(new Token(Token.Type.UNARY_INTERROGATION, op, _bracketStack.Count));
-                            //    break;
-
-
                             case "*":
                                 // Runs of consecutive of stars is the equivalent to one star; include once, then ignore
-                                if (sourceLine.LexBody.Count > 0 && sourceLine.LexBody[^1].TokenType != Token.Type.UNARY_STAR)
+                                if (sourceLine.LexBody.Count == 0 || sourceLine.LexBody[^1].TokenType != Token.Type.UNARY_STAR)
                                     sourceLine.LexBody.Add(new Token(Token.Type.UNARY_STAR, op, _bracketStack.Count));
                                 break;
 
