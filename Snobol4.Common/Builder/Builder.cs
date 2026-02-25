@@ -10,17 +10,22 @@ namespace Snobol4.Common;
 public partial class Builder : IDisposable
 {
     #region Members
-
-    private const int UnexpectedExceptionErrorCode = 1000;
-
-    public BuilderOptions BuildOptions = new();
-
+    private const int _unexpectedExceptionErrorCode = 1000;
     private readonly CompilerTargets _compilerTarget = new();
-    public static long CreationOrder;
-
+    
     // Timers for statistics - lazy initialized to avoid overhead
     private Stopwatch? _timerBuild;
 
+    // Track AssemblyLoadContext instances for proper disposal
+    private readonly List<AssemblyLoadContext> _loadContexts = new(4);
+    private bool _disposed;
+
+    // String pool for case folding to avoid repeated allocations
+    private readonly Dictionary<string, string>? _caseFoldCache;
+
+    // Build parameters and options
+    public BuilderOptions BuildOptions = new();
+    
     // Error tracking - pre-sized for typical scenarios
     public List<int> ErrorCodeHistory = new(16);
     public List<int> ColumnHistory = new(16);
@@ -30,14 +35,14 @@ public partial class Builder : IDisposable
     internal List<string> IncludeList = new(8);
     internal int StatementCount;
     internal string EntryLabel;
-
+    
     // List file
-    public StreamWriter? ListFileWriter;
-
+    internal StreamWriter? ListFileWriter;
+    
     // Command line data
     public List<string> FilesToCompile = new(4);
-    public string[] Arguments = [];
-
+    internal string[] Arguments = [];
+    
     // SNOBOL4 source code
     public SourceCode Code;
 
@@ -47,17 +52,10 @@ public partial class Builder : IDisposable
     internal List<List<Token>> ParseExpression = new(32);
 
     // Tracking for whether current build is for CODE or EVAL
-    public bool CodeMode;
+    internal bool CodeMode;
 
     // Move into Code generator
-    public int RecordedExpressionCount = 0;
-
-    // Track AssemblyLoadContext instances for proper disposal
-    private readonly List<AssemblyLoadContext> _loadContexts = new(4);
-    private bool _disposed;
-
-    // String pool for case folding to avoid repeated allocations
-    private readonly Dictionary<string, string>? _caseFoldCache;
+    internal int RecordedExpressionCount = 0;
 
     #endregion
 
@@ -79,19 +77,19 @@ public partial class Builder : IDisposable
 
     #region Static Factory Methods
 
-    public static string Generate(string nameSpace, string className, bool firstInit, GenerateCSharpCode.CompileTarget compileTarget, Builder parent)
+    internal static string Generate(string nameSpace, string className, bool firstInit, GenerateCSharpCode.CompileTarget compileTarget, Builder parent)
     {
         GenerateCSharpCode cSharp = new(parent);
         return cSharp.GenerateCSharp(nameSpace, className, firstInit, compileTarget, parent);
     }
 
-    public static bool Lex(Builder parent, int startState = 1)
+    internal static bool Lex(Builder parent, int startState = 1)
     {
         Lexer lex = new(parent, startState);
         return lex.Lex();
     }
 
-    public static void Parse(Builder parent)
+    internal static void Parse(Builder parent)
     {
         Parser parser = new(parent);
         parser.Parse();
@@ -103,6 +101,8 @@ public partial class Builder : IDisposable
 
     public void BuildMain()
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
         Execute = new Executive(this);
         try
         {
@@ -134,21 +134,23 @@ public partial class Builder : IDisposable
             ReportProgrammingError(e);
         }
 
-        Execute.PrintExecutionStatistics();
-        Execute.DisplayVariableValues();
-        Execute.CloseAllStreams();
+        Execute?.PrintExecutionStatistics();
+        Execute?.DisplayVariableValues();
+        Execute?.CloseAllStreams();
         ListFileWriter?.Close();
     }
 
-    public void BuildEval()
+    internal void BuildEval()
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
         try
         {
             GetNameSpaceAndClassName(GenerateCSharpCode.CompileTarget.EVAL);
     
             if (!Lex(this))
             {
-                // If Lex fails, substute a null that is guaranteed to parse, so the lex error is not fatal
+                // If Lex fails, substitute a null that is guaranteed to parse, so the lex error is not fatal
                 Code.SourceLines[0].Text = " *('')";
                 Lex(this);
             }
@@ -171,8 +173,10 @@ public partial class Builder : IDisposable
         }
     }
 
-    public bool BuildCode()
+    internal bool BuildCode()
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
         try
         {
             GetNameSpaceAndClassName(GenerateCSharpCode.CompileTarget.CODE);
@@ -206,10 +210,13 @@ public partial class Builder : IDisposable
 
     public void RunDll(string dllFileName)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(dllFileName);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
         try
         {
             ClearExceptionHistory();
-            var loadContext = new AssemblyLoadContext(null, true);
+            var loadContext = CreateTrackedLoadContext("RunDll");
             var dll = loadContext.LoadFromAssemblyPath(dllFileName);
             Execute = new Executive(this);
             var className = Path.GetFileNameWithoutExtension(dllFileName);
@@ -239,6 +246,8 @@ public partial class Builder : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string FoldCase(string input)
     {
+        ArgumentNullException.ThrowIfNull(input);
+
         if (!BuildOptions.CaseFolding)
             return input;
 
@@ -251,7 +260,7 @@ public partial class Builder : IDisposable
         var folded = input.ToUpperInvariant();
 
         // Cache the result if cache exists and isn't too large
-        if (_caseFoldCache != null && _caseFoldCache.Count < UnexpectedExceptionErrorCode)
+        if (_caseFoldCache != null && _caseFoldCache.Count < _unexpectedExceptionErrorCode)
         {
             _caseFoldCache[input] = folded;
         }

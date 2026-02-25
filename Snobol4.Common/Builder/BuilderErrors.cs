@@ -57,7 +57,7 @@ public partial class Builder
         if (e is CompilerException)
             return;
 
-        ErrorCodeHistory.Add(UnexpectedExceptionErrorCode);
+        ErrorCodeHistory.Add(_unexpectedExceptionErrorCode);
         ColumnHistory.Add(0);
         MessageHistory.Add(e.Message);
     }
