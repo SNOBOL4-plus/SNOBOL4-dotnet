@@ -5,28 +5,25 @@ public partial class Builder
     public void DisplaySignOnBanner()
     {
         if (!BuildOptions.SuppressSignOnMessage)
-            DisplayBanner(false);
-
+            DisplayBanner(Console.Out);
     }
 
     public void DisplayListingBanner()
     {
         if ((BuildOptions.ShowListing || BuildOptions.ListFileName != "") && !BuildOptions.SuppressListingHeader)
-            DisplayBanner(true);
+            DisplayBanner(Console.Error);
     }
 
-    private static void DisplayBanner(bool error)
+    private static void DisplayBanner(TextWriter writer)
     {
+        var now = DateTime.Now;
         var banner = $"""
                       Snobol4.NET - Multi-platform - v 0.1
-                      Copyright © 2024-{DateTime.Now.Year} Jeffrey A. Cooper. Covered by MIT License https://opensource.org/license/mit
-                      {DateTime.Now.DayOfWeek} {DateTime.Now.Day} {DateTime.Now:MMMM} {DateTime.Now.Year} {DateTime.Now:HH:mm:ss}
+                      Copyright © 2024-{now.Year} Jeffrey A. Cooper. Covered by MIT License https://opensource.org/license/mit
+                      {now.DayOfWeek} {now.Day} {now:MMMM} {now.Year} {now:HH:mm:ss}
                                                                     
 
                       """;
-        if (error)
-            Console.Error.WriteLine(banner);
-        else
-            Console.WriteLine(banner);
+        writer.WriteLine(banner);
     }
 }
