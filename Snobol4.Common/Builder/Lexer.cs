@@ -694,7 +694,7 @@ public partial class Lexer
         return true;
     }
 
-    private bool ProcessImplicitOperators(SourceLine sourceLine)
+    private void ProcessImplicitOperators(SourceLine sourceLine)
     {
         switch (sourceLine.LexBody[^2].TokenType)
         {
@@ -753,29 +753,25 @@ public partial class Lexer
             case Token.Type.UNARY_STAR:
             case Token.Type.EXPRESSION:
             default:
-                return false;
+                return;
         }
 
         var m = CompiledRegex.RightOperandPattern().Match(sourceLine.Text[_cursorCurrent..]);
 
-        if (!m.Success)
-            return false;
+        if (!m.Success) return;
 
         if (_patternMatchFound || _equalFound || _bracketStack.Count > 0)
         {
             sourceLine.LexBody.Add(new Token(Token.Type.BINARY_CONCAT, "┴", _bracketStack.Count));
             sourceLine.LexBody.Add(new Token(Token.Type.SPACE, " ", _bracketStack.Count));
-            return true;
+            return;
         }
 
-        if (_startState != 1)
-            return false;
+        if (_startState != 1) return;
 
         sourceLine.LexBody.Add(new Token(Token.Type.BINARY_QUESTION, " ", _bracketStack.Count));
         sourceLine.LexBody.Add(new Token(Token.Type.SPACE, " ", _bracketStack.Count));
         _patternMatchFound = true;
-
-        return true;
     }
 
     private void ProcessGoto(SourceLine sourceLine, Match m)
