@@ -71,7 +71,8 @@ internal enum OpCode : byte
     SaveFailure      = 76,  // Push x.Failure onto local save
     RestoreFailure   = 77,  // Pop saved Failure back
     SetFailure       = 78,  // x.Failure = true
-    CheckGotoFailure = 79,  // LogRuntimeException(20) if x.Failure
+    ClearFailure     = 79,  // x.Failure = false (used before failure-goto eval)
+    CheckGotoFailure = 80,  // LogRuntimeException(20) if x.Failure
 }
 
 // ---------------------------------------------------------------------------

@@ -147,8 +147,18 @@ public partial class Executive
                     Failure = true;
                     break;
 
+                case OpCode.ClearFailure:
+                    Failure = false;
+                    break;
+
                 case OpCode.CheckGotoFailure:
-                    if (Failure) LogRuntimeException(20);
+                    if (Failure)
+                    {
+                        LogRuntimeException(20);
+                        // LogRuntimeException pushed a StringVar(false) on top of the
+                        // label var that GotoIndirect needs. Pop it so dispatch works.
+                        SystemStack.Pop();
+                    }
                     break;
 
                 case OpCode.GotoIndirect:
@@ -156,6 +166,7 @@ public partial class Executive
                     var sym    = SystemStack.Peek().Symbol;
                     var target = LabelTable[sym];
                     SystemStack.Pop();
+                    if (target == -1)                 { exitCode = -1; goto Done; }
                     if (target <= -2 && target >= -7) { exitCode = target; goto Done; }
                     if (target >= 0) InstructionPointer = StatementIndexToInstrIndex(target);
                     else { LogRuntimeException(instr.IntOperand); InstructionPointer = -1; }
@@ -169,6 +180,7 @@ public partial class Executive
                     if (IdentifierTable.ContainsKey(sym) && IdentifierTable[sym] is CodeVar cv)
                     {
                         var target = cv.StatementNumber;
+                        if (target == -1)                 { exitCode = -1; goto Done; }
                         if (target <= -2 && target >= -7) { exitCode = target; goto Done; }
                         InstructionPointer = StatementIndexToInstrIndex(target);
                     }

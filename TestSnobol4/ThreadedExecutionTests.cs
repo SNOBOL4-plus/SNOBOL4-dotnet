@@ -64,8 +64,33 @@ end");
             "Errors: " + string.Join(",", b.ErrorCodeHistory));
         Assert.AreEqual("MDCCLXXVI", b.Execute!.IdentifierTable["R1"].ToString());
     }
-}
 
-// Temporarily append a minimal UDF test for diagnosis
-EOF
-echo "FAIL - not appended correctly"
+    [TestMethod]
+    public void Threaded_SimpleUserDefinedFunction()
+    {
+        var b = Run(@"
+        DEFINE('DOUBLE(N)')             :(DOUBLE_END)
+DOUBLE  DOUBLE = N + N                  :(RETURN)
+DOUBLE_END
+        R = DOUBLE(5)
+end");
+        Assert.AreEqual(0, b.ErrorCodeHistory.Count,
+            "Errors: " + string.Join(",", b.ErrorCodeHistory));
+        Assert.AreEqual("10", b.Execute!.IdentifierTable["R"].ToString());
+    }
+
+    [TestMethod]
+    public void Threaded_RecursiveCountdown()
+    {
+        var b = Run(@"
+        DEFINE('SUM(N)')                :(SUM_END)
+SUM     EQ(N,0)                         :S(RETURN)
+        SUM = N + SUM(N - 1)            :(RETURN)
+SUM_END
+        R = SUM(4)
+end");
+        Assert.AreEqual(0, b.ErrorCodeHistory.Count,
+            "Errors: " + string.Join(",", b.ErrorCodeHistory));
+        Assert.AreEqual("10", b.Execute!.IdentifierTable["R"].ToString());
+    }
+}
