@@ -91,5 +91,12 @@ public class BuilderOptions
     /// Gets or sets the name of the list file.
     /// </summary>
     public string ListFileName { get; set; } = "";
+
+    /// <summary>
+    /// When true, the threaded code compiler runs after Parse() and the
+    /// threaded executor is used instead of ExecuteLoop.
+    /// Default: false during Phases 3-4 development; will become true in Phase 5.
+    /// </summary>
+    public bool UseThreadedExecution { get; set; } = false;
 }
 

@@ -22,6 +22,10 @@ public partial class Executive
     public List<StatementCode> Statements;
     internal Stack<string> ProgramDefinedFunctionStack = [];
 
+    // Threaded execution (Phase 3+)
+    internal Instruction[]? Thread;
+    internal int InstructionPointer;
+
     // Symbol Tables
     public FunctionTable FunctionTable;
     public IdentifierTable IdentifierTable;

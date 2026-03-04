@@ -132,6 +132,11 @@ public partial class Builder : IDisposable
             Lex(this);
             Parse(this);
             ResolveSlots();
+            if (BuildOptions.UseThreadedExecution)
+            {
+                var tc = new ThreadedCodeCompiler(this);
+                Execute.Thread = tc.Compile();
+            }
             var cSharpCode = Generate(_compilerTarget.NameSpace, _compilerTarget.ClassName, true, GenerateCSharpCode.CompileTarget.PROGRAM, this);
             StatementCount += Code.SourceLines.Count;
             var loadContext = CreateTrackedLoadContext($"Main_{_compilerTarget.ClassName}");
