@@ -74,14 +74,17 @@ From prior session profiling:
 
 ## Phase 5 Results — Threaded Execution (Post-Optimisation)
 
-> To be filled in after Phase 5 is complete.
+> Recorded: 2026-03-05
+> Commit: c8a2f10 (Remove Roslyn fallback path from CODE/EVAL execution)
+> Architecture: SNOBOL4 → Roslyn (for C# gen + star functions) → ThreadedExecuteLoop
+> Note: Phase 1 baseline was not recorded on this machine — speedup vs Phase 1 TBD.
 
-| Benchmark | Mean | StdDev | Allocated | Speedup vs Phase 1 |
-|---|---|---|---|---|
-| `Roman_1776` | | | | |
-| `Roman_AllFour` | | | | |
-| `ArithLoop_1000` | | | | |
-| `StringPattern_500iters` | | | | |
+| Benchmark | Mean | StdDev | Allocated |
+|---|---|---|---|
+| `Roman_1776` | 25.28 ms | 7.53 ms | 1.93 MB |
+| `Roman_AllFour` | 39.14 ms | 15.40 ms | 2.08 MB |
+| `ArithLoop_1000` | 37.33 ms | 12.48 ms | 2.73 MB |
+| `StringPattern_500iters` | 148.4 ms | 20.08 ms | 17.21 MB |
 
 ---
 
