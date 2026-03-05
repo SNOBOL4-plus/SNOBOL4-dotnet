@@ -73,8 +73,14 @@ public partial class Executive
                     break;
 
                 case OpCode.PushVar:
-                    Identifier(varSlots[instr.IntOperand].Symbol);
+                {
+                    // Direct array access — no string hash, no dict lookup.
+                    // Expand if BuildEval/BuildCode added slots after init.
+                    var slotIdx = instr.IntOperand;
+                    if (slotIdx >= VarSlotArray.Length) ExpandVarSlotArray();
+                    SystemStack.Push(VarSlotArray[slotIdx]);
                     break;
+                }
 
                 case OpCode.PushConst:
                     // Clone to prevent runtime mutation of the shared pool object
@@ -91,33 +97,33 @@ public partial class Executive
                     Function(instr.IntOperand2);
                     break;
 
-                case OpCode.OpAdd:       Operator("__+", 2); break;
-                case OpCode.OpSubtract:  Operator("__-", 2); break;
-                case OpCode.OpMultiply:  Operator("__*", 2); break;
-                case OpCode.OpDivide:    Operator("__/", 2); break;
-                case OpCode.OpPower:     Operator("__^", 2); break;
-                case OpCode.OpConcat:    Operator("___", 2); break;
-                case OpCode.OpAlt:       Operator("__|", 2); break;
-                case OpCode.OpPeriod:    Operator("__.", 2); break;
-                case OpCode.OpDollar:    Operator("__$", 2); break;
-                case OpCode.OpQuestion:  Operator("__?", 2); break;
-                case OpCode.OpAt:        Operator("__@", 2); break;
-                case OpCode.OpAmpersand: Operator("__&", 2); break;
-                case OpCode.OpPercent:   Operator("__%", 2); break;
-                case OpCode.OpHash:      Operator("__#", 2); break;
-                case OpCode.OpTilde:     Operator("__~", 2); break;
+                case OpCode.OpAdd:       OperatorFast(OpCode.OpAdd,       2); break;
+                case OpCode.OpSubtract:  OperatorFast(OpCode.OpSubtract,  2); break;
+                case OpCode.OpMultiply:  OperatorFast(OpCode.OpMultiply,  2); break;
+                case OpCode.OpDivide:    OperatorFast(OpCode.OpDivide,    2); break;
+                case OpCode.OpPower:     OperatorFast(OpCode.OpPower,     2); break;
+                case OpCode.OpConcat:    OperatorFast(OpCode.OpConcat,    2); break;
+                case OpCode.OpAlt:       OperatorFast(OpCode.OpAlt,       2); break;
+                case OpCode.OpPeriod:    OperatorFast(OpCode.OpPeriod,    2); break;
+                case OpCode.OpDollar:    OperatorFast(OpCode.OpDollar,    2); break;
+                case OpCode.OpQuestion:  OperatorFast(OpCode.OpQuestion,  2); break;
+                case OpCode.OpAt:        OperatorFast(OpCode.OpAt,        2); break;
+                case OpCode.OpAmpersand: OperatorFast(OpCode.OpAmpersand, 2); break;
+                case OpCode.OpPercent:   OperatorFast(OpCode.OpPercent,   2); break;
+                case OpCode.OpHash:      OperatorFast(OpCode.OpHash,      2); break;
+                case OpCode.OpTilde:     OperatorFast(OpCode.OpTilde,     2); break;
 
-                case OpCode.OpUnaryMinus:    Operator("_-", 1); break;
-                case OpCode.OpUnaryPlus:     Operator("_+", 1); break;
-                case OpCode.OpIndirection:   Operator("_$", 1); break;
-                case OpCode.OpKeyword:       Operator("_&", 1); break;
-                case OpCode.OpName:          Operator("_.", 1); break;
-                case OpCode.OpNegation:      Operator("_~", 0); break;
-                case OpCode.OpInterrogation: Operator("_?", 0); break;
-                case OpCode.OpUnaryAt:       Operator("_@", 1); break;
-                case OpCode.OpUnaryPercent:  Operator("_%", 1); break;
-                case OpCode.OpUnaryHash:     Operator("_#", 1); break;
-                case OpCode.OpUnarySlash:    Operator("_/", 1); break;
+                case OpCode.OpUnaryMinus:    OperatorFast(OpCode.OpUnaryMinus,    1); break;
+                case OpCode.OpUnaryPlus:     OperatorFast(OpCode.OpUnaryPlus,     1); break;
+                case OpCode.OpIndirection:   OperatorFast(OpCode.OpIndirection,   1); break;
+                case OpCode.OpKeyword:       OperatorFast(OpCode.OpKeyword,       1); break;
+                case OpCode.OpName:          OperatorFast(OpCode.OpName,          1); break;
+                case OpCode.OpNegation:      OperatorFast(OpCode.OpNegation,      0); break;
+                case OpCode.OpInterrogation: OperatorFast(OpCode.OpInterrogation, 0); break;
+                case OpCode.OpUnaryAt:       OperatorFast(OpCode.OpUnaryAt,       1); break;
+                case OpCode.OpUnaryPercent:  OperatorFast(OpCode.OpUnaryPercent,  1); break;
+                case OpCode.OpUnaryHash:     OperatorFast(OpCode.OpUnaryHash,     1); break;
+                case OpCode.OpUnarySlash:    OperatorFast(OpCode.OpUnarySlash,    1); break;
                 case OpCode.OpUnaryOpsyn:    Operator(((StringVar)constPool[instr.IntOperand]).Data, 1); break;
 
                 case OpCode.BinaryEquals:    _BinaryEquals();   break;

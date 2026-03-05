@@ -89,6 +89,7 @@ public partial class Executive
                 FunctionTable.Remove(newFunction);
                 var unusedUnaryOperator = FunctionTable[existingFunction];
                 FunctionTable.Add(newFunction, new FunctionTableEntry(this, newFunction, unusedUnaryOperator!.Handler, unusedUnaryOperator.ArgumentCount, false));
+                InvalidateOperatorHandler(newFunction);
                 break;
 
             case 2:
@@ -103,6 +104,7 @@ public partial class Executive
                 FunctionTable.Remove(newFunction);
                 var unusedBinaryOperator = FunctionTable[existingFunction];
                 FunctionTable.Add(newFunction, new FunctionTableEntry(this, newFunction, unusedBinaryOperator!.Handler, unusedBinaryOperator.ArgumentCount, false));
+                InvalidateOperatorHandler(newFunction);
                 break;
         }
 

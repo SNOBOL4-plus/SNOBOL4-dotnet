@@ -8,6 +8,7 @@ public partial class Executive
         int startInstr = (i >= 0 && starts != null && i < starts.Length)
             ? starts[i]
             : 0;
+        InitExecutionCache();   // no-op after first call
         return ThreadedExecuteLoop(startInstr);
     }
 
@@ -25,6 +26,7 @@ public partial class Executive
         var savedThread    = Thread;
         Thread             = subThread;
         InstructionPointer = 0;
+        InitExecutionCache();   // no-op after first call
         ThreadedExecuteLoop(0);
         var exprFailure    = LastExpressionFailure;
         Thread             = savedThread;
