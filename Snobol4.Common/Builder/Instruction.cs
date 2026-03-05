@@ -46,6 +46,7 @@ internal enum OpCode : byte
     OpUnaryPercent  = 48,  // _%
     OpUnaryHash     = 49,  // _#
     OpUnarySlash    = 50,  // _/
+    OpUnaryOpsyn    = 51,  // opsyn-defined unary: IntOperand = constants index of "_X" key
 
     // --- Assignment / indexing ---
     BinaryEquals    = 55,  // x._BinaryEquals()

@@ -119,6 +119,7 @@ public partial class Executive
                 case OpCode.OpUnaryPercent:  Operator("_%", 1); break;
                 case OpCode.OpUnaryHash:     Operator("_#", 1); break;
                 case OpCode.OpUnarySlash:    Operator("_/", 1); break;
+                case OpCode.OpUnaryOpsyn:    Operator(((StringVar)constPool[instr.IntOperand]).Data, 1); break;
 
                 case OpCode.BinaryEquals:    _BinaryEquals();   break;
                 case OpCode.IndexCollection: IndexCollection(); break;

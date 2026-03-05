@@ -132,8 +132,7 @@ public class Opsyn
         Assert.AreEqual("SPITBOL IS VERY FAST.", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
     }
 
-    // opsyn-defined unary operators not yet supported in threaded compiler.
-    [TestMethod, Ignore]
+    [TestMethod]
     public void TEST_Opsyn_007()
     {
         var s = """

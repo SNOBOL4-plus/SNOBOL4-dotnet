@@ -251,7 +251,7 @@ internal sealed class ThreadedCodeCompiler
                 case Token.Type.BINARY_EQUAL:     Emit(OpCode.BinaryEquals); break;
 
                 case Token.Type.UNARY_OPERATOR:
-                    Emit(t.MatchedString switch
+                    if (t.MatchedString switch
                     {
                         "-" => OpCode.OpUnaryMinus,
                         "+" => OpCode.OpUnaryPlus,
@@ -264,9 +264,14 @@ internal sealed class ThreadedCodeCompiler
                         "%" => OpCode.OpUnaryPercent,
                         "#" => OpCode.OpUnaryHash,
                         "/" => OpCode.OpUnarySlash,
-                        _   => throw new ApplicationException(
-                                   $"ThreadedCodeCompiler: unknown unary '{t.MatchedString}'")
-                    });
+                        _   => OpCode.OpUnaryOpsyn
+                    } is var uOp && uOp != OpCode.OpUnaryOpsyn)
+                        Emit(uOp);
+                    else
+                        // opsyn-defined unary: store "_X" as a constant so the runtime
+                        // can look it up in FunctionTable at execution time.
+                        Emit(new Instruction(OpCode.OpUnaryOpsyn,
+                            _parent.Constants.GetOrAddString("_" + t.MatchedString)));
                     break;
 
                 case Token.Type.IDENTIFIER:
