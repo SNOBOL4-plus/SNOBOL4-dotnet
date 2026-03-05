@@ -54,7 +54,6 @@ public partial class Executive
                     AlphaStack.Clear();
                     BetaStack.Clear();
                     SystemStack.Push(new StatementSeparator());
-                    System.IO.File.AppendAllText("/tmp/init_trace.txt", $"[Init] stmt={instr.IntOperand} IP={InstructionPointer-1}\n");
                     if (AmpStatementLimit >= 0) AmpStatementCount++;
                     if (AmpStatementLimit > 0 && AmpStatementCount >= AmpStatementLimit)
                     {
@@ -168,8 +167,6 @@ public partial class Executive
                     var sym    = SystemStack.Peek().Symbol;
                     var target = LabelTable[sym];
                     SystemStack.Pop();
-                    Console.Error.WriteLine($"[GotoIndirect] sym='{sym}' target={target} starts.len={Parent.StatementInstructionStarts?.Length}");
-                    System.IO.File.AppendAllText("/tmp/init_trace.txt", $"[GotoIndirect] sym='{sym}' target={target}\n");
                     if (target == -1)                 { exitCode = -1; goto Done; }
                     if (target <= -2 && target >= -7) { exitCode = target; goto Done; }
                     if (target >= 0)
@@ -193,15 +190,12 @@ public partial class Executive
                     if (IdentifierTable.ContainsKey(sym) && IdentifierTable[sym] is CodeVar cv)
                     {
                         var target = cv.StatementNumber;
-                        System.IO.File.AppendAllText("/tmp/init_trace.txt", $"[GotoIndirectCode] sym='{sym}' stmtNum={target} starts.len={Parent.StatementInstructionStarts?.Length}\n");
                         if (target == -1)                 { exitCode = -1; goto Done; }
                         if (target <= -2 && target >= -7) { exitCode = target; goto Done; }
                         var instrIdx = StatementIndexToInstrIndex(target);
-                        System.IO.File.AppendAllText("/tmp/init_trace.txt", $"[GotoIndirectCode] instrIdx={instrIdx}\n");
                         if (instrIdx >= 0)
                         {
                             thread = Thread!;  // AppendCompile may have extended Thread
-                            System.IO.File.AppendAllText("/tmp/init_trace.txt", $"[GotoIndirectCode] thread.Length={thread.Length} IP_before={InstructionPointer} IP_after={instrIdx}\n");
                             InstructionPointer = instrIdx;
                         }
                         else { exitCode = target; goto Done; } // CODE'd stmt in Statements[]

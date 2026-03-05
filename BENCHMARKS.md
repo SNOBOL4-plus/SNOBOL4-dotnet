@@ -3,9 +3,8 @@
 This document records execution performance of SNOBOL4.NET at each significant
 milestone in the `feature/threaded-execution` development branch.
 
-Benchmarks are run via `BenchmarkSuite2` using BenchmarkDotNet in Release mode.
-Each benchmark runs the full pipeline: SNOBOL4 source → Parser → CodeGenerator
-→ Roslyn compile → ExecuteLoop.
+Benchmarks are run using a Stopwatch harness (20 reps, 3 warmup runs) in Release
+mode. Each benchmark run includes the full pipeline: parse → compile → execute.
 
 ---
 
@@ -14,104 +13,122 @@ Each benchmark runs the full pipeline: SNOBOL4 source → Parser → CodeGenerat
 | Property | Value |
 |---|---|
 | OS | Linux (Ubuntu 24.04 LTS) |
-| CPU | Intel Xeon Platinum 8581C @ 2.10GHz (KVM hypervisor) |
+| CPU | Intel Xeon Platinum 8581C @ 2.10GHz (KVM hypervisor, 2 cores) |
 | .NET | 10.0 |
-| BenchmarkDotNet | 0.15.2 |
-| Commit | 1776030 (Fix all compiler warnings) |
-| Branch | feature/threaded-execution (Phase 1 baseline) |
+| Branch | `feature/threaded-execution` vs `master` |
 
 ---
 
 ## Benchmark Programs
 
-### RomanBenchmark — Recursive functions, heavy identifier lookup
-Converts integers to Roman numerals via a recursive SNOBOL4 DEFINE function.
+### Roman — Recursive functions, heavy identifier lookup
+Converts integers to Roman numerals via a recursive SNOBOL4 `DEFINE` function.
 Each call executes ~4 statements and recurses once per digit.
-Sensitive to: `Identifier()` dictionary lookup, `FunctionName()`/`Function()`
-dispatch, label-table goto resolution.
+Most sensitive to: function dispatch, identifier lookup, label-table goto resolution.
 
-### ArithmeticLoopBenchmark — Pure dispatch overhead
-Increments a counter 1000 times with no I/O or pattern matching.
-Sensitive to: per-statement overhead (`InitializeStatement`, `FinalizeStatement`,
-`Operator("__+")` dispatch, `LT` function call, conditional goto).
+### ArithLoop_5000 — Pure dispatch overhead
+Increments a counter 5000 times with no I/O or pattern matching.
+Most sensitive to: per-statement dispatch, arithmetic operators, conditional goto.
 
-### StringPatternLoopBenchmark — Realistic string/pattern workload
-Parses a 10-token CSV string 500 times using `BREAK` pattern matching.
-Sensitive to: `Scanner.PatternMatch`, string concatenation, conditional gotos,
-pattern object allocation.
+### StringPattern_1000 — Realistic string/pattern workload
+Parses a 10-token CSV string 1000 times using `BREAK` pattern matching.
+Most sensitive to: pattern matching, string concatenation, conditional gotos.
+
+### Fibonacci_20 — Deep recursion
+Computes Fibonacci(20) recursively (~21,891 recursive calls).
+Most sensitive to: function call/return overhead, stack management.
+
+### StringManip_2000 — String operations
+Performs `REPLACE`, `SIZE`, and `SUBSTR` operations 2000 times.
+Most sensitive to: string function dispatch, string allocation.
 
 ---
 
-## Phase 1 Baseline — C# Code Generation (Current Architecture)
+## Results: master vs feature/threaded-execution
 
-> Recorded: 2026-03-04
-> Architecture: SNOBOL4 → C# text → Roslyn → ExecuteLoop with string dictionary dispatch
+> Recorded: 2026-03-05  
+> master commit: `1776030` (Roslyn C# code generation path)  
+> feature commit: `46a9205` (Threaded execution, Roslyn fully removed)  
+> Method: Stopwatch, 20 reps, 3 warmup runs, Release build
 
-| Benchmark | Mean | StdDev | Allocated |
-|---|---|---|---|
-| `Roman_1776` | *TBD — run BenchmarkSuite2 in Release mode* | | |
-| `Roman_AllFour` | | | |
-| `ArithLoop_1000` | | | |
-| `StringPattern_500iters` | | | |
+| Benchmark | master (Roslyn) | feature (Threaded) | Speedup | Alloc master | Alloc feature | Alloc saved |
+|---|---|---|---|---|---|---|
+| `Roman_1776` | 124.2 ms | 7.8 ms | **15.9x** | 1,537 KB | 435 KB | **3.5x less** |
+| `ArithLoop_5000` | 160.8 ms | 122.5 ms | **1.3x** | 10,620 KB | 8,311 KB | 1.3x less |
+| `StringPattern_1000` | 416.7 ms | 331.2 ms | **1.3x** | 34,310 KB | 30,555 KB | 1.1x less |
+| `Fibonacci_20` | 593.4 ms | 510.6 ms | **1.2x** | 50,931 KB | 45,375 KB | 1.1x less |
+| `StringManip_2000` | 35.8 ms | 2.4 ms | **14.9x** | 1,164 KB | 236 KB | **4.9x less** |
 
-> Note: BenchmarkDotNet requires running outside a container/sandbox for stable
-> results (it needs to control CPU affinity and disable GC interference).
-> The TBD values above should be filled in by running:
-> `dotnet run --project BenchmarkSuite2 -c Release`
-> on a dedicated machine. The relative speedup figures in Phase 5 are what matter.
+### Analysis
 
-### Reference: CSNOBOL4 (Phil Budne) statement throughput
+**Where threaded execution wins big (10–16x):**
+Roman and StringManip are short-running programs dominated by Roslyn compile
+overhead (~25–100 ms per run in master). With Roslyn fully removed, these
+programs now spend nearly all their time in actual execution rather than
+C# compilation. This is the primary win of the threaded architecture.
+
+**Where gains are modest (1.2–1.3x):**
+ArithLoop, StringPattern, and Fibonacci run long enough that Roslyn overhead
+is a smaller fraction of total time. The remaining gap reflects the overhead
+of interpreter dispatch vs. direct C# execution. These benchmarks allocate
+heavily due to string operations and pattern matching — areas not yet optimized.
+
+**Allocation improvements:**
+Memory allocation is reduced across all benchmarks. Roman and StringManip
+show the biggest reductions (3.5x and 4.9x) because Roslyn itself allocates
+substantial memory compiling syntax trees. Long-running benchmarks show
+smaller allocation improvements since string/pattern operations dominate.
+
+---
+
+## Reference: CSNOBOL4 (Phil Budne) statement throughput
+
 From the build-time timing benchmark on this machine:
 - **6,741,133 statements/second** (145.7M statements in 21.6 seconds)
 - Nanoseconds per statement: **148 ns**
 
-### Reference: SNOBOL4.NET on 1brc (200K rows)
-From prior session profiling:
-- **~774 statements/second** on the 1brc workload (I/O + table operations)
-- **~2,070 seconds** for 1,602,219 statements
+SNOBOL4.NET on ArithLoop_5000 (5000 statements, 122.5ms):
+- **~40,800 statements/second** — approximately **165x slower than CSNOBOL4**
 
 ---
 
-## Phase 5 Results — Threaded Execution vs Roslyn Dispatch
+## Phase 1 Baseline — C# Code Generation (master)
 
-> Recorded: 2026-03-05
-> Commit: c8a2f10 (Remove Roslyn fallback path from CODE/EVAL execution)
-> Method: Stopwatch timing, 5 reps each, Release build, same machine.
-> Both modes include Roslyn compile time (unavoidable until star functions are replaced).
+> Architecture: SNOBOL4 → C# text → Roslyn → ExecuteLoop with string dictionary dispatch
 
-| Benchmark | Threaded | Non-Threaded | Speedup |
-|---|---|---|---|
-| `ArithLoop_1000` | 79 ms | 124 ms | **1.6x** |
-| `Roman_1776` | 60 ms | 39 ms | 0.65x (slower) |
-| `StringPattern_500` | 202 ms | 246 ms | **1.2x** |
-
-### Why not 10x yet?
-
-The original estimate of ~10x assumed the Roslyn compile step would be eliminated.
-Currently every benchmark run still pays the full Roslyn compile cost (~25-35 ms)
-because star functions (`*(expr)` deferred expressions) are still generated as C#
-methods by `CodeGenerator.cs` and compiled by Roslyn. This cost dominates the
-short benchmarks and masks the execution speedup.
-
-Roman is actually **slower** in threaded mode because it is heavy on recursive
-user-defined functions and star functions — the parts that still touch Roslyn-generated
-delegates most. Pure dispatch (ArithLoop) already shows the expected improvement.
-
-### Path to 10x
-
-The remaining work is replacing star function C# generation with a threaded
-equivalent — storing the deferred expression token list at parse time and
-evaluating it inline in `ThreadedExecuteLoop`. Once Roslyn compile is eliminated
-from the hot path entirely, the 10x target becomes realistic.
+The master branch generates C# source code from SNOBOL4 at runtime, compiles it
+with Roslyn, loads the resulting DLL, and executes it. Roslyn compile time
+(25–100ms per program) dominates all short-to-medium length programs.
 
 ---
 
-## Notes on Methodology
+## Phase 7 — Threaded Execution (feature/threaded-execution)
 
-- All BenchmarkDotNet runs use `[MemoryDiagnoser]` to capture allocations
-- Each benchmark includes Roslyn compile time — this is intentional, as it
-  represents the full user-visible cost of running a SNOBOL4 program
-- Phase 5 will introduce a `UseThreadedExecution` flag; benchmarks will be
-  re-run with the flag enabled to produce the Phase 5 column above
-- The `ArithmeticLoopBenchmark` is the purest measure of dispatch overhead;
-  the `StringPatternLoopBenchmark` is the most representative of real workloads
+> Architecture: SNOBOL4 → Instruction[] → ThreadedExecuteLoop
+
+The feature branch replaces Roslyn code generation entirely with a threaded
+interpreter. A `ThreadedCodeCompiler` transforms the parsed AST into a flat
+`Instruction[]` array, and `ThreadedExecuteLoop` dispatches opcodes in a tight
+`switch` loop. No C# is generated, no Roslyn DLL is compiled or loaded.
+
+### What was done
+- Phase 1–4: Build threaded execution infrastructure (opcodes, compiler, loop)
+- Phase 5: Replace main program execution with threaded path
+- Phase 6: Replace star functions (deferred expressions) with threaded path
+- Phase 7: Remove Roslyn entirely from the live execution path
+
+### Path to further improvement
+
+The remaining performance gap vs CSNOBOL4 (~165x) is in the interpreter loop
+itself. The primary bottlenecks (in order of expected impact):
+
+1. **Identifier lookup** — `PushVar` currently does `IdentifierTable[symbol]`
+   (string dictionary lookup) on every variable access. Since slot indices are
+   known at compile time, this could become a direct `vars[slot]` array access.
+
+2. **Function dispatch** — `Operator("__+")` does a string dictionary lookup
+   on every arithmetic/comparison operation. Pre-resolving to delegates at
+   compile time would eliminate this.
+
+3. **String allocation** — Pattern matching and string operations allocate
+   new objects on every call. Interning or pooling common strings would reduce GC pressure.
