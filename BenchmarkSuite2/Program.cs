@@ -1,29 +1,53 @@
-using BenchmarkDotNet.Running;
-
-namespace Snobol4.Benchmarks2;
+using System;
+using Snobol4.Benchmarks2;
 
 /// <summary>
-/// BenchmarkSuite2 — end-to-end execution benchmarks for SNOBOL4.NET.
+/// BenchmarkSuite2 — end-to-end Stopwatch benchmarks for SNOBOL4.NET.
 ///
-/// Unlike BenchmarkSuite1 (which benchmarks the pattern scanner in isolation),
-/// these benchmarks run complete SNOBOL4 programs through the full pipeline:
-///   SNOBOL4 source → Parser → CodeGenerator → Roslyn → ExecuteLoop
+/// Runs five SNOBOL4 programs (defined in Benchmarks.cs) 20 times each
+/// with 3 warmup runs, reporting mean, stddev, and allocation per run.
 ///
-/// Three workload profiles:
-///   RomanBenchmark           — recursive functions, heavy identifier lookup
-///   ArithmeticLoopBenchmark  — pure dispatch overhead, tight counter loop
-///   StringPatternLoopBenchmark — realistic string/pattern workload
+/// Usage:  dotnet run -c Release
 ///
-/// Purpose: establish a baseline before the threaded-execution refactor
-/// (feature/threaded-execution) so we can measure the improvement precisely.
-///
-/// Run with: dotnet run -c Release
-/// Results are written to BenchmarkDotNet.Artifacts/
+/// To compare branches, run once on master and once on feature/threaded-execution.
+/// See BENCHMARKS.md in the repo root for recorded results.
 /// </summary>
 internal class Program
 {
-    static void Main(string[] args)
+    private const int Reps   = 20;
+    private const int Warmup = 3;
+
+    static void Main()
     {
-        BenchmarkRunner.Run(typeof(Program).Assembly, null, args);
+        Console.WriteLine($"SNOBOL4.NET Benchmark — {Reps} reps, {Warmup} warmup runs, Release build");
+        Console.WriteLine(new string('-', 74));
+        Console.WriteLine($"{"Benchmark",-28} {"Mean",8} {"±",2} {"StdDev",8} {"Alloc/run",12}");
+        Console.WriteLine(new string('-', 74));
+
+        Run("Roman_1776",         Scripts.Roman,         "R1",     Reps, Warmup);
+        Run("ArithLoop_5000",     Scripts.ArithLoop,     "RESULT", Reps, Warmup);
+        Run("StringPattern_1000", Scripts.StringPattern, "FINAL",  Reps, Warmup);
+        Run("Fibonacci_20",       Scripts.Fibonacci,     "RESULT", Reps, Warmup);
+        Run("StringManip_2000",   Scripts.StringManip,   "RESULT", Reps, Warmup);
+
+        Console.WriteLine(new string('-', 74));
+    }
+
+    static void Run(string name, string script, string resultVar, int reps, int warmup)
+    {
+        try
+        {
+            // Verify correctness before timing
+            var check = BenchmarkHelper.RunScript(script);
+            var result = check.Execute!.IdentifierTable[check.FoldCase(resultVar)].ToString();
+
+            var (mean, stddev, alloc) = BenchmarkHelper.Measure(script, reps, warmup);
+            Console.WriteLine(
+                $"{name,-28} {mean,7:F1}ms ± {stddev,6:F1}ms {alloc / 1024,9:F0} KB   ({result})");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"{name,-28} ERROR: {ex.Message}");
+        }
     }
 }
