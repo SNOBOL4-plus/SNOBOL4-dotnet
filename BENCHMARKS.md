@@ -72,19 +72,37 @@ From prior session profiling:
 
 ---
 
-## Phase 5 Results — Threaded Execution (Post-Optimisation)
+## Phase 5 Results — Threaded Execution vs Roslyn Dispatch
 
 > Recorded: 2026-03-05
 > Commit: c8a2f10 (Remove Roslyn fallback path from CODE/EVAL execution)
-> Architecture: SNOBOL4 → Roslyn (for C# gen + star functions) → ThreadedExecuteLoop
-> Note: Phase 1 baseline was not recorded on this machine — speedup vs Phase 1 TBD.
+> Method: Stopwatch timing, 5 reps each, Release build, same machine.
+> Both modes include Roslyn compile time (unavoidable until star functions are replaced).
 
-| Benchmark | Mean | StdDev | Allocated |
+| Benchmark | Threaded | Non-Threaded | Speedup |
 |---|---|---|---|
-| `Roman_1776` | 25.28 ms | 7.53 ms | 1.93 MB |
-| `Roman_AllFour` | 39.14 ms | 15.40 ms | 2.08 MB |
-| `ArithLoop_1000` | 37.33 ms | 12.48 ms | 2.73 MB |
-| `StringPattern_500iters` | 148.4 ms | 20.08 ms | 17.21 MB |
+| `ArithLoop_1000` | 79 ms | 124 ms | **1.6x** |
+| `Roman_1776` | 60 ms | 39 ms | 0.65x (slower) |
+| `StringPattern_500` | 202 ms | 246 ms | **1.2x** |
+
+### Why not 10x yet?
+
+The original estimate of ~10x assumed the Roslyn compile step would be eliminated.
+Currently every benchmark run still pays the full Roslyn compile cost (~25-35 ms)
+because star functions (`*(expr)` deferred expressions) are still generated as C#
+methods by `CodeGenerator.cs` and compiled by Roslyn. This cost dominates the
+short benchmarks and masks the execution speedup.
+
+Roman is actually **slower** in threaded mode because it is heavy on recursive
+user-defined functions and star functions — the parts that still touch Roslyn-generated
+delegates most. Pure dispatch (ArithLoop) already shows the expected improvement.
+
+### Path to 10x
+
+The remaining work is replacing star function C# generation with a threaded
+equivalent — storing the deferred expression token list at parse time and
+evaluating it inline in `ThreadedExecuteLoop`. Once Roslyn compile is eliminated
+from the hot path entirely, the 10x target becomes realistic.
 
 ---
 
