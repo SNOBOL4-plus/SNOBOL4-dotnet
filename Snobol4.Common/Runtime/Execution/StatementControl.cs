@@ -57,4 +57,19 @@ public partial class Executive
     public static void BreakPoint()
     {
     }
+
+    /// <summary>
+    /// Executes a standalone threaded sub-program (compiled star function).
+    /// Saves and restores InstructionPointer so the main loop is undisturbed.
+    /// </summary>
+    internal void RunExpressionThread(Instruction[] subThread)
+    {
+        var savedIP     = InstructionPointer;
+        var savedThread = Thread;
+        Thread          = subThread;
+        InstructionPointer = 0;
+        ThreadedExecuteLoop(0);
+        Thread             = savedThread;
+        InstructionPointer = savedIP;
+    }
 }

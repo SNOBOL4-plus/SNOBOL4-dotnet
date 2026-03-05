@@ -143,6 +143,9 @@ public partial class Builder : IDisposable
             {
                 var tc = new ThreadedCodeCompiler(this);
                 Execute.Thread = tc.Compile();
+                // Compile each star function (deferred expression) into a threaded
+                // sub-program and register it as a DeferredCode delegate.
+                CompileStarFunctions(tc);
             }
             var cSharpCode = Generate(_compilerTarget.NameSpace, _compilerTarget.ClassName, true, GenerateCSharpCode.CompileTarget.PROGRAM, this);
             StatementCount += Code.SourceLines.Count;
@@ -153,7 +156,11 @@ public partial class Builder : IDisposable
 
             if (MessageHistory.Count == 0 || !BuildOptions.SuppressExecution)
             {
+                // Roslyn's Run() populates metadata (labels, source, settings).
+                // In threaded mode it no longer calls ExecuteLoop — we do it here.
                 Execute.Execute(dll, loadContext, _compilerTarget.FullClassName);
+                if (BuildOptions.UseThreadedExecution)
+                    Execute.ExecuteLoop(0);
             }
         }
         catch (CompilerException)
@@ -192,6 +199,8 @@ public partial class Builder : IDisposable
             var loadContext = CreateTrackedLoadContext($"Eval_{_compilerTarget.EvalNum}");
             var dll = Compile(loadContext, _compilerTarget.FileName, cSharpCode);
             dynamic? instance = dll.CreateInstance(_compilerTarget.FullClassName);
+            if (Execute?.Thread != null)
+                CompileStarFunctions(new ThreadedCodeCompiler(this));
             instance?.Run(Execute);
         }
         catch (CompilerException)
@@ -301,6 +310,22 @@ public partial class Builder : IDisposable
     }
     
     #endregion
+
+    /// <summary>
+    /// Compiles each ParseExpression (star function body) into a standalone
+    /// threaded Instruction[] and registers it in StarFunctionList as a
+    /// DeferredCode delegate — replacing Roslyn-generated Star methods.
+    /// </summary>
+    private void CompileStarFunctions(ThreadedCodeCompiler tc)
+    {
+        if (Execute == null) return;
+        for (int i = Execute.StarFunctionList.Count; i < ParseExpression.Count; i++)
+        {
+            var subThread = tc.CompileSubExpression(ParseExpression[i]);
+            Execute.StarFunctionList.Add(x => x.RunExpressionThread(subThread));
+        }
+        Execute.PreviousStarFunctionCount = Execute.StarFunctionList.Count;
+    }
 
     #region Private Members
 

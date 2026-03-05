@@ -346,6 +346,23 @@ internal sealed class ThreadedCodeCompiler
         return arr;
     }
 
+    /// <summary>
+    /// Compiles a single postfix token list (a star function body) into a
+    /// standalone Instruction[] ending with Halt. Used to replace Roslyn-generated
+    /// Star delegate methods with threaded sub-programs.
+    /// </summary>
+    internal Instruction[] CompileSubExpression(List<Token> tokens)
+    {
+        _thread.Clear();
+        _statementStart.Clear();
+        _jumpFixups.Clear();
+
+        EmitTokenList(tokens);
+        Emit(OpCode.Halt);
+
+        return _thread.ToArray(); // no jump fixups needed for expressions
+    }
+
     // -----------------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------------
