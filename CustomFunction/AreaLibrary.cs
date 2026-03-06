@@ -1,25 +1,25 @@
-﻿using Snobol4.Common;
+using Snobol4.Common;
 
 namespace AreaFunction;
-public class Area
+
+public class Area : IExternalLibrary
 {
     private Executive? _executive;
 
-    public void Init(Executive x)
+    public void Init(Executive executive)
     {
-        _executive = x;
+        _executive = executive;
 
-        if (_executive == null)
-            throw new ArgumentNullException(nameof(x));
+        var name1 = executive.Parent.FoldCase("AreaOfCircle");
+        var entry1 = new FunctionTableEntry(executive, name1, AreaOfCircle, 1, false);
+        executive.FunctionTable[name1] = entry1;
 
-        var name1 = x.Parent.FoldCase("AreaOfCircle");
-        var entry1 = new FunctionTableEntry(_executive, name1, AreaOfCircle, 1, false);
-        _executive.FunctionTable[name1] = entry1;
-
-        var name2 = x.Parent.FoldCase("AreaOfSquare");
-        var entry2 = new FunctionTableEntry(_executive, name2, AreaOfSquare, 1, false);
-        _executive.FunctionTable[name2] = entry2;
+        var name2 = executive.Parent.FoldCase("AreaOfSquare");
+        var entry2 = new FunctionTableEntry(executive, name2, AreaOfSquare, 1, false);
+        executive.FunctionTable[name2] = entry2;
     }
+
+    // IExternalLibrary.Unload() default no-op is sufficient here
 
     public void AreaOfCircle(List<Var> arguments)
     {
