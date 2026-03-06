@@ -43,20 +43,25 @@ public class SetupTests
     public static bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
     public static bool IsMacOs => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 
-    /// <summary>
-    /// Absolute path to AreaLibrary.dll, built from the CustomFunction project.
-    /// Walks up from the test assembly's bin directory to find the solution root.
-    /// </summary>
-    public static string AreaLibraryPath
+    /// <summary>Absolute path to AreaLibrary.dll (legacy: lives directly in CustomFunction/, not a subfolder).</summary>
+    public static string AreaLibraryPath => LibraryPath("", "AreaLibrary.dll");
+
+    /// <summary>Absolute path to MathLibrary.dll.</summary>
+    public static string MathLibraryPath => LibraryPath("MathLibrary", "MathLibrary.dll");
+
+    /// <summary>Absolute path to FSharpLibrary.dll.</summary>
+    public static string FSharpLibraryPath => LibraryPath("FSharpLibrary", "FSharpLibrary.dll");
+
+    private static string LibraryPath(string project, string dll)
     {
-        get
-        {
-            // AppDomain.BaseDirectory = …/TestSnobol4/bin/Release/net10.0/
-            // Walk up: net10.0 → Release → bin → TestSnobol4 → solution root
-            var dir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
-            for (var i = 0; i < 4; i++)
-                dir = Path.GetDirectoryName(dir) ?? dir;
-            return Path.Combine(dir, "CustomFunction", "bin", "Release", "net10.0", "AreaLibrary.dll");
-        }
+        // AppDomain.BaseDirectory = …/TestSnobol4/bin/Release/net10.0/
+        // Walk up: net10.0 → Release → bin → TestSnobol4 → solution root
+        var dir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
+        for (var i = 0; i < 4; i++)
+            dir = Path.GetDirectoryName(dir) ?? dir;
+        var projectDir = string.IsNullOrEmpty(project)
+            ? Path.Combine(dir, "CustomFunction", "bin", "Release", "net10.0")
+            : Path.Combine(dir, "CustomFunction", project, "bin", "Release", "net10.0");
+        return Path.Combine(projectDir, dll);
     }
 }
