@@ -43,7 +43,7 @@ end";
         Assert.AreEqual(115, build.ErrorCodeHistory[0]);
     }
 
-    
+
 
     [TestMethod]
     public void TEST_116_001()
@@ -80,7 +80,7 @@ end";
         Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
         Assert.AreEqual(116, build.ErrorCodeHistory[0]);
     }
-    
+
     [TestMethod]
     public void TEST_116_004()
     {
@@ -128,7 +128,7 @@ end";
         Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
         Assert.AreEqual(116, build.ErrorCodeHistory[0]);
     }
-    
+
     [TestMethod]
     public void TEST_116_008()
     {
@@ -141,7 +141,7 @@ end";
         Assert.AreEqual(116, build.ErrorCodeHistory[0]);
     }
 
-                [TestMethod]
+    [TestMethod]
     public void TEST_157_001()
     {
         var s = @"
@@ -1030,8 +1030,5 @@ END
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
         Assert.AreEqual("1.0 -1.0 1.0 -1.0 1000.0 1E-05 10000.0 0.0001", build.Execute!.IdentifierTable[build.FoldCase("R1")].ToString());
-
     }
-
-
 }
