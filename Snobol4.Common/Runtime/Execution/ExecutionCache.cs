@@ -143,7 +143,44 @@ public partial class Executive
     /// </summary>
     internal void OperatorFast(OpCode op, int argumentCount)
     {
-        // Reuse the pre-allocated list to avoid per-call heap allocation.
+        // ── Integer fast path ────────────────────────────────────────────────
+        // For common 2-operand arithmetic operators, if both stack tops are
+        // IntegerVar and neither failed, execute inline without list allocation
+        // or handler dispatch.  Overflow falls through to the general path which
+        // calls LogRuntimeException via BinaryNumericOperation.
+        if (argumentCount == 2 && !Failure)
+        {
+            var top  = SystemStack.Peek(0);
+            var next = SystemStack.Peek(1);
+            if (top is IntegerVar topI && next is IntegerVar nextI &&
+                topI.Succeeded && nextI.Succeeded)
+            {
+                long r = nextI.Data, s = topI.Data;
+                try
+                {
+                    IntegerVar? result = op switch
+                    {
+                        OpCode.OpAdd      => new IntegerVar(checked(r + s)),
+                        OpCode.OpSubtract => new IntegerVar(checked(r - s)),
+                        OpCode.OpMultiply => new IntegerVar(checked(r * s)),
+                        _ => null
+                    };
+                    if (result != null)
+                    {
+                        SystemStack.Pop();
+                        SystemStack.Pop();
+                        SystemStack.Push(result);
+                        return;
+                    }
+                }
+                catch (OverflowException)
+                {
+                    // Fall through to general path which logs the overflow error.
+                }
+            }
+        }
+
+        // ── General path (reuses pre-allocated list) ──────────────────────────
         _reusableArgList.Clear();
         if (SystemStack.ExtractArguments(argumentCount, _reusableArgList, this))
             return;

@@ -190,3 +190,36 @@ optimization phases (see PLAN.md Step 4).
 | `PatternBacktrack_500` | 21.6 ms | 27.8 ms | flat (noise) |
 | `TableAccess_500` | 24.8 ms | 9.4 ms | **-62%** |
 | `MixedWorkload_200` | 176.8 ms | 158.0 ms | **-11%** |
+
+---
+
+## Phase 10 — Integer Arithmetic Fast Path (feature/threaded-execution)
+
+> Recorded: 2026-03-06
+> Method: Stopwatch, 5 reps, 1 warmup run, Release build
+> Environment: Linux (Ubuntu 24.04 LTS), .NET 10.0
+
+### Change
+
+Added integer fast path in `OperatorFast` for `OpAdd`, `OpSubtract`, `OpMultiply`.
+When both stack operands are `IntegerVar` with `Succeeded = true`, the operation
+executes inline with direct `long` arithmetic — bypassing `ExtractArguments`,
+`BinaryNumericOperation`, type conversion, and all handler dispatch.
+Overflow falls through to the general path via `LogRuntimeException`.
+
+### Benchmark Results
+
+| Benchmark | Phase 9 | Phase 10 | Δ |
+|---|---|---|---|
+| `Roman_1776` | 5.0 ms | 6.2 ms | noise |
+| `ArithLoop_1000` | 14.4 ms | 17.6 ms | noise |
+| `StringPattern_200` | 71.6 ms | 75.8 ms | noise |
+| `Fibonacci_18` | 176.0 ms | 161.0 ms | **-9%** |
+| `StringManip_500` | 34.6 ms | 32.6 ms | noise |
+| `FuncCallOverhead_3000` | 8.2 ms | 5.0 ms | **-39%** |
+| `StringConcat_500` | 3.0 ms | 0.4 ms | **-87%** |
+| `VarAccess_2000` | 81.6 ms | 64.8 ms | **-21%** |
+| `OperatorDispatch_100` | 5.2 ms | 4.4 ms | **-15%** |
+| `PatternBacktrack_500` | 27.8 ms | 22.4 ms | **-19%** |
+| `TableAccess_500` | 9.4 ms | 6.0 ms | **-36%** |
+| `MixedWorkload_200` | 158.0 ms | 125.4 ms | **-21%** |
