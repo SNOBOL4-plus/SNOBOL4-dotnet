@@ -31,6 +31,16 @@ internal class Program
         Run("TableAccess_500",      Scripts.TableAccess,          "RESULT", Reps, Warmup);
         Run("MixedWorkload_200",     Scripts.MixedWorkload,        "RESULT", Reps, Warmup);
 
+        Console.WriteLine();
+        Console.WriteLine("--- CODE() and EVAL() runtime compile ---");
+        Console.WriteLine();
+
+        Run("CodeFixed_200",         Scripts.CodeFixedString,      "RESULT", Reps, Warmup);
+        Run("CodeDynamic_200",       Scripts.CodeDynamicString,    "RESULT", Reps, Warmup);
+        Run("EvalFixed_200",         Scripts.EvalSimpleExpr,       "RESULT", Reps, Warmup);
+        Run("EvalDynamic_200",       Scripts.EvalDynamicExpr,      "RESULT", Reps, Warmup);
+        Run("IndirectDispatch_500",  Scripts.EvalVsIndirect,       "RESULT", Reps, Warmup);
+
         Console.WriteLine(new string('-', 74));
     }
 

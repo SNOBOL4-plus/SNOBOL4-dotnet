@@ -182,4 +182,100 @@ CHECK   CHECK = RSUM(10)
     OUTER = LT(OUTER, 200) OUTER + 1    :S(OUTER)
     RESULT = TOTAL
 end";
+
+    // -------------------------------------------------------------------------
+    // CodeFixedString — runtime compile of a fixed statement in a loop.
+    // Each iteration calls CODE() on the same string, forcing a full
+    // lex + parse + threaded-code-compile cycle at runtime.
+    // Measures the baseline cost of CODE() with no variation in input.
+    // -------------------------------------------------------------------------
+    public const string CodeFixedString = @"
+    &TRIM = 1
+    SRC = '    X = X + 1'
+    N = 0
+LOOP    N = LT(N, 200) N + 1           :F(DONE)
+    C = CODE(SRC)                      :F(LOOP)
+    :(LOOP)
+DONE    RESULT = N
+end";
+
+    // -------------------------------------------------------------------------
+    // CodeDynamicString — runtime compile of a dynamically built statement.
+    // The compiled string changes on every iteration (encodes N into it),
+    // so no caching can short-circuit the compile.
+    // Measures CODE() when the input is never the same twice.
+    // -------------------------------------------------------------------------
+    public const string CodeDynamicString = @"
+    &TRIM = 1
+    N = 0
+LOOP    N = LT(N, 200) N + 1           :F(DONE)
+    SRC = '    X = ' N ' + 1'
+    C = CODE(SRC)                      :F(LOOP)
+    :(LOOP)
+DONE    RESULT = N
+end";
+
+    // -------------------------------------------------------------------------
+    // CodeAndGoto — CODE() then transfer to the compiled code via GOTO.
+    // Tests the full round-trip: compile a statement, jump into it, return.
+    // Uses &CODE (the label returned by CODE) to transfer control.
+    // -------------------------------------------------------------------------
+    public const string CodeAndGoto = @"
+    &TRIM = 1
+    N = 0
+LOOP    N = LT(N, 100) N + 1           :F(DONE)
+    SRC = '    Y = N * 2  :(BACK)'
+    C = CODE(SRC)                      :F(LOOP)
+    :($C)
+BACK    :(LOOP)
+DONE    RESULT = Y
+end";
+
+    // -------------------------------------------------------------------------
+    // EvalSimpleExpr — EVAL of a fixed arithmetic expression string.
+    // Each call forces ReadCodeInString + BuildEval + immediate execution.
+    // Measures the cost of runtime expression compilation via EVAL().
+    // -------------------------------------------------------------------------
+    public const string EvalSimpleExpr = @"
+    &TRIM = 1
+    X = 10
+    N = 0
+LOOP    N = LT(N, 200) N + 1           :F(DONE)
+    R = EVAL('X + 1')
+    :(LOOP)
+DONE    RESULT = R
+end";
+
+    // -------------------------------------------------------------------------
+    // EvalDynamicExpr — EVAL of an expression that changes every iteration.
+    // Forces a fresh compile on every call with no possible reuse.
+    // -------------------------------------------------------------------------
+    public const string EvalDynamicExpr = @"
+    &TRIM = 1
+    N = 0
+LOOP    N = LT(N, 200) N + 1           :F(DONE)
+    EXPR = 'N + ' N
+    R = EVAL(EXPR)
+    :(LOOP)
+DONE    RESULT = R
+end";
+
+    // -------------------------------------------------------------------------
+    // EvalVsIndirect — compares EVAL() to $ (indirect reference) dispatch.
+    // Both achieve dynamic dispatch; $ is much cheaper (no compile).
+    // Runs $ dispatch 500x to contrast against EvalSimpleExpr 200x.
+    // -------------------------------------------------------------------------
+    public const string EvalVsIndirect = @"
+    &TRIM = 1
+    DEFINE('ADD1(V)')                   :(ADD1END)
+ADD1    ADD1 = V + 1                    :(RETURN)
+ADD1END
+    FN = 'ADD1'
+    X = 5
+    N = 0
+LOOP    N = LT(N, 500) N + 1           :F(DONE)
+    R = $FN(X)
+    :(LOOP)
+DONE    RESULT = R
+end";
 }
