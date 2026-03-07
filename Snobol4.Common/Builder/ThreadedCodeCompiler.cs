@@ -67,11 +67,21 @@ internal sealed class ThreadedCodeCompiler
         // Pass 2: patch jump targets within the new fragment
         var newArr = Pass2_Patch();
 
-        // Adjust new instruction indices by instrOffset (they go after existing)
-        var combined = new Instruction[instrOffset + newArr.Length];
-        Array.Copy(existing, combined, instrOffset);   // existing without trailing Halt
-        int newHalt = instrOffset + newArr.Length - 1; // index of Halt in combined array
-        // Patch existing jump targets that pointed to the old Halt (now overwritten)
+        // We insert a guard Jump at instrOffset so that any fall-through from the
+        // main program (e.g. a CallMsil returning int.MinValue that naturally
+        // advances IP into what used to be the Halt) goes to the new Halt instead
+        // of accidentally executing the first CODE'd statement.
+        // Layout: [existing_without_Halt | Jump(newHalt) | code'd content | Halt]
+        // The guard occupies one slot, so all CODE'd instruction indices are offset
+        // by instrOffset + 1, and the new Halt is at instrOffset + 1 + newArr.Length - 1.
+        int guardSlot = instrOffset;                          // index of the guard Jump
+        int codeStart = instrOffset + 1;                      // first CODE'd instruction
+        int newHalt   = codeStart + newArr.Length - 1;        // index of new Halt
+
+        var combined = new Instruction[codeStart + newArr.Length];
+        Array.Copy(existing, combined, instrOffset);          // existing without trailing Halt
+
+        // Patch existing jump/branch targets that pointed to the old Halt.
         for (int i = 0; i < instrOffset; i++)
         {
             var old2 = combined[i];
@@ -81,25 +91,33 @@ internal sealed class ThreadedCodeCompiler
                 combined[i] = new Instruction(old2.Op, newHalt, old2.IntOperand2);
             }
         }
+
+        // Guard: unconditional jump from the boundary to the new Halt.
+        // Any fall-through from the main program hits this and goes to Halt.
+        combined[guardSlot] = new Instruction(OpCode.Jump, newHalt);
+
+        // Copy and fix up CODE'd instructions.
         for (int i = 0; i < newArr.Length; i++)
         {
             var instr = newArr[i];
-            // Adjust absolute instruction targets embedded in Jump/JumpOn* ops
+            // Adjust absolute instruction targets embedded in Jump/JumpOn* ops.
+            // CODE'd jumps are relative to their own fragment (0-based); shift by codeStart.
             if (instr.Op is OpCode.Jump or OpCode.JumpOnFailure or OpCode.JumpOnSuccess
                 && instr.IntOperand >= 0)
             {
-                instr = new Instruction(instr.Op, instr.IntOperand + instrOffset, instr.IntOperand2);
+                instr = new Instruction(instr.Op, instr.IntOperand + codeStart, instr.IntOperand2);
             }
-            combined[instrOffset + i] = instr;
+            combined[codeStart + i] = instr;
         }
 
-        // Extend StatementInstructionStarts
+        // Extend StatementInstructionStarts — CODE'd statement starts are relative to
+        // their fragment origin (0-based); shift by codeStart (not instrOffset).
         var old = _parent.StatementInstructionStarts ?? [];
         int newLen = stmtOffset + _statementStart.Count;
         var newStarts = new int[newLen];
         for (int i = 0; i < old.Length && i < newLen; i++) newStarts[i] = old[i];
         for (int i = 0; i < _statementStart.Count; i++)
-            newStarts[stmtOffset + i] = _statementStart[i] + instrOffset;
+            newStarts[stmtOffset + i] = _statementStart[i] + codeStart;
         _parent.StatementInstructionStarts = newStarts;
 
         return combined;

@@ -199,7 +199,6 @@ end
     }
 
     [TestMethod]
-    [Ignore("Pre-existing hang: CODE function requires runtime compilation")]
     public void TEST_Convert_String_Code()
     {
         var s = @"
@@ -356,7 +355,6 @@ end
     }
 
     [TestMethod]
-    [Ignore("Pre-existing hang: CODE function requires runtime compilation")]
     public void TEST_Convert_Integer_Code()
     {
         var s = @"
@@ -550,7 +548,6 @@ end
     }
 
     [TestMethod]
-    [Ignore("Pre-existing hang: CODE function requires runtime compilation")]
     public void TEST_Convert_Real_Code()
     {
         var s = @"
@@ -845,7 +842,6 @@ end
     }
 
     [TestMethod]
-    [Ignore("Pre-existing hang: CODE function requires runtime compilation")]
     public void TEST_Convert_Array_Code()
     {
         var s = @"
@@ -1122,7 +1118,6 @@ end
     }
 
     [TestMethod]
-    [Ignore("Pre-existing hang: CODE function requires runtime compilation")]
     public void TEST_Convert_Table_Code()
     {
         var s = @"
@@ -1355,7 +1350,6 @@ end";
     }
 
     [TestMethod]
-    [Ignore("Pre-existing hang: CODE function requires runtime compilation")]
     public void TEST_Convert_Name_Code()
     {
         var s = @"
@@ -1493,7 +1487,6 @@ end";
     }
 
     [TestMethod]
-    [Ignore("Pre-existing hang: CODE function requires runtime compilation")]
     public void TEST_Convert_Pattern_Code()
     {
         var s = @"
@@ -1658,7 +1651,6 @@ end";
     }
 
     [TestMethod]
-    [Ignore("Pre-existing hang: CODE function requires runtime compilation")]
     public void TEST_Convert_Expression_Code()
     {
         var s = @"
@@ -1807,7 +1799,6 @@ end";
     }
 
     [TestMethod]
-    [Ignore("Pre-existing hang: CODE function requires runtime compilation")]
     public void TEST_Convert_Code_Code()
     {
         var s = @"
