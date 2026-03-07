@@ -99,6 +99,7 @@ public partial class Builder : IDisposable
             {
                 // ── Threaded path (default, fast) ──────────────────────────────
                 var tc = new ThreadedCodeCompiler(this);
+                EmitMsilForAllStatements();
                 Execute.Thread = tc.Compile();
                 CompileStarFunctions(tc);
                 PopulateMainMetadata();
@@ -143,6 +144,7 @@ public partial class Builder : IDisposable
             Parse(this);
             ResolveSlots();
             var tc = new ThreadedCodeCompiler(this);
+            EmitMsilForAllStatements();
             Execute.Thread = tc.Compile();
             CompileStarFunctions(tc);
             PopulateMainMetadata();
@@ -164,6 +166,7 @@ public partial class Builder : IDisposable
             }
             Parse(this);
             ResolveSlots();
+            EmitMsilForAllStatements();
             CompileStarFunctions(new ThreadedCodeCompiler(this));
             StatementCount += Code.SourceLines.Count;
         }
@@ -181,6 +184,7 @@ public partial class Builder : IDisposable
             Parse(this);
             var stmtOffset = StatementCount;
             ResolveSlots();
+            EmitMsilForAllStatements();
             var tc = new ThreadedCodeCompiler(this);
             Execute!.Thread = tc.AppendCompile(Execute.Thread!, stmtOffset);
             CompileStarFunctions(tc);

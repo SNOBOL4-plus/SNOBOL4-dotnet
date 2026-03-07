@@ -141,6 +141,10 @@ public partial class Executive
                     exitCode = -1;
                     goto Done;
 
+                case OpCode.CallMsil:
+                    Parent.MsilDelegates[instr.IntOperand](this);
+                    break;
+
                 case OpCode.SaveFailure:
                     localSavedFailure = Failure;
                     Failure = false;

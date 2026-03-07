@@ -223,9 +223,16 @@ public partial class Builder
                         _   => OpCode.OpUnaryOpsyn
                     };
 
+                    // Argument counts must match ThreadedExecuteLoop exactly:
+                    // ~ (Negation) and ? (Interrogation) operate directly on the
+                    // stack top without extracting arguments — they take 0 args.
+                    // All other unary operators pop 1 argument.
+                    int unaryArgCount = opCode is OpCode.OpNegation or OpCode.OpInterrogation
+                        ? 0 : 1;
+
                     if (opCode != OpCode.OpUnaryOpsyn)
                     {
-                        EmitOperator(il, opCode, 1);
+                        EmitOperator(il, opCode, unaryArgCount);
                     }
                     else
                     {
@@ -245,7 +252,8 @@ public partial class Builder
                 case Token.Type.IDENTIFIER_ARRAY_OR_TABLE:
                 {
                     var key = FoldCase(t.MatchedString);
-                    var slotIdx = VariableSlotIndex[key];
+                    if (!VariableSlotIndex.TryGetValue(key, out var slotIdx))
+                        return null;  // slot not found — fall back to threaded path
                     il.Emit(OpCodes.Ldarg_0);
                     il.Emit(OpCodes.Ldc_I4, slotIdx);
                     il.Emit(OpCodes.Call, _pushVarBySlot);
@@ -265,8 +273,10 @@ public partial class Builder
                 {
                     var funcName = pendingFunctionNames.Pop();
                     var key      = FoldCase(funcName);
-                    var slotIdx  = FunctionSlotIndex[key];
                     var argCount = (int)t.IntegerValue;
+                    var slotKey  = $"{key}/{argCount}";
+                    if (!FunctionSlotIndex.TryGetValue(slotKey, out var slotIdx))
+                        return null;  // slot not found — fall back to threaded path
                     il.Emit(OpCodes.Ldarg_0);
                     il.Emit(OpCodes.Ldc_I4, slotIdx);
                     il.Emit(OpCodes.Ldc_I4, argCount);

@@ -58,23 +58,29 @@ public class ThreadedCompilerTests
     {
         var t = Compile("        N = 1\nend");
         var ops = t.Select(i => i.Op).ToHashSet();
-        Assert.IsTrue(ops.Contains(OpCode.PushVar));
-        Assert.IsTrue(ops.Contains(OpCode.PushConst));
-        Assert.IsTrue(ops.Contains(OpCode.BinaryEquals));
+        // With MSIL compilation active the body is replaced by CallMsil;
+        // without it (or for goto token lists) the individual opcodes appear.
+        bool hasMsil     = ops.Contains(OpCode.CallMsil);
+        bool hasThreaded = ops.Contains(OpCode.PushVar) &&
+                           ops.Contains(OpCode.PushConst) &&
+                           ops.Contains(OpCode.BinaryEquals);
+        Assert.IsTrue(hasMsil || hasThreaded);
     }
 
     [TestMethod]
     public void Addition_EmitsOpAdd()
     {
         var t = Compile("        N = N + 1\nend");
-        Assert.IsTrue(t.Any(i => i.Op == OpCode.OpAdd));
+        // CallMsil subsumes OpAdd when MSIL compilation is active.
+        Assert.IsTrue(t.Any(i => i.Op == OpCode.OpAdd || i.Op == OpCode.CallMsil));
     }
 
     [TestMethod]
     public void FunctionCall_EmitsCallFunc()
     {
         var t = Compile("        N = LT(N, 10) N\nend");
-        Assert.IsTrue(t.Any(i => i.Op == OpCode.CallFunc));
+        // CallMsil subsumes CallFunc when MSIL compilation is active.
+        Assert.IsTrue(t.Any(i => i.Op == OpCode.CallFunc || i.Op == OpCode.CallMsil));
     }
 
     [TestMethod]
