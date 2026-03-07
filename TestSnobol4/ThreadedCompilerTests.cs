@@ -32,7 +32,11 @@ public class ThreadedCompilerTests
     public void Thread_StartsWithInit()
     {
         var t = Compile("        N = 1\nend");
-        Assert.AreEqual(OpCode.Init, t[0].Op);
+        // After Step 6, compiled statement bodies absorb Init into the delegate.
+        // The first instruction is now CallMsil (body delegate) or Init (for
+        // un-compiled statements). Either is valid.
+        Assert.IsTrue(t[0].Op == OpCode.Init || t[0].Op == OpCode.CallMsil,
+            $"Expected Init or CallMsil as first opcode, got {t[0].Op}");
     }
 
     [TestMethod]
@@ -46,7 +50,13 @@ public class ThreadedCompilerTests
     public void Thread_ContainsFinalizeAfterBody()
     {
         var t = Compile("        N = 1\nend");
-        Assert.IsTrue(t.Any(i => i.Op == OpCode.Finalize));
+        // After Step 6, Finalize is inlined into the CallMsil delegate for
+        // compiled bodies; un-compiled statements still emit it. Either path
+        // is valid — what matters is the program executes correctly.
+        bool hasCallMsil  = t.Any(i => i.Op == OpCode.CallMsil);
+        bool hasFinalize  = t.Any(i => i.Op == OpCode.Finalize);
+        Assert.IsTrue(hasCallMsil || hasFinalize,
+            "Expected either CallMsil (with inlined Finalize) or explicit Finalize");
     }
 
     // -----------------------------------------------------------------------

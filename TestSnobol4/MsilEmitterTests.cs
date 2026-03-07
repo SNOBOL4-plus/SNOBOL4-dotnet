@@ -248,4 +248,81 @@ end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
         Assert.AreEqual("Hello World", Str("R", b));
     }
+
+    // -----------------------------------------------------------------------
+    // Step 6 tests — Init/Finalize inlined into delegates
+    // -----------------------------------------------------------------------
+
+    [TestMethod]
+    public void Step6_InitFinalize_NoInitOrFinalizeInThread()
+    {
+        // After Step 6, compiled statements have no standalone Init/Finalize —
+        // they are inlined inside the delegate. We verify for any statement
+        // that has a CallMsil, there is no adjacent Init or Finalize opcode.
+        var b = Compile(@"
+        N = 1
+        N = N + 1
+end");
+        var thread = b.Execute!.Thread!;
+        // For every CallMsil instruction, the surrounding opcodes should NOT
+        // be Init/Finalize — they've been absorbed into the delegate.
+        for (int i = 0; i < thread.Length; i++)
+        {
+            if (thread[i].Op != OpCode.CallMsil) continue;
+            // Verify the surrounding instructions are not Init/Finalize
+            bool prevIsInit = i > 0 && thread[i-1].Op == OpCode.Init;
+            bool nextIsFinalize = i < thread.Length-1 && thread[i+1].Op == OpCode.Finalize;
+            Assert.IsFalse(prevIsInit,     $"Init found before CallMsil at [{i}]");
+            Assert.IsFalse(nextIsFinalize, $"Finalize found after CallMsil at [{i}]");
+        }
+        // Also verify there is at least one CallMsil (the program actually compiled)
+        Assert.IsTrue(thread.Any(i => i.Op == OpCode.CallMsil),
+            "Expected at least one CallMsil instruction");
+    }
+
+    [TestMethod]
+    public void Step6_InitFinalize_StatementLimitAborts()
+    {
+        // Compile a 4-statement program, set &STLIMIT = 3, then run.
+        // Verify error 244 (statement limit exceeded) is raised before the
+        // program finishes — proving InitStatement checks the limit correctly.
+        var b = SetupTests.SetupScript("-b", @"
+        N = 1
+        N = N + 1
+        N = N + 1
+        N = N + 1
+end", compileOnly: true);
+        b.Execute!.AmpStatementLimit = 3;
+        b.Execute!.AmpStatementCount = 0;
+        b.Execute!.ExecuteLoop(0);
+        Assert.IsTrue(b.ErrorCodeHistory.Contains(244),
+            "Expected error 244 (statement limit) — InitStatement must check AmpStatementLimit");
+    }
+
+    [TestMethod]
+    public void Step6_InitFinalize_FailureResetsBetweenStatements()
+    {
+        // Even if one statement fails, the next starts with Failure=false.
+        // If Init inlining is broken, Failure would carry over.
+        var b = Run(@"
+        gt(1, 2)        :f(next)
+next    result = 'ok'
+end");
+        Assert.AreEqual(0, b.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok", Str("result", b));
+    }
+
+    [TestMethod]
+    public void Step6_InitFinalize_AlphaStackClearedBetweenStatements()
+    {
+        // Basic multi-statement program — verifies Init properly resets
+        // stacks without leaking state between statements.
+        var b = Run(@"
+        A = 'hello'
+        B = 'world'
+        C = A ' ' B
+end");
+        Assert.AreEqual(0, b.ErrorCodeHistory.Count);
+        Assert.AreEqual("hello world", Str("C", b));
+    }
 }

@@ -54,9 +54,12 @@ internal sealed class ThreadedCodeCompiler
         {
             var line = lines[si];
             _statementStart.Add(_thread.Count);
-            Emit(new Instruction(OpCode.Init, stmtOffset + si));
+            bool bodyHasDelegate = _parent.MsilCache.ContainsKey(line.ParseBody);
+            if (!bodyHasDelegate)
+                Emit(new Instruction(OpCode.Init, stmtOffset + si));
             EmitTokenList(line.ParseBody);
-            Emit(new Instruction(OpCode.Finalize));
+            if (!bodyHasDelegate)
+                Emit(new Instruction(OpCode.Finalize));
             EmitGotos(line, si);
         }
         Emit(new Instruction(OpCode.Halt));
@@ -115,9 +118,15 @@ internal sealed class ThreadedCodeCompiler
             var line = lines[si];
             _statementStart.Add(_thread.Count);
 
-            Emit(new Instruction(OpCode.Init, si));   // si = statement index, matches InitializeStatement(statementNumber)
+            // If the body has a compiled delegate, Init/Finalize are inlined
+            // inside it — skip emitting them as separate opcodes.
+            bool bodyHasDelegate = _parent.MsilCache.ContainsKey(line.ParseBody);
+
+            if (!bodyHasDelegate)
+                Emit(new Instruction(OpCode.Init, si));
             EmitTokenList(line.ParseBody);
-            Emit(new Instruction(OpCode.Finalize));
+            if (!bodyHasDelegate)
+                Emit(new Instruction(OpCode.Finalize));
             EmitGotos(line, si);
         }
 

@@ -80,4 +80,43 @@ public partial class Executive
     {
         if (Failure) { SystemStack.Pop(); Failure = false; }
     }
+
+    /// <summary>
+    /// Statement-boundary initialisation called at the top of every MSIL delegate.
+    /// Mirrors the <c>OpCode.Init</c> case in ThreadedExecuteLoop exactly,
+    /// including the &amp;STLIMIT check.
+    /// </summary>
+    /// <returns><c>true</c> if the statement-limit was exceeded and the
+    /// delegate should abort immediately.</returns>
+    internal bool InitStatementMsil(int stmtIdx)
+    {
+        AmpCurrentLineNumber = stmtIdx;
+        Failure = false;
+        AlphaStack.Clear();
+        BetaStack.Clear();
+        SystemStack.Push(new StatementSeparator());
+
+        if (AmpStatementLimit >= 0) AmpStatementCount++;
+        if (AmpStatementLimit > 0 && AmpStatementCount >= AmpStatementLimit)
+        {
+            LogRuntimeException(244);
+            Failure = true;
+            return true;   // caller should abort
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Statement-boundary finalisation called at the bottom of every MSIL delegate.
+    /// Mirrors the <c>OpCode.Finalize</c> case in ThreadedExecuteLoop exactly,
+    /// including the ErrorJump trap.
+    /// </summary>
+    internal void FinalizeStatementMsil()
+    {
+        while (SystemStack.Peek() is not StatementSeparator)
+            SystemStack.Pop();
+        SystemStack.Pop();
+        AmpLastLineNumber = AmpCurrentLineNumber;
+        if (ErrorJump > 0) ProcessTrappedErrorThreaded();
+    }
 }

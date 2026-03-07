@@ -103,6 +103,18 @@ public partial class Builder
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
         ?? throw new MissingFieldException(nameof(Executive), "Failure");
 
+    private static readonly MethodInfo _initStatementMsil =
+        typeof(Executive).GetMethod("InitStatementMsil",
+            BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
+            null, [typeof(int)], null)
+        ?? throw new MissingMethodException(nameof(Executive), "InitStatementMsil");
+
+    private static readonly MethodInfo _finalizeStatementMsil =
+        typeof(Executive).GetMethod("FinalizeStatementMsil",
+            BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
+            null, [], null)
+        ?? throw new MissingMethodException(nameof(Executive), "FinalizeStatementMsil");
+
     // -----------------------------------------------------------------------
     // Entry point — called from Builder after ResolveSlots()
     // -----------------------------------------------------------------------
@@ -114,21 +126,22 @@ public partial class Builder
     /// </summary>
     internal void EmitMsilForAllStatements()
     {
-        foreach (var line in Code.SourceLines)
+        for (var si = 0; si < Code.SourceLines.Count; si++)
         {
-            TryCache(line.ParseBody);
-            TryCache(line.ParseSuccessGoto);
-            TryCache(line.ParseFailureGoto);
-            TryCache(line.ParseUnconditionalGoto);
+            var line = Code.SourceLines[si];
+            TryCache(line.ParseBody,              stmtIdx: si, isBody: true);
+            TryCache(line.ParseSuccessGoto,       stmtIdx: si, isBody: false);
+            TryCache(line.ParseFailureGoto,       stmtIdx: si, isBody: false);
+            TryCache(line.ParseUnconditionalGoto, stmtIdx: si, isBody: false);
         }
     }
 
-    private void TryCache(List<Token> tokens)
+    private void TryCache(List<Token> tokens, int stmtIdx, bool isBody)
     {
         if (tokens.Count == 0) return;
         if (MsilCache.ContainsKey(tokens)) return;
 
-        var dm = EmitAndCache(tokens);
+        var dm = EmitAndCache(tokens, stmtIdx, isBody);
         if (dm == null) return;
 
         int idx = MsilDelegates.Count;
@@ -145,7 +158,7 @@ public partial class Builder
     /// return it as an <c>Action&lt;Executive&gt;</c>, or <c>null</c> if the
     /// token list contains nothing emittable (structural tokens only).
     /// </summary>
-    private Action<Executive>? EmitAndCache(List<Token> tokens)
+    private Action<Executive>? EmitAndCache(List<Token> tokens, int stmtIdx, bool isBody)
     {
         var dm = new DynamicMethod(
             name:            "Snobol4_Expr",
@@ -155,6 +168,20 @@ public partial class Builder
             skipVisibility:  true);
 
         var il = dm.GetILGenerator();
+
+        // ── Body delegates: inline Init/Finalize ──────────────────────────
+        // For body token lists we emit InitStatementMsil(stmtIdx) at the top.
+        // If it returns true (statement limit exceeded) we bail out immediately.
+        // FinalizeStatementMsil() is emitted at the bottom before Ret.
+        Label skipBody = default;
+        if (isBody)
+        {
+            skipBody = il.DefineLabel();
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldc_I4, stmtIdx);
+            il.Emit(OpCodes.Call, _initStatementMsil);   // returns bool
+            il.Emit(OpCodes.Brtrue, skipBody);            // if true → abort
+        }
 
         // bookkeeping for IDENTIFIER_FUNCTION / R_PAREN_FUNCTION
         var pendingFunctionNames = new Stack<string>();
@@ -412,6 +439,14 @@ public partial class Builder
             il.MarkLabel(choiceLabels.Pop());
 
         if (!anyEmitted) return null;
+
+        // ── Body delegates: finalize + skip-body landing pad ──────────────
+        if (isBody)
+        {
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Call, _finalizeStatementMsil);
+            il.MarkLabel(skipBody);
+        }
 
         il.Emit(OpCodes.Ret);
 
