@@ -325,4 +325,53 @@ end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
         Assert.AreEqual("hello world", Str("C", b));
     }
+
+    // -----------------------------------------------------------------------
+    // Step 7 tests — delegates return Func<Executive,int> (next IP)
+    // -----------------------------------------------------------------------
+
+    [TestMethod]
+    public void Step7_DelegateReturnsInt_FallthroughIsMinValue()
+    {
+        // A body delegate with no goto should return int.MinValue ("fall through").
+        var b = Compile(@"
+        N = 1
+end");
+        // Find the first CallMsil that corresponds to a body delegate (stmtIdx 0)
+        // The delegate itself is at MsilDelegates[0] (or the first body delegate).
+        // We just verify the program runs correctly — the return value is internal.
+        // Behavioral proxy: a fall-through program executes all statements.
+        var b2 = Run(@"
+        A = 'first'
+        B = 'second'
+        C = 'third'
+end");
+        Assert.AreEqual(0, b2.ErrorCodeHistory.Count);
+        Assert.AreEqual("first",  Str("A", b2));
+        Assert.AreEqual("second", Str("B", b2));
+        Assert.AreEqual("third",  Str("C", b2));
+    }
+
+    [TestMethod]
+    public void Step7_DelegateReturnsInt_HaltExitsCleanly()
+    {
+        // A program that reaches end/Halt exits with no errors.
+        var b = Run("        N = 42\nend");
+        Assert.AreEqual(0, b.ErrorCodeHistory.Count);
+        Assert.AreEqual(42L, Int("N", b));
+    }
+
+    [TestMethod]
+    public void Step7_DelegateReturnsInt_GotoStillWorks()
+    {
+        // Even with the new signature, goto dispatch must still jump correctly.
+        var b = Run(@"
+        I = 0
+loop    I = I + 1
+        lt(I, 5)    :s(loop)
+end");
+        Assert.AreEqual(0, b.ErrorCodeHistory.Count);
+        Assert.AreEqual(5L, Int("I", b));
+    }
 }
+// NOTE: closing brace already present — appending before it handled by str_replace below

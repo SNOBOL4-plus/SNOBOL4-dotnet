@@ -34,11 +34,15 @@ public partial class Builder
         new(ReferenceEqualityComparer.Instance);
 
     /// <summary>
-    /// Compiled <c>Action&lt;Executive&gt;</c> delegates, indexed by the
+    /// Compiled <c>Func&lt;Executive, int&gt;</c> delegates, indexed by the
     /// value stored in <see cref="MsilCache"/>.
+    /// Return value convention:
+    ///   int.MinValue = fall through (loop advances IP normally)
+    ///   -1           = halt / end of program
+    ///   >= 0         = jump to this instruction pointer
     /// Grows as statements are compiled; never shrinks.
     /// </summary>
-    internal List<Action<Executive>> MsilDelegates = new();
+    internal List<Func<Executive, int>> MsilDelegates = new();
 
     // -----------------------------------------------------------------------
     // Pre-reflected MethodInfo / FieldInfo — resolved once, reused per emit
@@ -148,21 +152,15 @@ public partial class Builder
         MsilDelegates.Add(dm);
         MsilCache[tokens] = idx;
     }
-
-    // -----------------------------------------------------------------------
-    // Core emitter
-    // -----------------------------------------------------------------------
-
-    /// <summary>
     /// Compile <paramref name="tokens"/> into a <c>DynamicMethod</c> and
     /// return it as an <c>Action&lt;Executive&gt;</c>, or <c>null</c> if the
     /// token list contains nothing emittable (structural tokens only).
     /// </summary>
-    private Action<Executive>? EmitAndCache(List<Token> tokens, int stmtIdx, bool isBody)
+    private Func<Executive, int>? EmitAndCache(List<Token> tokens, int stmtIdx, bool isBody)
     {
         var dm = new DynamicMethod(
             name:            "Snobol4_Expr",
-            returnType:      typeof(void),
+            returnType:      typeof(int),
             parameterTypes:  [typeof(Executive)],
             owner:           typeof(Executive),
             skipVisibility:  true);
@@ -171,7 +169,7 @@ public partial class Builder
 
         // ── Body delegates: inline Init/Finalize ──────────────────────────
         // For body token lists we emit InitStatementMsil(stmtIdx) at the top.
-        // If it returns true (statement limit exceeded) we bail out immediately.
+        // If it returns true (statement limit exceeded) we return -1 (halt).
         // FinalizeStatementMsil() is emitted at the bottom before Ret.
         Label skipBody = default;
         if (isBody)
@@ -180,7 +178,11 @@ public partial class Builder
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Ldc_I4, stmtIdx);
             il.Emit(OpCodes.Call, _initStatementMsil);   // returns bool
-            il.Emit(OpCodes.Brtrue, skipBody);            // if true → abort
+            il.Emit(OpCodes.Brfalse, skipBody);           // if false → continue
+            // Statement limit hit — return -1 (halt)
+            il.Emit(OpCodes.Ldc_I4_M1);
+            il.Emit(OpCodes.Ret);
+            il.MarkLabel(skipBody);
         }
 
         // bookkeeping for IDENTIFIER_FUNCTION / R_PAREN_FUNCTION
@@ -440,17 +442,18 @@ public partial class Builder
 
         if (!anyEmitted) return null;
 
-        // ── Body delegates: finalize + skip-body landing pad ──────────────
+        // ── Body delegates: finalize + return fall-through sentinel ───────
         if (isBody)
         {
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Call, _finalizeStatementMsil);
-            il.MarkLabel(skipBody);
         }
 
+        // Return int.MinValue = "fall through" (loop advances IP normally)
+        il.Emit(OpCodes.Ldc_I4, int.MinValue);
         il.Emit(OpCodes.Ret);
 
-        return (Action<Executive>)dm.CreateDelegate(typeof(Action<Executive>));
+        return (Func<Executive, int>)dm.CreateDelegate(typeof(Func<Executive, int>));
     }
 
     // -----------------------------------------------------------------------
