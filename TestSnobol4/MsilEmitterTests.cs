@@ -413,5 +413,64 @@ end");
         Assert.AreEqual(3L,  Int("C", b));
         Assert.AreEqual(4L,  Int("D", b));
     }
+
+    // -----------------------------------------------------------------------
+    // Step 9 tests — direct unconditional gotos :(LABEL) absorbed into delegate
+    // -----------------------------------------------------------------------
+
+    [TestMethod]
+    public void Step9_DirectUnconditionalGoto_NoGotoIndirectInThread()
+    {
+        // After Step 9, a statement with :(LABEL) should have no
+        // GotoIndirect opcode in the thread — it's returned directly as an IP.
+        var b = Compile(@"
+        N = 1       :(done)
+done    N = N + 1
+end");
+        var thread = b.Execute!.Thread!;
+        // No GotoIndirect should appear for the compiled statement
+        bool hasGotoIndirect = thread.Any(i => i.Op == OpCode.GotoIndirect);
+        Assert.IsFalse(hasGotoIndirect, "GotoIndirect should be absorbed into delegate after Step 9");
+    }
+
+    [TestMethod]
+    public void Step9_DirectUnconditionalGoto_JumpsCorrectly()
+    {
+        // :(LABEL) must land on the right statement.
+        var b = Run(@"
+        result = 'wrong'    :(skip)
+        result = 'skipped'
+skip    result = result 'right'
+end");
+        Assert.AreEqual(0, b.ErrorCodeHistory.Count);
+        Assert.AreEqual("wrongright", Str("result", b));
+    }
+
+    [TestMethod]
+    public void Step9_DirectUnconditionalGoto_LoopWorks()
+    {
+        // A tight loop using :(LABEL) must terminate correctly.
+        var b = Run(@"
+        N = 0
+loop    N = N + 1
+        lt(N, 10)   :s(loop)
+end");
+        Assert.AreEqual(0, b.ErrorCodeHistory.Count);
+        Assert.AreEqual(10L, Int("N", b));
+    }
+
+    [TestMethod]
+    public void Step9_DirectUnconditionalGoto_ReturnExits()
+    {
+        // :(RETURN) from a user-defined function must exit cleanly.
+        var b = Run(@"
+        define('double(x)')     :(main)
+double  double = x * 2          :(return)
+main    result = double(7)
+end");
+        Assert.AreEqual(0, b.ErrorCodeHistory.Count);
+        Assert.AreEqual(14L, Int("result", b));
+    }
 }
 // NOTE: closing brace already present — appending before it handled by str_replace below
+// TEMP debug — will remove

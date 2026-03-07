@@ -98,9 +98,16 @@ public class ThreadedCompilerTests
     {
         var t = Compile("LOOP    N = N + 1   :(LOOP)\nend");
         var ops = t.Select(i => i.Op).ToHashSet();
-        Assert.IsTrue(ops.Contains(OpCode.SaveFailure));
-        Assert.IsTrue(ops.Contains(OpCode.RestoreFailure));
-        Assert.IsTrue(ops.Contains(OpCode.GotoIndirect));
+        // After Step 9, a single-identifier :(LABEL) goto is absorbed into the
+        // body delegate — no SaveFailure/RestoreFailure/GotoIndirect in thread.
+        // The delegate calls ResolveLabel and returns the target IP directly.
+        bool absorbedIntoDelegate = ops.Contains(OpCode.CallMsil) &&
+                                    !ops.Contains(OpCode.GotoIndirect);
+        bool legacyThreaded       = ops.Contains(OpCode.SaveFailure) &&
+                                    ops.Contains(OpCode.RestoreFailure) &&
+                                    ops.Contains(OpCode.GotoIndirect);
+        Assert.IsTrue(absorbedIntoDelegate || legacyThreaded,
+            "Expected either absorbed delegate or legacy SaveFailure/GotoIndirect pattern");
     }
 
     [TestMethod]

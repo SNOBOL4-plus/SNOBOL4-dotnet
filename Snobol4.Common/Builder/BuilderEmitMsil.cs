@@ -119,6 +119,12 @@ public partial class Builder
             null, [], null)
         ?? throw new MissingMethodException(nameof(Executive), "FinalizeStatementMsil");
 
+    private static readonly MethodInfo _resolveLabel =
+        typeof(Executive).GetMethod("ResolveLabel",
+            BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
+            null, [typeof(string), typeof(int)], null)
+        ?? throw new MissingMethodException(nameof(Executive), "ResolveLabel");
+
     // -----------------------------------------------------------------------
     // Entry point — called from Builder after ResolveSlots()
     // -----------------------------------------------------------------------
@@ -133,19 +139,38 @@ public partial class Builder
         for (var si = 0; si < Code.SourceLines.Count; si++)
         {
             var line = Code.SourceLines[si];
-            TryCache(line.ParseBody,              stmtIdx: si, isBody: true);
+
+            // For direct unconditional gotos, the goto label is baked into the
+            // body delegate — one CallMsil covers Init + body + Finalize + goto.
+            // Only :(LABEL) form (DirectGotoFirst == false, single IDENTIFIER) —
+            // NOT :<VAR> (DirectGotoFirst == true) which needs GotoIndirectCode.
+            string? directUncondLabel = null;
+            if (!line.DirectGotoFirst &&
+                line.ParseUnconditionalGoto.Count == 1 &&
+                line.ParseUnconditionalGoto[0].TokenType == Token.Type.IDENTIFIER)
+            {
+                directUncondLabel = line.ParseUnconditionalGoto[0].MatchedString;
+            }
+
+            TryCache(line.ParseBody,              stmtIdx: si, isBody: true,
+                                                  directGotoLabel: directUncondLabel);
+
+            // Only cache goto token lists separately when NOT absorbed into body
+            if (directUncondLabel == null)
+                TryCache(line.ParseUnconditionalGoto, stmtIdx: si, isBody: false);
             TryCache(line.ParseSuccessGoto,       stmtIdx: si, isBody: false);
             TryCache(line.ParseFailureGoto,       stmtIdx: si, isBody: false);
-            TryCache(line.ParseUnconditionalGoto, stmtIdx: si, isBody: false);
         }
     }
 
-    private void TryCache(List<Token> tokens, int stmtIdx, bool isBody)
+    private void TryCache(List<Token> tokens, int stmtIdx, bool isBody,
+                          string? directGotoLabel = null)
     {
-        if (tokens.Count == 0) return;
+        if (tokens.Count == 0 && directGotoLabel == null) return;
+        if (tokens.Count == 0 && !isBody) return;
         if (MsilCache.ContainsKey(tokens)) return;
 
-        var dm = EmitAndCache(tokens, stmtIdx, isBody);
+        var dm = EmitAndCache(tokens, stmtIdx, isBody, directGotoLabel);
         if (dm == null) return;
 
         int idx = MsilDelegates.Count;
@@ -156,7 +181,8 @@ public partial class Builder
     /// return it as an <c>Action&lt;Executive&gt;</c>, or <c>null</c> if the
     /// token list contains nothing emittable (structural tokens only).
     /// </summary>
-    private Func<Executive, int>? EmitAndCache(List<Token> tokens, int stmtIdx, bool isBody)
+    private Func<Executive, int>? EmitAndCache(List<Token> tokens, int stmtIdx, bool isBody,
+                                               string? directGotoLabel = null)
     {
         var dm = new DynamicMethod(
             name:            "Snobol4_Expr",
@@ -440,13 +466,26 @@ public partial class Builder
         while (choiceLabels.Count > 0)
             il.MarkLabel(choiceLabels.Pop());
 
-        if (!anyEmitted) return null;
+        // A body-only delegate with no tokens is valid when directGotoLabel is set
+        // (e.g. a label-only statement with :(GOTO) but no expression body).
+        if (!anyEmitted && directGotoLabel == null) return null;
 
-        // ── Body delegates: finalize + return fall-through sentinel ───────
+        // ── Body delegates: finalize + goto / fall-through return ─────────
         if (isBody)
         {
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Call, _finalizeStatementMsil);
+
+            if (directGotoLabel != null)
+            {
+                // Bake the label into IL — returns the target IP directly.
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldstr, directGotoLabel);
+                il.Emit(OpCodes.Ldc_I4, 23);          // error code matching GotoIndirect
+                il.Emit(OpCodes.Call, _resolveLabel);
+                il.Emit(OpCodes.Ret);
+                return (Func<Executive, int>)dm.CreateDelegate(typeof(Func<Executive, int>));
+            }
         }
 
         // Return int.MinValue = "fall through" (loop advances IP normally)

@@ -119,4 +119,29 @@ public partial class Executive
         AmpLastLineNumber = AmpCurrentLineNumber;
         if (ErrorJump > 0) ProcessTrappedErrorThreaded();
     }
+
+    /// <summary>
+    /// Resolve a label string to the next instruction pointer the execute loop
+    /// should jump to.  Mirrors <c>OpCode.GotoIndirect</c> exactly.
+    /// Return value follows delegate conventions:
+    ///   &gt;= 0        = jump to this IP
+    ///   -1          = end of program (Halt)
+    ///   -2 .. -7    = RETURN / FRETURN / NRETURN / etc. exit codes
+    ///   int.MinValue = label not found (error already logged)
+    /// </summary>
+    internal int ResolveLabel(string sym, int errorCode = 23)
+    {
+        var target = LabelTable[sym];
+        if (target == -1)                 return -1;
+        if (target <= -2 && target >= -7) return target;
+        if (target >= 0)
+        {
+            var instrIdx = StatementIndexToInstrIndex(target);
+            if (instrIdx >= 0) return instrIdx;
+            return target;   // CODE'd statement — caller treats as exitCode
+        }
+        // GotoNotFound or unknown label
+        LogRuntimeException(errorCode);
+        return -1;
+    }
 }

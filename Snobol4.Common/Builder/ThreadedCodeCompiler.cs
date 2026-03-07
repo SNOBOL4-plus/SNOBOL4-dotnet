@@ -143,6 +143,14 @@ internal sealed class ThreadedCodeCompiler
 
         if (line.ParseUnconditionalGoto.Count > 0)
         {
+            // Single bare-identifier unconditional goto :(LABEL) is absorbed
+            // into the body delegate — delegate calls ResolveLabel and returns IP.
+            bool absorbedIntoDelegate =
+                !line.DirectGotoFirst &&
+                line.ParseUnconditionalGoto.Count == 1 &&
+                line.ParseUnconditionalGoto[0].TokenType == Token.Type.IDENTIFIER &&
+                _parent.MsilCache.ContainsKey(line.ParseBody);
+            if (absorbedIntoDelegate) return;
             EmitUnconditionalGoto(line);
             return;
         }

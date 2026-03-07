@@ -146,6 +146,7 @@ public partial class Executive
                     var next = Parent.MsilDelegates[instr.IntOperand](this);
                     if (next == int.MinValue) break;          // fall through — IP already advanced
                     if (next < 0) { exitCode = next; goto Done; } // halt / RETURN / FRETURN etc.
+                    thread = Thread!;                         // AppendCompile may have extended Thread
                     InstructionPointer = next;                // explicit jump
                     break;
                 }
