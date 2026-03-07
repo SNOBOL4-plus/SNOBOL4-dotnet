@@ -125,6 +125,24 @@ public partial class Builder
             null, [typeof(string), typeof(int)], null)
         ?? throw new MissingMethodException(nameof(Executive), "ResolveLabel");
 
+    private static readonly MethodInfo _resolveLabelFromStack =
+        typeof(Executive).GetMethod("ResolveLabelFromStack",
+            BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
+            null, [typeof(int)], null)
+        ?? throw new MissingMethodException(nameof(Executive), "ResolveLabelFromStack");
+
+    private static readonly MethodInfo _resolveCodeLabelFromStack =
+        typeof(Executive).GetMethod("ResolveCodeLabelFromStack",
+            BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
+            null, [typeof(int)], null)
+        ?? throw new MissingMethodException(nameof(Executive), "ResolveCodeLabelFromStack");
+
+    private static readonly MethodInfo _checkGotoExprFailure =
+        typeof(Executive).GetMethod("CheckGotoExprFailure",
+            BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
+            null, [], null)
+        ?? throw new MissingMethodException(nameof(Executive), "CheckGotoExprFailure");
+
     // -----------------------------------------------------------------------
     // Entry point — called from Builder after ResolveSlots()
     // -----------------------------------------------------------------------
@@ -207,18 +225,29 @@ public partial class Builder
     }
 
     private void TryCache(List<Token> tokens, int stmtIdx, bool isBody,
-                          string? directGotoLabel = null,
-                          string? successLabel    = null,
-                          string? failureLabel    = null,
-                          bool    successFirst    = false)
+                          string?      directGotoLabel  = null,
+                          List<Token>? indirectGotoExpr = null,
+                          bool         indirectGotoCode = false,
+                          string?      successLabel     = null,
+                          List<Token>? successExpr      = null,
+                          bool         successExprCode  = false,
+                          string?      failureLabel     = null,
+                          List<Token>? failureExpr      = null,
+                          bool         failureExprCode  = false,
+                          bool         successFirst     = false)
     {
-        bool hasGoto = directGotoLabel != null || successLabel != null || failureLabel != null;
+        bool hasGoto = directGotoLabel  != null || indirectGotoExpr != null ||
+                       successLabel     != null || successExpr      != null ||
+                       failureLabel     != null || failureExpr      != null;
         if (tokens.Count == 0 && !hasGoto) return;
         if (tokens.Count == 0 && !isBody) return;
         if (MsilCache.ContainsKey(tokens)) return;
 
-        var dm = EmitAndCache(tokens, stmtIdx, isBody, directGotoLabel,
-                              successLabel, failureLabel, successFirst);
+        var dm = EmitAndCache(tokens, stmtIdx, isBody,
+                              directGotoLabel,  indirectGotoExpr, indirectGotoCode,
+                              successLabel,     successExpr,      successExprCode,
+                              failureLabel,     failureExpr,      failureExprCode,
+                              successFirst);
         if (dm == null) return;
 
         int idx = MsilDelegates.Count;
@@ -230,10 +259,16 @@ public partial class Builder
     /// token list contains nothing emittable (structural tokens only).
     /// </summary>
     private Func<Executive, int>? EmitAndCache(List<Token> tokens, int stmtIdx, bool isBody,
-                                               string? directGotoLabel = null,
-                                               string? successLabel    = null,
-                                               string? failureLabel    = null,
-                                               bool    successFirst    = false)
+                                               string?      directGotoLabel  = null,
+                                               List<Token>? indirectGotoExpr = null,
+                                               bool         indirectGotoCode = false,
+                                               string?      successLabel     = null,
+                                               List<Token>? successExpr      = null,
+                                               bool         successExprCode  = false,
+                                               string?      failureLabel     = null,
+                                               List<Token>? failureExpr      = null,
+                                               bool         failureExprCode  = false,
+                                               bool         successFirst     = false)
     {
         var dm = new DynamicMethod(
             name:            "Snobol4_Expr",
@@ -270,255 +305,25 @@ public partial class Builder
 
         bool anyEmitted = false;
 
+        var pendingFunctionNames2 = new Stack<string>();
+        var choiceLabels2         = new Stack<Label>();
+
         foreach (var t in tokens)
         {
-            switch (t.TokenType)
-            {
-                // ── Binary operators ──────────────────────────────────────
-                case Token.Type.BINARY_PLUS:
-                    EmitOperator(il, OpCode.OpAdd, 2);      anyEmitted = true; break;
-                case Token.Type.BINARY_MINUS:
-                    EmitOperator(il, OpCode.OpSubtract, 2); anyEmitted = true; break;
-                case Token.Type.BINARY_STAR:
-                    EmitOperator(il, OpCode.OpMultiply, 2); anyEmitted = true; break;
-                case Token.Type.BINARY_SLASH:
-                    EmitOperator(il, OpCode.OpDivide, 2);   anyEmitted = true; break;
-                case Token.Type.BINARY_CARET:
-                    EmitOperator(il, OpCode.OpPower, 2);    anyEmitted = true; break;
-                case Token.Type.BINARY_CONCAT:
-                    EmitOperator(il, OpCode.OpConcat, 2);   anyEmitted = true; break;
-                case Token.Type.BINARY_PIPE:
-                    EmitOperator(il, OpCode.OpAlt, 2);      anyEmitted = true; break;
-                case Token.Type.BINARY_PERIOD:
-                    EmitOperator(il, OpCode.OpPeriod, 2);   anyEmitted = true; break;
-                case Token.Type.BINARY_DOLLAR:
-                    EmitOperator(il, OpCode.OpDollar, 2);   anyEmitted = true; break;
-                case Token.Type.BINARY_QUESTION:
-                    EmitOperator(il, OpCode.OpQuestion, 2); anyEmitted = true; break;
-                case Token.Type.BINARY_AT:
-                    EmitOperator(il, OpCode.OpAt, 2);       anyEmitted = true; break;
-                case Token.Type.BINARY_AMPERSAND:
-                    EmitOperator(il, OpCode.OpAmpersand, 2);anyEmitted = true; break;
-                case Token.Type.BINARY_PERCENT:
-                    EmitOperator(il, OpCode.OpPercent, 2);  anyEmitted = true; break;
-                case Token.Type.BINARY_HASH:
-                    EmitOperator(il, OpCode.OpHash, 2);     anyEmitted = true; break;
-                case Token.Type.BINARY_TILDE:
-                    EmitOperator(il, OpCode.OpTilde, 2);    anyEmitted = true; break;
-                case Token.Type.BINARY_EQUAL:
-                    il.Emit(OpCodes.Ldarg_0);
-                    il.Emit(OpCodes.Call, _binaryEquals);
-                    anyEmitted = true; break;
-
-                // ── Unary operators ───────────────────────────────────────
-                case Token.Type.UNARY_OPERATOR:
-                {
-                    var opCode = t.MatchedString switch
-                    {
-                        "-" => OpCode.OpUnaryMinus,
-                        "+" => OpCode.OpUnaryPlus,
-                        "$" => OpCode.OpIndirection,
-                        "&" => OpCode.OpKeyword,
-                        "." => OpCode.OpName,
-                        "~" => OpCode.OpNegation,
-                        "?" => OpCode.OpInterrogation,
-                        "@" => OpCode.OpUnaryAt,
-                        "%" => OpCode.OpUnaryPercent,
-                        "#" => OpCode.OpUnaryHash,
-                        "/" => OpCode.OpUnarySlash,
-                        _   => OpCode.OpUnaryOpsyn
-                    };
-
-                    // Argument counts must match ThreadedExecuteLoop exactly:
-                    // ~ (Negation) and ? (Interrogation) operate directly on the
-                    // stack top without extracting arguments — they take 0 args.
-                    // All other unary operators pop 1 argument.
-                    int unaryArgCount = opCode is OpCode.OpNegation or OpCode.OpInterrogation
-                        ? 0 : 1;
-
-                    if (opCode != OpCode.OpUnaryOpsyn)
-                    {
-                        EmitOperator(il, opCode, unaryArgCount);
-                    }
-                    else
-                    {
-                        // User-defined opsyn unary: call Operator("_X", 1)
-                        var key = "_" + t.MatchedString;
-                        il.Emit(OpCodes.Ldarg_0);
-                        il.Emit(OpCodes.Ldstr, key);
-                        il.Emit(OpCodes.Ldc_I4_1);
-                        il.Emit(OpCodes.Call, _operatorOpsyn);
-                    }
-                    anyEmitted = true;
-                    break;
-                }
-
-                // ── Variable push ─────────────────────────────────────────
-                case Token.Type.IDENTIFIER:
-                case Token.Type.IDENTIFIER_ARRAY_OR_TABLE:
-                {
-                    var key = FoldCase(t.MatchedString);
-                    if (!VariableSlotIndex.TryGetValue(key, out var slotIdx))
-                        return null;  // slot not found — fall back to threaded path
-                    il.Emit(OpCodes.Ldarg_0);
-                    il.Emit(OpCodes.Ldc_I4, slotIdx);
-                    il.Emit(OpCodes.Call, _pushVarBySlot);
-                    anyEmitted = true;
-                    break;
-                }
-
-                // ── Function call ─────────────────────────────────────────
-                case Token.Type.IDENTIFIER_FUNCTION:
-                    // In the MSIL path the function name is NOT pushed onto the
-                    // stack (unlike the threaded path).  Just record it for the
-                    // matching R_PAREN_FUNCTION.
-                    pendingFunctionNames.Push(t.MatchedString);
-                    break;
-
-                case Token.Type.R_PAREN_FUNCTION:
-                {
-                    var funcName = pendingFunctionNames.Pop();
-                    var key      = FoldCase(funcName);
-                    var argCount = (int)t.IntegerValue;
-                    var slotKey  = $"{key}/{argCount}";
-                    if (!FunctionSlotIndex.TryGetValue(slotKey, out var slotIdx))
-                        return null;  // slot not found — fall back to threaded path
-                    il.Emit(OpCodes.Ldarg_0);
-                    il.Emit(OpCodes.Ldc_I4, slotIdx);
-                    il.Emit(OpCodes.Ldc_I4, argCount);
-                    il.Emit(OpCodes.Call, _callFuncBySlot);
-                    anyEmitted = true;
-                    break;
-                }
-
-                // ── Literal constants ─────────────────────────────────────
-                case Token.Type.STRING:
-                {
-                    var poolIdx = Constants.GetOrAddString(t.MatchedString);
-                    il.Emit(OpCodes.Ldarg_0);
-                    il.Emit(OpCodes.Ldc_I4, poolIdx);
-                    il.Emit(OpCodes.Call, _pushConstByIndex);
-                    anyEmitted = true;
-                    break;
-                }
-
-                case Token.Type.NULL:
-                {
-                    var poolIdx = Constants.GetOrAddString("");
-                    il.Emit(OpCodes.Ldarg_0);
-                    il.Emit(OpCodes.Ldc_I4, poolIdx);
-                    il.Emit(OpCodes.Call, _pushConstByIndex);
-                    anyEmitted = true;
-                    break;
-                }
-
-                case Token.Type.INTEGER:
-                {
-                    var poolIdx = Constants.GetOrAddInteger(t.IntegerValue);
-                    il.Emit(OpCodes.Ldarg_0);
-                    il.Emit(OpCodes.Ldc_I4, poolIdx);
-                    il.Emit(OpCodes.Call, _pushConstByIndex);
-                    anyEmitted = true;
-                    break;
-                }
-
-                case Token.Type.REAL:
-                {
-                    var poolIdx = Constants.GetOrAddReal(t.DoubleValue);
-                    il.Emit(OpCodes.Ldarg_0);
-                    il.Emit(OpCodes.Ldc_I4, poolIdx);
-                    il.Emit(OpCodes.Call, _pushConstByIndex);
-                    anyEmitted = true;
-                    break;
-                }
-
-                // ── Star-function (deferred expression) ───────────────────
-                case Token.Type.EXPRESSION:
-                {
-                    // MatchedString is "Star00000000", "Star00000001", etc.
-                    var exprIdx = int.Parse(t.MatchedString[4..]);
-                    il.Emit(OpCodes.Ldarg_0);
-                    il.Emit(OpCodes.Ldc_I4, exprIdx);
-                    il.Emit(OpCodes.Call, _pushExprByIndex);
-                    anyEmitted = true;
-                    break;
-                }
-
-                // ── Indexing ──────────────────────────────────────────────
-                case Token.Type.R_ANGLE:
-                case Token.Type.R_SQUARE:
-                    il.Emit(OpCodes.Ldarg_0);
-                    il.Emit(OpCodes.Call, _indexCollection);
-                    anyEmitted = true;
-                    break;
-
-                // ── Choice operator (A,B) ─────────────────────────────────
-                case Token.Type.COMMA_CHOICE:
-                {
-                    // If the preceding expression succeeded, skip the alternative.
-                    // JumpOnSuccess means "jump if NOT failure" i.e. Failure == false.
-                    var skipLabel = il.DefineLabel();
-                    choiceLabels.Push(skipLabel);
-
-                    // if (!Failure) goto skipLabel
-                    il.Emit(OpCodes.Ldarg_0);
-                    il.Emit(OpCodes.Ldfld, _failureField);
-                    il.Emit(OpCodes.Brfalse_S, skipLabel);  // Failure==false → skip alternative
-
-                    // Previous expression failed: pop its result and clear failure flag
-                    il.Emit(OpCodes.Ldarg_0);
-                    il.Emit(OpCodes.Call, _choiceStartMethod);
-                    anyEmitted = true;
-                    break;
-                }
-
-                case Token.Type.R_PAREN_CHOICE:
-                {
-                    int levels = (int)t.IntegerValue;
-                    for (int i = 0; i < levels; i++)
-                        if (choiceLabels.Count > 0)
-                            il.MarkLabel(choiceLabels.Pop());
-                    anyEmitted = true;
-                    break;
-                }
-
-                // ── Structural tokens — no IL emitted ─────────────────────
-                case Token.Type.COLON:
-                case Token.Type.COMMA:
-                case Token.Type.FAILURE_GOTO:
-                case Token.Type.SUCCESS_GOTO:
-                case Token.Type.L_ANGLE:
-                case Token.Type.L_ANGLE_FAILURE:
-                case Token.Type.L_ANGLE_SUCCESS:
-                case Token.Type.L_ANGLE_UNCONDITIONAL:
-                case Token.Type.L_PAREN_CHOICE:
-                case Token.Type.L_PAREN_FAILURE:
-                case Token.Type.L_PAREN_FUNCTION:
-                case Token.Type.L_PAREN_SUCCESS:
-                case Token.Type.L_PAREN_UNCONDITIONAL:
-                case Token.Type.L_SQUARE:
-                case Token.Type.R_ANGLE_FAILURE:
-                case Token.Type.R_ANGLE_SUCCESS:
-                case Token.Type.R_ANGLE_UNCONDITIONAL:
-                case Token.Type.R_PAREN_SUCCESS:
-                case Token.Type.R_PAREN_UNCONDITIONAL:
-                case Token.Type.R_PAREN_FAILURE:
-                case Token.Type.SPACE:
-                case Token.Type.UNARY_STAR:
-                    break;
-
-                default:
-                    // Unknown token — bail out; caller falls back to threaded path
-                    return null;
-            }
+            if (!EmitSingleToken(il, t, pendingFunctionNames2, choiceLabels2))
+                return null;  // unhandled token → fall back to threaded path
+            if (t.TokenType != Token.Type.IDENTIFIER_FUNCTION)  // IDENTIFIER_FUNCTION emits nothing
+                anyEmitted = true;
         }
 
-        // Patch any remaining single-comma choice labels (no R_PAREN_CHOICE emitted)
-        while (choiceLabels.Count > 0)
-            il.MarkLabel(choiceLabels.Pop());
+        // Patch any remaining open choice labels.
+        while (choiceLabels2.Count > 0)
+            il.MarkLabel(choiceLabels2.Pop());
 
         // A body-only delegate with no tokens is valid when a goto is absorbed.
-        bool hasGoto = directGotoLabel != null || successLabel != null || failureLabel != null;
+        bool hasGoto = directGotoLabel  != null || indirectGotoExpr != null ||
+                       successLabel     != null || successExpr      != null ||
+                       failureLabel     != null || failureExpr      != null;
         if (!anyEmitted && !hasGoto) return null;
 
         // ── Body delegates: finalize + goto / fall-through return ─────────
@@ -529,7 +334,7 @@ public partial class Builder
 
             if (directGotoLabel != null)
             {
-                // Unconditional :(LABEL) — resolve label, return IP.
+                // Unconditional :(LABEL) — resolve label by name, return IP.
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Ldstr, directGotoLabel);
                 il.Emit(OpCodes.Ldc_I4, 23);
@@ -538,19 +343,153 @@ public partial class Builder
                 return (Func<Executive, int>)dm.CreateDelegate(typeof(Func<Executive, int>));
             }
 
+            if (indirectGotoExpr != null)
+            {
+                // Unconditional :(EXPR) / :<VAR> — eval expr, resolve from stack.
+                if (!EmitIndirectGotoIL(il, indirectGotoExpr, indirectGotoCode,
+                                        isConditional: false, isFailureSide: false))
+                    return null;
+                return (Func<Executive, int>)dm.CreateDelegate(typeof(Func<Executive, int>));
+            }
+
             if (successLabel != null || failureLabel != null)
             {
-                // Conditional gotos — branch on Failure field.
+                // Direct-label conditional gotos.
                 EmitConditionalGotoIL(il, successLabel, failureLabel, successFirst);
+                return (Func<Executive, int>)dm.CreateDelegate(typeof(Func<Executive, int>));
+            }
+
+            if (successExpr != null || failureExpr != null)
+            {
+                // Indirect-expression conditional gotos.
+                if (!EmitConditionalIndirectGotoIL(il,
+                        successExpr, successExprCode,
+                        failureExpr, failureExprCode,
+                        successFirst))
+                    return null;
                 return (Func<Executive, int>)dm.CreateDelegate(typeof(Func<Executive, int>));
             }
         }
 
-        // Return int.MinValue = "fall through" (loop advances IP normally)
+        // Return int.MinValue = "fall through" (loop advances IP normally).
         il.Emit(OpCodes.Ldc_I4, int.MinValue);
         il.Emit(OpCodes.Ret);
 
         return (Func<Executive, int>)dm.CreateDelegate(typeof(Func<Executive, int>));
+    }
+
+    // ── Indirect-goto IL emitters ────────────────────────────────────────
+
+    /// <summary>
+    /// Emit SaveFailure / expr tokens / CheckGotoExprFailure / RestoreFailure /
+    /// ResolveLabelFromStack (or ResolveCodeLabelFromStack) / Ret.
+    /// When <paramref name="isConditional"/> is true the whole block is wrapped
+    /// in a branch that skips it when the condition is not met.
+    /// Returns false when any token in <paramref name="gotoExpr"/> is unhandled.
+    /// </summary>
+    private bool EmitIndirectGotoIL(ILGenerator il, List<Token> gotoExpr, bool isCode,
+                                     bool isConditional, bool isFailureSide)
+    {
+        Label skipGoto = default;
+        if (isConditional)
+        {
+            skipGoto = il.DefineLabel();
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldfld, _failureField);
+            // Skip if the body-failure state is wrong for this side.
+            if (isFailureSide)
+                il.Emit(OpCodes.Brfalse, skipGoto);  // !Failure → skip failure goto
+            else
+                il.Emit(OpCodes.Brtrue,  skipGoto);  // Failure  → skip success goto
+        }
+
+        // SaveFailure: stash Failure in a local, clear it for expr eval.
+        var savedFailure = il.DeclareLocal(typeof(bool));
+        il.Emit(OpCodes.Ldarg_0);
+        il.Emit(OpCodes.Ldfld, _failureField);
+        il.Emit(OpCodes.Stloc, savedFailure);
+        il.Emit(OpCodes.Ldarg_0);
+        il.Emit(OpCodes.Ldc_I4_0);
+        il.Emit(OpCodes.Stfld, _failureField);
+
+        // Emit each token in the goto expression.
+        var gotoFunctionNames = new Stack<string>();
+        var gotoChoiceLabels  = new Stack<Label>();
+        foreach (var t in gotoExpr)
+        {
+            if (!EmitSingleToken(il, t, gotoFunctionNames, gotoChoiceLabels)) return false;
+        }
+        while (gotoChoiceLabels.Count > 0) il.MarkLabel(gotoChoiceLabels.Pop());
+
+        // CheckGotoExprFailure: if expr failed, log error 20 and fall through.
+        var exprOk = il.DefineLabel();
+        il.Emit(OpCodes.Ldarg_0);
+        il.Emit(OpCodes.Call, _checkGotoExprFailure);
+        il.Emit(OpCodes.Brfalse, exprOk);
+        // Restore Failure and fall through.
+        il.Emit(OpCodes.Ldarg_0);
+        il.Emit(OpCodes.Ldloc, savedFailure);
+        il.Emit(OpCodes.Stfld, _failureField);
+        il.Emit(OpCodes.Ldc_I4, int.MinValue);
+        il.Emit(OpCodes.Ret);
+        il.MarkLabel(exprOk);
+
+        // RestoreFailure.
+        il.Emit(OpCodes.Ldarg_0);
+        il.Emit(OpCodes.Ldloc, savedFailure);
+        il.Emit(OpCodes.Stfld, _failureField);
+
+        // For the failure side, clear Failure before dispatching.
+        if (isConditional && isFailureSide)
+        {
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldc_I4_0);
+            il.Emit(OpCodes.Stfld, _failureField);
+        }
+
+        // Resolve label from stack and return IP.
+        il.Emit(OpCodes.Ldarg_0);
+        il.Emit(OpCodes.Ldc_I4, isCode ? 24 : 23);
+        il.Emit(OpCodes.Call, isCode ? _resolveCodeLabelFromStack : _resolveLabelFromStack);
+        il.Emit(OpCodes.Ret);
+
+        if (isConditional)
+        {
+            il.MarkLabel(skipGoto);
+            // Restore Failure on the skip path (was clobbered by savedFailure stash).
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldloc, savedFailure);
+            il.Emit(OpCodes.Stfld, _failureField);
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Emit conditional indirect goto(s): :S(EXPR), :F(EXPR), or both.
+    /// </summary>
+    private bool EmitConditionalIndirectGotoIL(ILGenerator il,
+                                                List<Token>? successExpr, bool successCode,
+                                                List<Token>? failureExpr, bool failureCode,
+                                                bool successFirst)
+    {
+        if (successFirst)
+        {
+            if (successExpr != null)
+                if (!EmitIndirectGotoIL(il, successExpr, successCode, true, false)) return false;
+            if (failureExpr != null)
+                if (!EmitIndirectGotoIL(il, failureExpr, failureCode, true, true))  return false;
+        }
+        else
+        {
+            if (failureExpr != null)
+                if (!EmitIndirectGotoIL(il, failureExpr, failureCode, true, true))  return false;
+            if (successExpr != null)
+                if (!EmitIndirectGotoIL(il, successExpr, successCode, true, false)) return false;
+        }
+        il.Emit(OpCodes.Ldc_I4, int.MinValue);
+        il.Emit(OpCodes.Ret);
+        return true;
     }
 
     /// <summary>
@@ -636,6 +575,206 @@ public partial class Builder
                 il.MarkLabel(succPath);
                 EmitResolve(successLabel);
             }
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Per-token IL emitter — used by both the main body loop and
+    // EmitIndirectGotoIL for goto expression tokens.
+    // Returns false for any token type that is unhandled (caller should bail).
+    // -----------------------------------------------------------------------
+
+    private bool EmitSingleToken(ILGenerator il, Token t,
+                                  Stack<string> pendingFunctionNames,
+                                  Stack<Label>  choiceLabels)
+    {
+        switch (t.TokenType)
+        {
+            // ── Binary operators ──────────────────────────────────────
+            case Token.Type.BINARY_PLUS:      EmitOperator(il, OpCode.OpAdd,        2); return true;
+            case Token.Type.BINARY_MINUS:     EmitOperator(il, OpCode.OpSubtract,   2); return true;
+            case Token.Type.BINARY_STAR:      EmitOperator(il, OpCode.OpMultiply,   2); return true;
+            case Token.Type.BINARY_SLASH:     EmitOperator(il, OpCode.OpDivide,     2); return true;
+            case Token.Type.BINARY_CARET:     EmitOperator(il, OpCode.OpPower,      2); return true;
+            case Token.Type.BINARY_CONCAT:    EmitOperator(il, OpCode.OpConcat,     2); return true;
+            case Token.Type.BINARY_PIPE:      EmitOperator(il, OpCode.OpAlt,        2); return true;
+            case Token.Type.BINARY_PERIOD:    EmitOperator(il, OpCode.OpPeriod,     2); return true;
+            case Token.Type.BINARY_DOLLAR:    EmitOperator(il, OpCode.OpDollar,     2); return true;
+            case Token.Type.BINARY_QUESTION:  EmitOperator(il, OpCode.OpQuestion,   2); return true;
+            case Token.Type.BINARY_AT:        EmitOperator(il, OpCode.OpAt,         2); return true;
+            case Token.Type.BINARY_AMPERSAND: EmitOperator(il, OpCode.OpAmpersand,  2); return true;
+            case Token.Type.BINARY_PERCENT:   EmitOperator(il, OpCode.OpPercent,    2); return true;
+            case Token.Type.BINARY_HASH:      EmitOperator(il, OpCode.OpHash,       2); return true;
+            case Token.Type.BINARY_TILDE:     EmitOperator(il, OpCode.OpTilde,      2); return true;
+            case Token.Type.BINARY_EQUAL:
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Call, _binaryEquals);
+                return true;
+
+            // ── Unary operators ───────────────────────────────────────
+            case Token.Type.UNARY_OPERATOR:
+            {
+                var opCode = t.MatchedString switch
+                {
+                    "-" => OpCode.OpUnaryMinus,
+                    "+" => OpCode.OpUnaryPlus,
+                    "$" => OpCode.OpIndirection,
+                    "&" => OpCode.OpKeyword,
+                    "." => OpCode.OpName,
+                    "~" => OpCode.OpNegation,
+                    "?" => OpCode.OpInterrogation,
+                    "@" => OpCode.OpUnaryAt,
+                    "%" => OpCode.OpUnaryPercent,
+                    "#" => OpCode.OpUnaryHash,
+                    "/" => OpCode.OpUnarySlash,
+                    _   => OpCode.OpUnaryOpsyn
+                };
+                int unaryArgCount = opCode is OpCode.OpNegation or OpCode.OpInterrogation ? 0 : 1;
+                if (opCode != OpCode.OpUnaryOpsyn)
+                {
+                    EmitOperator(il, opCode, unaryArgCount);
+                }
+                else
+                {
+                    var key = "_" + t.MatchedString;
+                    il.Emit(OpCodes.Ldarg_0);
+                    il.Emit(OpCodes.Ldstr, key);
+                    il.Emit(OpCodes.Ldc_I4_1);
+                    il.Emit(OpCodes.Call, _operatorOpsyn);
+                }
+                return true;
+            }
+
+            // ── Variable push ─────────────────────────────────────────
+            case Token.Type.IDENTIFIER:
+            case Token.Type.IDENTIFIER_ARRAY_OR_TABLE:
+            {
+                var key = FoldCase(t.MatchedString);
+                if (!VariableSlotIndex.TryGetValue(key, out var slotIdx)) return false;
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldc_I4, slotIdx);
+                il.Emit(OpCodes.Call, _pushVarBySlot);
+                return true;
+            }
+
+            // ── Function call ─────────────────────────────────────────
+            case Token.Type.IDENTIFIER_FUNCTION:
+                pendingFunctionNames.Push(t.MatchedString);
+                return true;  // nothing emitted yet — matched by R_PAREN_FUNCTION
+
+            case Token.Type.R_PAREN_FUNCTION:
+            {
+                var funcName = pendingFunctionNames.Pop();
+                var key      = FoldCase(funcName);
+                var argCount = (int)t.IntegerValue;
+                var slotKey  = $"{key}/{argCount}";
+                if (!FunctionSlotIndex.TryGetValue(slotKey, out var slotIdx)) return false;
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldc_I4, slotIdx);
+                il.Emit(OpCodes.Ldc_I4, argCount);
+                il.Emit(OpCodes.Call, _callFuncBySlot);
+                return true;
+            }
+
+            // ── Literal constants ─────────────────────────────────────
+            case Token.Type.STRING:
+            {
+                var poolIdx = Constants.GetOrAddString(t.MatchedString);
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldc_I4, poolIdx);
+                il.Emit(OpCodes.Call, _pushConstByIndex);
+                return true;
+            }
+            case Token.Type.NULL:
+            {
+                var poolIdx = Constants.GetOrAddString("");
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldc_I4, poolIdx);
+                il.Emit(OpCodes.Call, _pushConstByIndex);
+                return true;
+            }
+            case Token.Type.INTEGER:
+            {
+                var poolIdx = Constants.GetOrAddInteger(t.IntegerValue);
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldc_I4, poolIdx);
+                il.Emit(OpCodes.Call, _pushConstByIndex);
+                return true;
+            }
+            case Token.Type.REAL:
+            {
+                var poolIdx = Constants.GetOrAddReal(t.DoubleValue);
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldc_I4, poolIdx);
+                il.Emit(OpCodes.Call, _pushConstByIndex);
+                return true;
+            }
+
+            // ── Star-function (deferred expression) ───────────────────
+            case Token.Type.EXPRESSION:
+            {
+                var exprIdx = int.Parse(t.MatchedString[4..]);
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldc_I4, exprIdx);
+                il.Emit(OpCodes.Call, _pushExprByIndex);
+                return true;
+            }
+
+            // ── Indexing ──────────────────────────────────────────────
+            case Token.Type.R_ANGLE:
+            case Token.Type.R_SQUARE:
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Call, _indexCollection);
+                return true;
+
+            // ── Choice operator (A,B) ─────────────────────────────────
+            case Token.Type.COMMA_CHOICE:
+            {
+                var skipLabel = il.DefineLabel();
+                choiceLabels.Push(skipLabel);
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldfld, _failureField);
+                il.Emit(OpCodes.Brfalse_S, skipLabel);
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Call, _choiceStartMethod);
+                return true;
+            }
+            case Token.Type.R_PAREN_CHOICE:
+            {
+                int levels = (int)t.IntegerValue;
+                for (int i = 0; i < levels; i++)
+                    if (choiceLabels.Count > 0)
+                        il.MarkLabel(choiceLabels.Pop());
+                return true;
+            }
+
+            // ── Structural tokens — no IL emitted ─────────────────────
+            case Token.Type.COLON:
+            case Token.Type.COMMA:
+            case Token.Type.FAILURE_GOTO:
+            case Token.Type.SUCCESS_GOTO:
+            case Token.Type.L_ANGLE:
+            case Token.Type.L_ANGLE_FAILURE:
+            case Token.Type.L_ANGLE_SUCCESS:
+            case Token.Type.L_ANGLE_UNCONDITIONAL:
+            case Token.Type.L_PAREN_CHOICE:
+            case Token.Type.L_PAREN_FAILURE:
+            case Token.Type.L_PAREN_FUNCTION:
+            case Token.Type.L_PAREN_SUCCESS:
+            case Token.Type.L_PAREN_UNCONDITIONAL:
+            case Token.Type.L_SQUARE:
+            case Token.Type.R_ANGLE_FAILURE:
+            case Token.Type.R_ANGLE_SUCCESS:
+            case Token.Type.R_ANGLE_UNCONDITIONAL:
+            case Token.Type.R_PAREN_SUCCESS:
+            case Token.Type.R_PAREN_UNCONDITIONAL:
+            case Token.Type.R_PAREN_FAILURE:
+            case Token.Type.SPACE:
+            case Token.Type.UNARY_STAR:
+                return true;
+
+            default:
+                return false;  // unhandled — caller falls back to threaded path
         }
     }
 

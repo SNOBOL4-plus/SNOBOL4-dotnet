@@ -600,4 +600,35 @@ end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
         Assert.AreEqual(10L, Int("N", b));
     }
+
+    // -----------------------------------------------------------------------
+    // Step 11 tests — indirect / computed gotos :(EXPR) / :<VAR>
+    // -----------------------------------------------------------------------
+
+    [TestMethod]
+    public void Step11_IndirectUnconditionalGoto_CodeVar()
+    {
+        // :<VAR> (angle bracket, GotoIndirectCode path) absorbed into delegate.
+        var b = Run("        N = 0\n        dest = code(' N = 42 :(end)')\n        :<dest>\n        N = 99\nend");
+        Assert.AreEqual(0, b.ErrorCodeHistory.Count);
+        Assert.AreEqual(42L, Int("N", b));
+    }
+
+    [TestMethod]
+    public void Step11_IndirectConditionalGoto_SuccessCodeVar()
+    {
+        // :S<VAR> (success, GotoIndirectCode) absorbed into delegate.
+        var b = Run("        N = 0\n        dest = code(' N = 42 :(end)')\n        eq(1, 1)  :s<dest>\n        N = 99\nend");
+        Assert.AreEqual(0, b.ErrorCodeHistory.Count);
+        Assert.AreEqual(42L, Int("N", b));
+    }
+
+    [TestMethod]
+    public void Step11_IndirectConditionalGoto_FailureCodeVar()
+    {
+        // :F<VAR> (failure, GotoIndirectCode) absorbed into delegate.
+        var b = Run("        N = 0\n        dest = code(' N = 42 :(end)')\n        eq(1, 2)  :f<dest>\n        N = 99\nend");
+        Assert.AreEqual(0, b.ErrorCodeHistory.Count);
+        Assert.AreEqual(42L, Int("N", b));
+    }
 }

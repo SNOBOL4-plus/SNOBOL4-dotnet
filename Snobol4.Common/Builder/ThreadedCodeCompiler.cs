@@ -143,14 +143,12 @@ internal sealed class ThreadedCodeCompiler
 
         if (line.ParseUnconditionalGoto.Count > 0)
         {
-            // Single bare-identifier unconditional goto :(LABEL) is absorbed
-            // into the body delegate — delegate calls ResolveLabel and returns IP.
-            bool absorbedIntoDelegate =
-                !line.DirectGotoFirst &&
-                line.ParseUnconditionalGoto.Count == 1 &&
-                line.ParseUnconditionalGoto[0].TokenType == Token.Type.IDENTIFIER &&
-                _parent.MsilCache.ContainsKey(line.ParseBody);
-            if (absorbedIntoDelegate) return;
+            // A goto is absorbed into the body delegate when the body IS in MsilCache
+            // AND the goto token list is NOT in MsilCache as a separate entry.
+            // This covers both direct :(LABEL) and indirect :(EXPR) / :<VAR>.
+            bool bodyCompiled   = _parent.MsilCache.ContainsKey(line.ParseBody);
+            bool gotoSeparate   = _parent.MsilCache.ContainsKey(line.ParseUnconditionalGoto);
+            if (bodyCompiled && !gotoSeparate) return;  // absorbed → delegate handles it
             EmitUnconditionalGoto(line);
             return;
         }
@@ -165,28 +163,20 @@ internal sealed class ThreadedCodeCompiler
         }
 
         // Check if conditional gotos were absorbed into the body delegate.
-        bool hasBoth = line.ParseSuccessGoto.Count > 0 && line.ParseFailureGoto.Count > 0;
-        bool successIsFirst  = line.SuccessFirst;
-        bool successIsDirect = hasBoth
-            ? (successIsFirst ? line.DirectGotoFirst : line.DirectGotoSecond)
-            : line.DirectGotoFirst;
-        bool failureIsDirect = hasBoth
-            ? (successIsFirst ? line.DirectGotoSecond : line.DirectGotoFirst)
-            : line.DirectGotoFirst;
-
+        // Absorbed = body is in MsilCache AND the goto expression is NOT separately cached.
+        bool bodyCompiled2 = _parent.MsilCache.ContainsKey(line.ParseBody);
         bool successAbsorbed =
-            !successIsDirect &&
-            line.ParseSuccessGoto.Count == 1 &&
-            line.ParseSuccessGoto[0].TokenType == Token.Type.IDENTIFIER &&
-            _parent.MsilCache.ContainsKey(line.ParseBody);
+            bodyCompiled2 &&
+            line.ParseSuccessGoto.Count > 0 &&
+            !_parent.MsilCache.ContainsKey(line.ParseSuccessGoto);
 
         bool failureAbsorbed =
-            !failureIsDirect &&
-            line.ParseFailureGoto.Count == 1 &&
-            line.ParseFailureGoto[0].TokenType == Token.Type.IDENTIFIER &&
-            _parent.MsilCache.ContainsKey(line.ParseBody);
+            bodyCompiled2 &&
+            line.ParseFailureGoto.Count > 0 &&
+            !_parent.MsilCache.ContainsKey(line.ParseFailureGoto);
 
-        // Both-goto: partial absorption not supported — absorb only if both qualify.
+        // Both-goto: absorb only if both qualified (partial not supported).
+        bool hasBoth = line.ParseSuccessGoto.Count > 0 && line.ParseFailureGoto.Count > 0;
         if (hasBoth && successAbsorbed != failureAbsorbed)
         { successAbsorbed = false; failureAbsorbed = false; }
 

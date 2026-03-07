@@ -144,4 +144,62 @@ public partial class Executive
         LogRuntimeException(errorCode);
         return -1;
     }
+
+    /// <summary>
+    /// Pop the top of <see cref="SystemStack"/>, look up its Symbol in
+    /// <see cref="LabelTable"/>, and return the target instruction pointer.
+    /// Mirrors <c>OpCode.GotoIndirect</c> exactly.
+    /// </summary>
+    internal int ResolveLabelFromStack(int errorCode = 23)
+    {
+        var sym    = SystemStack.Peek().Symbol;
+        var target = LabelTable[sym];
+        SystemStack.Pop();
+        if (target == -1)                 return -1;
+        if (target <= -2 && target >= -7) return target;
+        if (target >= 0)
+        {
+            var instrIdx = StatementIndexToInstrIndex(target);
+            if (instrIdx >= 0) return instrIdx;
+            return target;
+        }
+        LogRuntimeException(errorCode);
+        return -1;
+    }
+
+    /// <summary>
+    /// Pop the top of <see cref="SystemStack"/>, look up its Symbol in
+    /// <see cref="IdentifierTable"/> as a <see cref="CodeVar"/>, and return
+    /// the target instruction pointer.
+    /// Mirrors <c>OpCode.GotoIndirectCode</c> exactly.
+    /// </summary>
+    internal int ResolveCodeLabelFromStack(int errorCode = 24)
+    {
+        var sym = SystemStack.Peek().Symbol;
+        SystemStack.Pop();
+        if (IdentifierTable.TryGetValue(sym, out var v) && v is CodeVar cv)
+        {
+            var target = cv.StatementNumber;
+            if (target == -1)                 return -1;
+            if (target <= -2 && target >= -7) return target;
+            var instrIdx = StatementIndexToInstrIndex(target);
+            if (instrIdx >= 0) return instrIdx;
+            return target;
+        }
+        LogRuntimeException(errorCode);
+        return -1;
+    }
+
+    /// <summary>
+    /// Called after evaluating a goto expression.  If <see cref="Failure"/>
+    /// is set the expression failed: log error 20 and pop the extra var the
+    /// logger pushed.  Returns <c>true</c> when the goto should be skipped.
+    /// </summary>
+    internal bool CheckGotoExprFailure()
+    {
+        if (!Failure) return false;
+        LogRuntimeException(20);
+        SystemStack.Pop();   // pop the StringVar(false) pushed by LogRuntimeException
+        return true;
+    }
 }
