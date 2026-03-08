@@ -7,8 +7,11 @@ namespace Test.TestLexer;
 [TestClass]
 public class SetupTests
 {
-    public static string WindowsOutput = @"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\";
-    public static string LinuxOutput = @"/mnt/c/Users/jcooper/Documents/Visual Studio 2022/Snobol4.Net/TestSnobol4/Output/";
+    public static string WindowsOutput = @"..\..\..\..\..\TestSnobol4\Output\";
+    public static string LinuxOutput =   @"../../../../../TestSnobol4/Output/";
+
+    public static string WindowsDll =     @"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net.Master\Snobol4.Net\CustomFunction\bin\Debug\net10.0\AreaLibrary.dll";
+    public static string LinuxDll =   @"\mnt\c\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net.Master\Snobol4.Net\CustomFunction\bin\Debug\net10.0\AreaLibrary.dll";
 
     internal static Builder SetupScript(string directives, string script, bool compileOnly = false)
     {
