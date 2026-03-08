@@ -280,9 +280,9 @@ end";
     [TestMethod]
     public void TEST_Input_001()
     {
-        var testFile = @"C:\Users\jcooper\Documents\Visual Studio 2022\Snobol4.Net\TestSnobol4\Output\TestInput.txt";
+        var testFile = Path.Combine(SetupTests.WindowsOutput, "TestInput.txt");
         if (SetupTests.IsLinux)
-            testFile = @"/mnt/c/Users/jcooper/Documents/Visual Studio 2022/Snobol4.Net/TestSnobol4/Output/TestInput.txt";
+            testFile = Path.Combine(SetupTests.LinuxOutput, "TestInput.txt");
 
         var s = $@"
         input('input','2','{testFile}')
