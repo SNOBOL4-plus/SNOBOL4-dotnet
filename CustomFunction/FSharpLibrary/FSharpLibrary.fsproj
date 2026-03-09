@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>FSharpLibrary</AssemblyName>
+    <Nullable>enable</Nullable>
+    <EnableDefaultNamespaceProvider>false</EnableDefaultNamespaceProvider>
+    <!-- Copy FSharp.Core.dll alongside the plugin DLL so AssemblyDependencyResolver
+         can find it on Linux (where it is not in a globally-known location). -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="FSharpLibrary.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Snobol4.Common\Snobol4.Common.csproj">
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

@@ -18,6 +18,9 @@ public partial class Executive
         dynamic? instance = dll.CreateInstance(fullClassName);
         if (instance == null)
             throw new ApplicationException("internal void Execute(Assembly dll, AssemblyLoadContext _, string fullClassName)");
+        // Run() populates SourceCode, SourceFiles, LabelTable, Statements etc.
+        // In threaded mode, ExecuteLoop() will detect Thread != null and
+        // call ThreadedExecuteLoop instead of the C# statement dispatch.
         instance.Run(this);
         _timerExecute.Stop();
     }

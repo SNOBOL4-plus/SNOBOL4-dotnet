@@ -7,12 +7,12 @@ namespace Test.FunctionControl;
 public class Opsyn
 {
 
+    // Requires AreaLibrary.dll — resolved from solution root via SetupTests.AreaLibraryPath.
     [TestMethod]
     public void TEST_Opsyn_001()
     {
-        var dllName = SetupTests.WindowsDll;
-        if (SetupTests.IsLinux)
-            dllName = SetupTests.LinuxDll;
+        var dllName = SetupTests.AreaLibraryPath;
+        Assert.IsTrue(File.Exists(dllName), $"AreaLibrary.dll not found at: {dllName}");
 
         var s = $"""
 

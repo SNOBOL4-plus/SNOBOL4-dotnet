@@ -23,8 +23,14 @@ public class GenerateCSharpCode(Builder parent)
         _parent = parent;
 
         GeneratePre(nameSpace, className, firstInit);
-        GenerateStatements();
-        GenerateExpressions();
+        // In threaded mode, statement C# methods are not used (ThreadedExecuteLoop
+        // dispatches via Instruction[] instead). Skip generation to avoid Roslyn
+        // errors from missing Star method references.
+        if (!_parent.BuildOptions.UseThreadedExecution)
+        {
+            GenerateStatements();
+            GenerateExpressions();
+        }
 
         _csharpCode.AppendLine("}");
         MarkCodeAsCompiled();
@@ -86,14 +92,22 @@ public class GenerateCSharpCode(Builder parent)
         GenerateInitialSettings();
         GenerateSourceCodeData();
         GenerateKeywordData();
-        GenerateStatementMappings();
+        // In threaded mode, Statements[] and StarFunctionList are populated by
+        // the threaded compiler — skip Roslyn references to missing methods.
+        if (!_parent.BuildOptions.UseThreadedExecution)
+        {
+            GenerateStatementMappings();
+            GenerateStarFunctions();
+        }
         GenerateLabelMappings();
-        GenerateStarFunctions();
 
         if (firstInit)
         {
             GenerateSystemLabels();
-            _csharpCode.AppendLine("        x.ExecuteLoop(0);");
+            // In threaded mode, BuildMain calls ExecuteLoop(0) directly after
+            // setting up Thread — don't call it again from Roslyn's Run().
+            if (!_parent.BuildOptions.UseThreadedExecution)
+                _csharpCode.AppendLine("        x.ExecuteLoop(0);");
         }
 
         _csharpCode.AppendLine();
@@ -103,11 +117,14 @@ public class GenerateCSharpCode(Builder parent)
 
     private void GenerateEvalMode()
     {
-        var startIndex = _parent.Execute?.PreviousStarFunctionCount ?? 0;
-        for (var jStar = startIndex; jStar < _parent.ExpressionList.Count; ++jStar)
+        if (!_parent.BuildOptions.UseThreadedExecution)
         {
-            _csharpCode.AppendLine($"        // jStar: {jStar}");
-            _csharpCode.AppendLine($"        x.StarFunctionList.Add(Star{jStar:D8});");
+            var startIndex = _parent.Execute?.PreviousStarFunctionCount ?? 0;
+            for (var jStar = startIndex; jStar < _parent.ExpressionList.Count; ++jStar)
+            {
+                _csharpCode.AppendLine($"        // jStar: {jStar}");
+                _csharpCode.AppendLine($"        x.StarFunctionList.Add(Star{jStar:D8});");
+            }
         }
 
         _csharpCode.AppendLine();

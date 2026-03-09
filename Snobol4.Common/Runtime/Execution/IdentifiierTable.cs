@@ -21,6 +21,7 @@ public class IdentifierTable(Executive exec) : Dictionary<string, Var>
         {
             value.Symbol = symbol;
             base[value.Symbol] = value;
+            Exec.SyncVarSlot(symbol, value);   // keep VarSlotArray in sync
             Exec.TraceIdentifierValue(symbol);
         }
     }

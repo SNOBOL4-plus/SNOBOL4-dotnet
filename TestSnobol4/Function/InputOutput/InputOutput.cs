@@ -43,7 +43,7 @@ end";
         Assert.AreEqual(115, build.ErrorCodeHistory[0]);
     }
 
-
+    
 
     [TestMethod]
     public void TEST_116_001()
@@ -80,7 +80,7 @@ end";
         Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
         Assert.AreEqual(116, build.ErrorCodeHistory[0]);
     }
-
+    
     [TestMethod]
     public void TEST_116_004()
     {
@@ -128,7 +128,7 @@ end";
         Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
         Assert.AreEqual(116, build.ErrorCodeHistory[0]);
     }
-
+    
     [TestMethod]
     public void TEST_116_008()
     {
@@ -141,7 +141,7 @@ end";
         Assert.AreEqual(116, build.ErrorCodeHistory[0]);
     }
 
-    [TestMethod]
+                [TestMethod]
     public void TEST_157_001()
     {
         var s = @"
@@ -277,25 +277,32 @@ end";
         Assert.AreEqual(160, build.ErrorCodeHistory[0]);
     }
 
+    // Hardcoded Windows file path replaced with temp file containing known numeric data.
     [TestMethod]
     public void TEST_Input_001()
     {
-        var testFile = Path.Combine(SetupTests.WindowsOutput, "TestInput.txt");
-        if (SetupTests.IsLinux)
-            testFile = Path.Combine(SetupTests.LinuxOutput, "TestInput.txt");
+        var testFile = Path.GetTempFileName();
+        try
+        {
+            // a = -input        → -123  (line 1 = 123)
+            // b = input - input → -93   (line 2 = 15, line 3 = 108 → 15 - 108 = -93)
+            // c = atan(input)   → 1.19… (line 4 = 2.5 → atan(2.5) ≈ 1.1902899496825317)
+            File.WriteAllLines(testFile, new[] { "123", "15", "108", "2.5" });
 
-        var s = $@"
+            var s = $@"
         input('input','2','{testFile}')
 	    a = -input
 	    b = input - input
 	    c = atan(input)
 end";
-        var directives = "-b";
-        var build = SetupTests.SetupScript(directives, s);
-        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("-123", build.Execute!.IdentifierTable[build.FoldCase("a")].ToString());
-        Assert.AreEqual("-93", build.Execute!.IdentifierTable[build.FoldCase("b")].ToString());
-        Assert.AreEqual("1.1902899496825317", build.Execute!.IdentifierTable[build.FoldCase("c")].ToString());
+            var directives = "-b";
+            var build = SetupTests.SetupScript(directives, s);
+            Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+            Assert.AreEqual("-123", build.Execute!.IdentifierTable[build.FoldCase("a")].ToString());
+            Assert.AreEqual("-93", build.Execute!.IdentifierTable[build.FoldCase("b")].ToString());
+            Assert.AreEqual("1.1902899496825317", build.Execute!.IdentifierTable[build.FoldCase("c")].ToString());
+        }
+        finally { File.Delete(testFile); }
     }
 
     [TestMethod]
@@ -1030,5 +1037,8 @@ END
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
         Assert.AreEqual("1.0 -1.0 1.0 -1.0 1000.0 1E-05 10000.0 0.0001", build.Execute!.IdentifierTable[build.FoldCase("R1")].ToString());
+
     }
+
+
 }

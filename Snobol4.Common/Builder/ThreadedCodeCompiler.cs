@@ -1,0 +1,538 @@
+namespace Snobol4.Common;
+
+/// <summary>
+/// Compiles parsed SNOBOL4 source lines into a flat Instruction[] array.
+///
+/// Two-pass:
+///   Pass 1 — emit instructions, recording fixups for forward jumps
+///   Pass 2 — patch all jump targets once statement start indices are known
+/// </summary>
+internal sealed class ThreadedCodeCompiler
+{
+    private readonly Builder _parent;
+    private readonly List<Instruction> _thread = new(512);
+    private readonly List<int> _statementStart = new(128);
+    private readonly List<(int InstrIdx, int StmtIdx)> _jumpFixups = new(128);
+    private readonly Stack<string> _pendingFunctions = new();
+    private readonly Stack<int>    _choiceStack       = new();
+
+    internal ThreadedCodeCompiler(Builder parent)
+    {
+        _parent = parent;
+    }
+
+    internal Instruction[] Compile()
+    {
+        _thread.Clear();
+        _statementStart.Clear();
+        _jumpFixups.Clear();
+
+        Pass1_Emit();
+        var result = Pass2_Patch();
+
+        // Expose statement→instruction map to Builder for runtime goto resolution
+        _parent.StatementInstructionStarts = _statementStart.ToArray();
+
+        return result;
+    }
+
+    /// <summary>
+    /// Extends an existing thread with newly CODE'd statements.
+    /// stmtOffset = number of statements already compiled (index of first new one).
+    /// Returns the combined Instruction[] and updates StatementInstructionStarts.
+    /// </summary>
+    internal Instruction[] AppendCompile(Instruction[] existing, int stmtOffset)
+    {
+        _thread.Clear();
+        _statementStart.Clear();
+        _jumpFixups.Clear();
+
+        var lines = _parent.Code.SourceLines;
+        int instrOffset = existing.Length - 1; // existing ends with Halt; overwrite it
+
+        for (var si = 0; si < lines.Count; si++)
+        {
+            var line = lines[si];
+            _statementStart.Add(_thread.Count);
+            bool bodyHasDelegate = _parent.MsilCache.ContainsKey(line.ParseBody);
+            if (!bodyHasDelegate)
+                Emit(new Instruction(OpCode.Init, stmtOffset + si));
+            EmitTokenList(line.ParseBody);
+            if (!bodyHasDelegate)
+                Emit(new Instruction(OpCode.Finalize));
+            EmitGotos(line, si);
+        }
+        Emit(new Instruction(OpCode.Halt));
+
+        // Pass 2: patch jump targets within the new fragment
+        var newArr = Pass2_Patch();
+
+        // We insert a guard Jump at instrOffset so that any fall-through from the
+        // main program (e.g. a CallMsil returning int.MinValue that naturally
+        // advances IP into what used to be the Halt) goes to the new Halt instead
+        // of accidentally executing the first CODE'd statement.
+        // Layout: [existing_without_Halt | Jump(newHalt) | code'd content | Halt]
+        // The guard occupies one slot, so all CODE'd instruction indices are offset
+        // by instrOffset + 1, and the new Halt is at instrOffset + 1 + newArr.Length - 1.
+        int guardSlot = instrOffset;                          // index of the guard Jump
+        int codeStart = instrOffset + 1;                      // first CODE'd instruction
+        int newHalt   = codeStart + newArr.Length - 1;        // index of new Halt
+
+        var combined = new Instruction[codeStart + newArr.Length];
+        Array.Copy(existing, combined, instrOffset);          // existing without trailing Halt
+
+        // Patch existing jump/branch targets that pointed to the old Halt.
+        for (int i = 0; i < instrOffset; i++)
+        {
+            var old2 = combined[i];
+            if (old2.Op is OpCode.Jump or OpCode.JumpOnFailure or OpCode.JumpOnSuccess
+                && old2.IntOperand == instrOffset)   // was pointing to old Halt
+            {
+                combined[i] = new Instruction(old2.Op, newHalt, old2.IntOperand2);
+            }
+        }
+
+        // Guard: unconditional jump from the boundary to the new Halt.
+        // Any fall-through from the main program hits this and goes to Halt.
+        combined[guardSlot] = new Instruction(OpCode.Jump, newHalt);
+
+        // Copy and fix up CODE'd instructions.
+        for (int i = 0; i < newArr.Length; i++)
+        {
+            var instr = newArr[i];
+            // Adjust absolute instruction targets embedded in Jump/JumpOn* ops.
+            // CODE'd jumps are relative to their own fragment (0-based); shift by codeStart.
+            if (instr.Op is OpCode.Jump or OpCode.JumpOnFailure or OpCode.JumpOnSuccess
+                && instr.IntOperand >= 0)
+            {
+                instr = new Instruction(instr.Op, instr.IntOperand + codeStart, instr.IntOperand2);
+            }
+            combined[codeStart + i] = instr;
+        }
+
+        // Extend StatementInstructionStarts — CODE'd statement starts are relative to
+        // their fragment origin (0-based); shift by codeStart (not instrOffset).
+        var old = _parent.StatementInstructionStarts ?? [];
+        int newLen = stmtOffset + _statementStart.Count;
+        var newStarts = new int[newLen];
+        for (int i = 0; i < old.Length && i < newLen; i++) newStarts[i] = old[i];
+        for (int i = 0; i < _statementStart.Count; i++)
+            newStarts[stmtOffset + i] = _statementStart[i] + codeStart;
+        _parent.StatementInstructionStarts = newStarts;
+
+        return combined;
+    }
+
+    // -----------------------------------------------------------------------
+    // Pass 1
+    // -----------------------------------------------------------------------
+
+    private void Pass1_Emit()
+    {
+        var lines = _parent.Code.SourceLines;
+
+        for (var si = 0; si < lines.Count; si++)
+        {
+            var line = lines[si];
+            _statementStart.Add(_thread.Count);
+
+            // If the body has a compiled delegate, Init/Finalize are inlined
+            // inside it — skip emitting them as separate opcodes.
+            bool bodyHasDelegate = _parent.MsilCache.ContainsKey(line.ParseBody);
+
+            if (!bodyHasDelegate)
+                Emit(new Instruction(OpCode.Init, si));
+            EmitTokenList(line.ParseBody);
+            if (!bodyHasDelegate)
+                Emit(new Instruction(OpCode.Finalize));
+            EmitGotos(line, si);
+        }
+
+        Emit(new Instruction(OpCode.Halt));
+    }
+
+    // -----------------------------------------------------------------------
+    // Goto logic — mirrors GenerateStatementGotos in CodeGenerator
+    // -----------------------------------------------------------------------
+
+    private void EmitGotos(SourceLine line, int si)
+    {
+        int next = si + 1;
+
+        if (line.ParseUnconditionalGoto.Count > 0)
+        {
+            // A goto is absorbed into the body delegate when the body IS in MsilCache
+            // AND the goto token list is NOT in MsilCache as a separate entry.
+            // This covers both direct :(LABEL) and indirect :(EXPR) / :<VAR>.
+            bool bodyCompiled   = _parent.MsilCache.ContainsKey(line.ParseBody);
+            bool gotoSeparate   = _parent.MsilCache.ContainsKey(line.ParseUnconditionalGoto);
+            if (bodyCompiled && !gotoSeparate) return;  // absorbed → delegate handles it
+            EmitUnconditionalGoto(line);
+            return;
+        }
+
+        if (line.ParseFailureGoto.Count == 0 && line.ParseSuccessGoto.Count == 0)
+        {
+            // If the body is a compiled delegate it already returns int.MinValue
+            // (fall through) — no Jump opcode needed.
+            if (!_parent.MsilCache.ContainsKey(line.ParseBody))
+                EmitJumpToStmt(OpCode.Jump, next);
+            return;
+        }
+
+        // Check if conditional gotos were absorbed into the body delegate.
+        // Absorbed = body is in MsilCache AND the goto expression is NOT separately cached.
+        bool bodyCompiled2 = _parent.MsilCache.ContainsKey(line.ParseBody);
+        bool successAbsorbed =
+            bodyCompiled2 &&
+            line.ParseSuccessGoto.Count > 0 &&
+            !_parent.MsilCache.ContainsKey(line.ParseSuccessGoto);
+
+        bool failureAbsorbed =
+            bodyCompiled2 &&
+            line.ParseFailureGoto.Count > 0 &&
+            !_parent.MsilCache.ContainsKey(line.ParseFailureGoto);
+
+        // Both-goto: absorb only if both qualified (partial not supported).
+        bool hasBoth = line.ParseSuccessGoto.Count > 0 && line.ParseFailureGoto.Count > 0;
+        if (hasBoth && successAbsorbed != failureAbsorbed)
+        { successAbsorbed = false; failureAbsorbed = false; }
+
+        if (line.ParseSuccessGoto.Count > 0 && line.ParseFailureGoto.Count > 0)
+        {
+            if (successAbsorbed && failureAbsorbed) return;  // both in delegate
+            EmitBothGotos(line, next);
+            return;
+        }
+
+        if (line.ParseSuccessGoto.Count > 0)
+        {
+            if (successAbsorbed) return;
+            EmitSuccessOnly(line, next);
+            return;
+        }
+
+        if (failureAbsorbed) return;
+        EmitFailureOnly(line, next);
+    }
+
+    private void EmitUnconditionalGoto(SourceLine line)
+    {
+        Emit(new Instruction(OpCode.SaveFailure));
+        EmitTokenList(line.ParseUnconditionalGoto);
+        Emit(new Instruction(OpCode.CheckGotoFailure));
+        Emit(new Instruction(OpCode.RestoreFailure));
+        EmitDispatch(line.DirectGotoFirst);
+    }
+
+    private void EmitBothGotos(SourceLine line, int next)
+    {
+        if (line.SuccessFirst)
+        {
+            int fp = EmitPlaceholder(OpCode.JumpOnFailure);
+            EmitTokenList(line.ParseSuccessGoto);
+            Emit(new Instruction(OpCode.CheckGotoFailure));
+            EmitDispatch(line.DirectGotoFirst);
+            PatchHere(fp);
+            Emit(new Instruction(OpCode.ClearFailure));   // x.Failure = false before failure-goto eval
+            EmitTokenList(line.ParseFailureGoto);
+            Emit(new Instruction(OpCode.CheckGotoFailure));
+            Emit(new Instruction(OpCode.SetFailure));
+            EmitDispatch(line.DirectGotoSecond);
+        }
+        else
+        {
+            int sp = EmitPlaceholder(OpCode.JumpOnSuccess);
+            Emit(new Instruction(OpCode.ClearFailure));   // x.Failure = false before failure-goto eval
+            EmitTokenList(line.ParseFailureGoto);
+            Emit(new Instruction(OpCode.CheckGotoFailure));
+            Emit(new Instruction(OpCode.SetFailure));
+            EmitDispatch(line.DirectGotoFirst);
+            PatchHere(sp);
+            EmitTokenList(line.ParseSuccessGoto);
+            Emit(new Instruction(OpCode.CheckGotoFailure));
+            EmitDispatch(line.DirectGotoSecond);
+        }
+    }
+
+    private void EmitSuccessOnly(SourceLine line, int next)
+    {
+        EmitJumpToStmt(OpCode.JumpOnFailure, next);
+        EmitTokenList(line.ParseSuccessGoto);
+        Emit(new Instruction(OpCode.CheckGotoFailure));
+        EmitDispatch(line.DirectGotoFirst);
+    }
+
+    private void EmitFailureOnly(SourceLine line, int next)
+    {
+        EmitJumpToStmt(OpCode.JumpOnSuccess, next);
+        Emit(new Instruction(OpCode.ClearFailure));   // x.Failure = false before failure-goto eval
+        EmitTokenList(line.ParseFailureGoto);
+        Emit(new Instruction(OpCode.CheckGotoFailure));
+        Emit(new Instruction(OpCode.SetFailure));
+        EmitDispatch(line.DirectGotoFirst);
+    }
+
+    private void EmitDispatch(bool isDirect)
+    {
+        Emit(isDirect
+            ? new Instruction(OpCode.GotoIndirectCode, 24)
+            : new Instruction(OpCode.GotoIndirect,     23));
+    }
+
+    // -----------------------------------------------------------------------
+    // Token list → instructions
+    // -----------------------------------------------------------------------
+
+    private void EmitTokenList(List<Token> tokens)
+    {
+        // If BuilderEmitMsil has already JIT-compiled this token list into a
+        // DynamicMethod delegate, emit a single CallMsil instruction instead
+        // of the individual opcodes.  The threaded path is the fallback.
+        if (_parent.MsilCache.TryGetValue(tokens, out var delegateIdx))
+        {
+            Emit(new Instruction(OpCode.CallMsil, delegateIdx));
+            return;
+        }
+
+        foreach (var t in tokens)
+        {
+            switch (t.TokenType)
+            {
+                case Token.Type.BINARY_PLUS:      Emit(OpCode.OpAdd);       break;
+                case Token.Type.BINARY_MINUS:     Emit(OpCode.OpSubtract);  break;
+                case Token.Type.BINARY_STAR:      Emit(OpCode.OpMultiply);  break;
+                case Token.Type.BINARY_SLASH:     Emit(OpCode.OpDivide);    break;
+                case Token.Type.BINARY_CARET:     Emit(OpCode.OpPower);     break;
+                case Token.Type.BINARY_CONCAT:    Emit(OpCode.OpConcat);    break;
+                case Token.Type.BINARY_PIPE:      Emit(OpCode.OpAlt);       break;
+                case Token.Type.BINARY_PERIOD:    Emit(OpCode.OpPeriod);    break;
+                case Token.Type.BINARY_DOLLAR:    Emit(OpCode.OpDollar);    break;
+                case Token.Type.BINARY_QUESTION:  Emit(OpCode.OpQuestion);  break;
+                case Token.Type.BINARY_AT:        Emit(OpCode.OpAt);        break;
+                case Token.Type.BINARY_AMPERSAND: Emit(OpCode.OpAmpersand); break;
+                case Token.Type.BINARY_PERCENT:   Emit(OpCode.OpPercent);   break;
+                case Token.Type.BINARY_HASH:      Emit(OpCode.OpHash);      break;
+                case Token.Type.BINARY_TILDE:     Emit(OpCode.OpTilde);     break;
+                case Token.Type.BINARY_EQUAL:     Emit(OpCode.BinaryEquals); break;
+
+                case Token.Type.UNARY_OPERATOR:
+                    if (t.MatchedString switch
+                    {
+                        "-" => OpCode.OpUnaryMinus,
+                        "+" => OpCode.OpUnaryPlus,
+                        "$" => OpCode.OpIndirection,
+                        "&" => OpCode.OpKeyword,
+                        "." => OpCode.OpName,
+                        "~" => OpCode.OpNegation,
+                        "?" => OpCode.OpInterrogation,
+                        "@" => OpCode.OpUnaryAt,
+                        "%" => OpCode.OpUnaryPercent,
+                        "#" => OpCode.OpUnaryHash,
+                        "/" => OpCode.OpUnarySlash,
+                        _   => OpCode.OpUnaryOpsyn
+                    } is var uOp && uOp != OpCode.OpUnaryOpsyn)
+                        Emit(uOp);
+                    else
+                        // opsyn-defined unary: store "_X" as a constant so the runtime
+                        // can look it up in FunctionTable at execution time.
+                        Emit(new Instruction(OpCode.OpUnaryOpsyn,
+                            _parent.Constants.GetOrAddString("_" + t.MatchedString)));
+                    break;
+
+                case Token.Type.IDENTIFIER:
+                case Token.Type.IDENTIFIER_ARRAY_OR_TABLE:
+                {
+                    var key = _parent.FoldCase(t.MatchedString);
+                    Emit(new Instruction(OpCode.PushVar, _parent.VariableSlotIndex[key]));
+                    break;
+                }
+
+                case Token.Type.IDENTIFIER_FUNCTION:
+                    // Push function name now (before args) matching C# generated convention.
+                    // Store name for use at R_PAREN_FUNCTION.
+                    _pendingFunctions.Push(t.MatchedString);
+                    Emit(new Instruction(OpCode.PushConst,
+                        _parent.Constants.GetOrAddString(t.MatchedString)));
+                    break;
+
+                case Token.Type.R_PAREN_FUNCTION:
+                {
+                    // Function name was already pushed before args.
+                    // Just call Function(argc) — it will pop args then the name.
+                    _pendingFunctions.Pop(); // discard — name was pushed as PushConst
+                    Emit(new Instruction(OpCode.CallFunc, 0, (int)t.IntegerValue));
+                    break;
+                }
+
+                case Token.Type.STRING:
+                    Emit(new Instruction(OpCode.PushConst,
+                        _parent.Constants.GetOrAddString(t.MatchedString)));
+                    break;
+
+                case Token.Type.NULL:
+                    Emit(new Instruction(OpCode.PushConst,
+                        _parent.Constants.GetOrAddString("")));
+                    break;
+
+                case Token.Type.INTEGER:
+                    Emit(new Instruction(OpCode.PushConst,
+                        _parent.Constants.GetOrAddInteger(t.IntegerValue)));
+                    break;
+
+                case Token.Type.REAL:
+                    Emit(new Instruction(OpCode.PushConst,
+                        _parent.Constants.GetOrAddReal(t.DoubleValue)));
+                    break;
+
+                case Token.Type.EXPRESSION:
+                    // MatchedString is "Star00000000", "Star00000001", etc.
+                    // The numeric suffix is the index into StarFunctionList.
+                    var exprIdx = int.Parse(t.MatchedString[4..]);
+                    Emit(new Instruction(OpCode.PushExpr, exprIdx));
+                    break;
+
+                case Token.Type.R_ANGLE:
+                case Token.Type.R_SQUARE:
+                    Emit(OpCode.IndexCollection);
+                    break;
+
+                case Token.Type.COMMA_CHOICE:
+                    // If the preceding expression succeeded, skip this alternative.
+                    // Emit: pop stack, clear failure, then enter alternative body.
+                    // Structure: JumpOnSuccess(past-this-block), pop, clear-failure
+                    // The JumpOnSuccess target is patched when R_PAREN_CHOICE arrives.
+                    {
+                        // JumpOnSuccess skips the alternative (patched by ChoiceEnd)
+                        int skipIdx = EmitPlaceholder(OpCode.JumpOnSuccess);
+                        _choiceStack.Push(skipIdx);
+                        // If we reach here, previous expression failed: pop its result, clear failure
+                        Emit(OpCode.ChoiceStart);  // pops top + clears failure
+                    }
+                    break;
+
+                case Token.Type.R_PAREN_CHOICE:
+                    // Parser emits this only when IntegerValue > 1.
+                    // IntegerValue = number of COMMA_CHOICE tokens in this construct.
+                    // Patch all of them to jump here.
+                    {
+                        int levels = (int)t.IntegerValue;
+                        for (var i = 0; i < levels; i++)
+                        {
+                            if (_choiceStack.Count > 0)
+                                PatchHere(_choiceStack.Pop());
+                        }
+                    }
+                    break;
+
+                // Structural tokens — no instruction emitted
+                case Token.Type.COLON:
+                case Token.Type.COMMA:
+                case Token.Type.FAILURE_GOTO:
+                case Token.Type.SUCCESS_GOTO:
+                case Token.Type.L_ANGLE:
+                case Token.Type.L_ANGLE_FAILURE:
+                case Token.Type.L_ANGLE_SUCCESS:
+                case Token.Type.L_ANGLE_UNCONDITIONAL:
+                case Token.Type.L_PAREN_CHOICE:
+                case Token.Type.L_PAREN_FAILURE:
+                case Token.Type.L_PAREN_FUNCTION:
+                case Token.Type.L_PAREN_SUCCESS:
+                case Token.Type.L_PAREN_UNCONDITIONAL:
+                case Token.Type.L_SQUARE:
+                case Token.Type.R_ANGLE_FAILURE:
+                case Token.Type.R_ANGLE_SUCCESS:
+                case Token.Type.R_ANGLE_UNCONDITIONAL:
+                case Token.Type.R_PAREN_SUCCESS:
+                case Token.Type.R_PAREN_UNCONDITIONAL:
+                case Token.Type.R_PAREN_FAILURE:
+                case Token.Type.SPACE:
+                case Token.Type.UNARY_STAR:
+                    break;
+
+                default:
+                    throw new ApplicationException(
+                        $"ThreadedCodeCompiler: unhandled token {t.TokenType}");
+            }
+        }
+
+        // Single-comma choices (A,B) produce one COMMA_CHOICE but no R_PAREN_CHOICE.
+        // Any jump left on the choice stack targets "just after the last alternative" — here.
+        while (_choiceStack.Count > 0)
+            PatchHere(_choiceStack.Pop());
+    }
+
+    // -----------------------------------------------------------------------
+    // Pass 2 — patch forward jump targets
+    // -----------------------------------------------------------------------
+
+    private Instruction[] Pass2_Patch()
+    {
+        var arr = _thread.ToArray();
+
+        foreach (var (instrIdx, stmtIdx) in _jumpFixups)
+        {
+            int target = stmtIdx >= _statementStart.Count
+                ? arr.Length - 1          // past last statement → Halt
+                : _statementStart[stmtIdx];
+
+            var old = arr[instrIdx];
+            arr[instrIdx] = new Instruction(old.Op, target, old.IntOperand2);
+        }
+
+        return arr;
+    }
+
+    /// <summary>
+    /// Compiles a single postfix token list (a star function body) into a
+    /// standalone Instruction[] ending with Halt. Used to replace Roslyn-generated
+    /// Star delegate methods with threaded sub-programs.
+    /// </summary>
+    internal Instruction[] CompileSubExpression(List<Token> tokens)
+    {
+        _thread.Clear();
+        _statementStart.Clear();
+        _jumpFixups.Clear();
+
+        EmitTokenList(tokens);
+        Emit(OpCode.Halt);
+
+        return _thread.ToArray(); // no jump fixups needed for expressions
+    }
+
+    // -----------------------------------------------------------------------
+    // Helpers
+    // -----------------------------------------------------------------------
+
+    private void Emit(OpCode op) => _thread.Add(new Instruction(op));
+    private void Emit(Instruction i) => _thread.Add(i);
+
+    private void EmitJumpToStmt(OpCode op, int stmtIdx)
+    {
+        _jumpFixups.Add((_thread.Count, stmtIdx));
+        _thread.Add(new Instruction(op, -1));
+    }
+
+    private int EmitPlaceholder(OpCode op)
+    {
+        var idx = _thread.Count;
+        _thread.Add(new Instruction(op, -1));
+        return idx;
+    }
+
+    private void PatchHere(int instrIdx)
+    {
+        // The target is the *current* instruction count (next to be emitted)
+        for (var i = 0; i < _jumpFixups.Count; i++)
+        {
+            if (_jumpFixups[i].InstrIdx == instrIdx)
+            {
+                _jumpFixups[i] = (instrIdx, _thread.Count);
+                return;
+            }
+        }
+        // Not in fixup list — it's an intra-statement placeholder, patch directly
+        var old = _thread[instrIdx];
+        _thread[instrIdx] = new Instruction(old.Op, _thread.Count, old.IntOperand2);
+    }
+}
