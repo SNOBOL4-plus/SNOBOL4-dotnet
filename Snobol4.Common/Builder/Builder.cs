@@ -115,6 +115,7 @@ public partial class Builder : IDisposable
                 ComputeThreadIsMsilOnly();
                 _timerBuild.Stop();
                 PrintCompilationStatistics();
+                Execute.StartTimer();
                 Execute.ExecuteLoop(0);
             }
             else
@@ -413,10 +414,14 @@ public partial class Builder : IDisposable
         if (!BuildOptions.ShowCompilerStatistics || _timerBuild == null) return;
         var memoryUsed = Process.GetCurrentProcess().WorkingSet64;
         var memInfo    = GC.GetGCMemoryInfo();
-        Console.Error.WriteLine($"memory used (bytes)  {memoryUsed}");
-        Console.Error.WriteLine($"memory left (bytes)  {memInfo.TotalAvailableMemoryBytes}");
-        Console.Error.WriteLine($"comp errors          {ErrorCodeHistory.Count}");
-        Console.Error.WriteLine($"comp time (sec)      {_timerBuild.Elapsed}");
+        Console.Error.WriteLine($"memory used (bytes)       {memoryUsed}");
+        Console.Error.WriteLine($"memory left (bytes)       {memInfo.TotalAvailableMemoryBytes}");
+        Console.Error.WriteLine($"build errors              {ErrorCodeHistory.Count}");
+        Console.Error.WriteLine($"regenerations             {GC.CollectionCount(memInfo.Generation)}");
+        Console.Error.WriteLine($"build time (h:m:s.μ)      {_timerBuild.Elapsed}");
+        Console.Error.WriteLine();
+        Console.Error.WriteLine();
+        Console.Error.WriteLine();
     }
 
     #endregion
