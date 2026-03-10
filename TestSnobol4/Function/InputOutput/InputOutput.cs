@@ -1036,7 +1036,10 @@ END
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("1.0 -1.0 1.0 -1.0 1000.0 1E-05 10000.0 0.0001", build.Execute!.IdentifierTable[build.FoldCase("R1")].ToString());
+        // SNOBOL4 spec (confirmed against SPITBOL sbl.min:gts27 and CSNOBOL4 lib/realst.c):
+        // whole-number reals print with a trailing dot only — "1." not "1.0".
+        // Values that already contain a '.' or 'E' are left as-is.
+        Assert.AreEqual("1. -1. 1. -1. 1000. 1E-05 10000. 0.0001", build.Execute!.IdentifierTable[build.FoldCase("R1")].ToString());
 
     }
 

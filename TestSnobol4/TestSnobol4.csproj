@@ -37,6 +37,20 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Snobol4.Common\Snobol4.Common.csproj" />
+    <!--
+      These three projects are loaded at runtime via LOAD() and are not linked
+      into the test binary.  ReferenceOutputAssembly="false" tells MSBuild to
+      build them first (so the DLLs are up to date) without adding them as
+      compile-time references.  Without this, changes to the plugin sources are
+      silently ignored until the plugins are rebuilt manually, which has caused
+      confusing test failures in the past.
+    -->
+    <ProjectReference Include="..\CustomFunction\AreaLibrary.csproj"
+                      ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\CustomFunction\MathLibrary\MathLibrary.csproj"
+                      ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\CustomFunction\FSharpLibrary\FSharpLibrary.fsproj"
+                      ReferenceOutputAssembly="false" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />

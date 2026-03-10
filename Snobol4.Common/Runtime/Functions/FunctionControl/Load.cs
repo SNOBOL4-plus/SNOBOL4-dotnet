@@ -92,7 +92,7 @@ public partial class Executive
             if (instance == null)
             {
                 loadContext.Unload();
-                LogRuntimeException(142);   // does not implement IExternalLibrary
+                NonExceptionFailure();      // :F branch — class not IExternalLibrary
                 return;
             }
 
@@ -105,7 +105,7 @@ public partial class Executive
         }
         catch (Exception)
         {
-            LogRuntimeException(143);   // I/O or reflection error during load
+            NonExceptionFailure();      // :F branch — file not found or reflection error
         }
     }
 }

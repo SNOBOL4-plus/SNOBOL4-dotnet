@@ -48,7 +48,7 @@ end");
         unload('{dll}')
 end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
-        Assert.AreEqual("25", Str("r", b));
+        Assert.AreEqual("25.", Str("r", b));
     }
 
     [TestMethod]
@@ -61,7 +61,7 @@ end");
         unload('{dll}')
 end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
-        Assert.AreEqual("49", Str("r", b));
+        Assert.AreEqual("49.", Str("r", b));
     }
 
     [TestMethod]
@@ -129,7 +129,7 @@ end");
         unload('{dll}')
 end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
-        Assert.AreEqual("16", Str("r", b));
+        Assert.AreEqual("16.", Str("r", b));
     }
 
     [TestMethod]
@@ -159,8 +159,8 @@ end");
         unload('{dll}')
 end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
-        Assert.AreEqual("9",  Str("r1", b));
-        Assert.AreEqual("16", Str("r2", b));
+        Assert.AreEqual("9.",  Str("r1", b));
+        Assert.AreEqual("16.", Str("r2", b));
     }
 
     // ── C. MathLibrary — full type coverage ───────────────────────────────
@@ -189,7 +189,7 @@ end");
         unload('{dll}')
 end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
-        Assert.AreEqual("10", Str("r", b));
+        Assert.AreEqual("10.", Str("r", b));
     }
 
     [TestMethod]
@@ -215,7 +215,7 @@ end");
         unload('{dll}')
 end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
-        Assert.AreEqual("10", Str("r", b));
+        Assert.AreEqual("10.", Str("r", b));
     }
 
     [TestMethod]
@@ -330,7 +330,7 @@ end");
         unload('{dll}')
 end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
-        Assert.AreEqual("5", Str("r", b));
+        Assert.AreEqual("5.", Str("r", b));
     }
 
     [TestMethod]
@@ -346,7 +346,7 @@ end");
         unload('{dll}')
 end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
-        Assert.AreEqual("5",  Str("r1", b));
+        Assert.AreEqual("5",   Str("r1", b));  // FsFib returns IntegerVar
         Assert.AreEqual("13", Str("r2", b));
     }
 

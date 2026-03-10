@@ -32,10 +32,42 @@ public sealed class RealConversionStrategy : IConversionStrategy
         return true;
     }
 
+    /// <summary>
+    /// Ensures that the string form of a real value is always distinguishable
+    /// from an integer by guaranteeing a decimal point or exponent marker is present.
+    ///
+    /// <para>
+    /// .NET's <c>double.ToString()</c> drops the decimal point for whole-number
+    /// values — e.g. <c>25.0</c> becomes <c>"25"</c> — which would make it
+    /// indistinguishable from the integer 25.  When neither a <c>'.'</c> nor an
+    /// <c>'E'</c> is already present we append a single trailing dot.
+    /// </para>
+    ///
+    /// <para>
+    /// The correct suffix is <c>"."</c> (trailing dot only), <b>not</b> <c>".0"</c>.
+    /// This was verified against both reference implementations:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <b>CSNOBOL4</b> (<c>lib/realst.c</c>): formats with <c>%lg</c>, then
+    ///     walks the result; if no <c>'.'</c> or exponent character is found it
+    ///     appends a single <c>'.'</c>.  The source comment reads: <i>"%g format
+    ///     can print an integer for exact values — make sure we have an exponent
+    ///     or a dot."</i>
+    ///   </item>
+    ///   <item>
+    ///     <b>SPITBOL</b> (<c>sbl.min</c>, label <c>gts27</c>): after suppressing
+    ///     all trailing fractional zeros (label <c>gts24</c> loop), it unconditionally
+    ///     emits a single decimal point character.  The MINIMAL spec comment states:
+    ///     <i>"there are never any trailing zeros in the fractional part."</i>
+    ///   </item>
+    /// </list>
+    /// Both oracles therefore produce <c>"25."</c> for the real value 25.0, and the
+    /// LoadTests assertions have been updated to match.
+    /// </para>
+    /// </summary>
     public static string TweakRealString(string str)
     {
-        // This is to ensure that the string representation of a real is distinguishable from an integer
-        return str.Contains('.') || str.Contains('E') ? str : str + ".0";
+        return str.Contains('.') || str.Contains('E') ? str : str + ".";
     }
 
     private static bool ConvertToInteger(RealVar realSelf, out Var varOut, out object valueOut)

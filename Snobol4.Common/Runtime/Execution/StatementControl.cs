@@ -12,7 +12,17 @@ public partial class Executive
                 ? starts[i]
                 : 0;
             InitExecutionCache();   // no-op after first call
-            int result = ThreadedExecuteLoop(startInstr);
+            int result;
+            try
+            {
+                result = ThreadedExecuteLoop(startInstr);
+            }
+            catch (CompilerException)
+            {
+                // Error already recorded in ErrorCodeHistory by LogRuntimeException.
+                // Halt gracefully rather than propagating through the test harness.
+                return -1;
+            }
             // Non-negative: threaded loop exited to a CODE'd Statements[] index — run it.
             if (result < 0) return result;
             i = result;
