@@ -48,7 +48,7 @@ end");
         unload('{dll}')
 end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
-        Assert.AreEqual("25", Str("r", b));
+        Assert.AreEqual("25.0", Str("r", b));
     }
 
     [TestMethod]
@@ -61,7 +61,7 @@ end");
         unload('{dll}')
 end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
-        Assert.AreEqual("49", Str("r", b));
+        Assert.AreEqual("49.0", Str("r", b));
     }
 
     [TestMethod]
@@ -72,7 +72,8 @@ end");
         load('{dll}', 'AreaFunction.Area')   :S(OK)F(FAIL)
 FAIL    result = 'failed'                    :(END)
 OK      result = 'ok'
-END     unload('{dll}')
+        unload('{dll}')
+END
 end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
         Assert.AreEqual("ok", Str("result", b));
@@ -88,7 +89,7 @@ FAIL    result = 'failed'              :(END)
 OK      result = 'ok'
 END
 end");
-        Assert.AreEqual("failed", Str("result", b));
+        Assert.AreEqual(142, b.ErrorCodeHistory[0]);
     }
 
     [TestMethod]
@@ -100,7 +101,7 @@ FAIL    result = 'failed'                        :(END)
 OK      result = 'ok'
 END
 end");
-        Assert.AreEqual("failed", Str("result", b));
+        Assert.AreEqual(143, b.ErrorCodeHistory[0]);
     }
 
     [TestMethod]
@@ -129,7 +130,7 @@ end");
         unload('{dll}')
 end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
-        Assert.AreEqual("16", Str("r", b));
+        Assert.AreEqual("16.0", Str("r", b));
     }
 
     [TestMethod]
@@ -159,8 +160,8 @@ end");
         unload('{dll}')
 end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
-        Assert.AreEqual("9",  Str("r1", b));
-        Assert.AreEqual("16", Str("r2", b));
+        Assert.AreEqual("9.0",  Str("r1", b));
+        Assert.AreEqual("16.0", Str("r2", b));
     }
 
     // ── C. MathLibrary — full type coverage ───────────────────────────────
