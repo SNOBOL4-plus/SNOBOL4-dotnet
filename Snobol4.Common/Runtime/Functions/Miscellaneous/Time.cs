@@ -4,6 +4,6 @@ public partial class Executive
 {
     internal void Time(List<Var> arguments)
     {
-        SystemStack.Push(new StringVar(_timerExecute.Elapsed.ToString()));
+        SystemStack.Push(new IntegerVar(_timerExecute.ElapsedMilliseconds));
     }
 }
