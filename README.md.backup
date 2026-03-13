@@ -4,7 +4,7 @@ A compiler for the SNOBOL4 language written in C# and .NET and runs under Window
 
 A major goal of the project was to implement SNOBOL4 and the SPITBOL extensions using a high-level language that is readable and safe. Another goal was to match SPITBOL functionality as described in Emmer and Quillen's *MACRO SPITBOL: The High-Performance SNOBOL4 Language*, otherwise noted as "the SPITBOL manual".
 
-As a rule, any statement about SPITBOL in the SPITBOL manual, applies to SNOBOL4.NET. Original SNOBOL4 and SNOBOL4+ features not supported by SPITBOL are not implemented in SNOBOL4.NET. Extensions that differ in their implementation from SPITBOL are outlined in this document. 
+To run Snobol4.Net, type Snobol4 on a command line. As a rule, any statement about SPITBOL in the SPITBOL manual, applies to SNOBOL4.NET. Original SNOBOL4 and SNOBOL4+ features not supported by SPITBOL are not implemented in SNOBOL4.NET. The  Extensions that differ in their implementation from SPITBOL are outlined in this document. 
 
 One major difference is that SNOBOL4.NET is slower than SPITBOL. This is the trade-off of using a high level language and safe programming practices. Hopefully, people will find the source code readable, and some will improve the code for readability and speed.
 
@@ -43,12 +43,73 @@ These three files should be stored in the same folder and the folder placed anyw
 
 [Deleted]
 
+### Checkout
+
 ### Experienced Users
 If you want to run an existing SPITBOL program, consider the following items that may need to change:
 
 * Command-line options
 
-Check the command-line options. Some command line options are not implemented or work differently than SPITBOL.
+Check the command-line options. The following operate the same as SPITBOL. 
+
+* -a   equivalent to -c, -l -x
+* -b   Suppress sign on message
+* -c   Show Compiler statistics
+* -f   Case folding OFF
+* -F   Case folding ON
+* -h   Suppress listing header
+* -k   Stop on run time error
+* -l   Show listing
+* -n   Suppress execution. Compile only.
+* -o   Redirect STDERR to list file
+* -u   String passed to HOST(0)
+* -v   Generate debug symbols
+* -x   Show execution statistics
+* -?   Display manual
+
+The following are new to SNOBOL4.NET:
+
+* -w   Write binary code to a dynamic linked library
+
+The .Net framework automatically optimizes all memory allocation on a program-by-program basis and cannot be modified by the users. As such, the following command-line options are no longer supported:
+
+* -d   Max heap size
+* -i   Initial heap size
+* -m   Max object size
+* -s   Stack size
+
+The show listing command line option (-l) creates a listing similar to SPITBOL, but without pagination or limits on line length. Printing preferences (lines per page, columns per line, font, line spacing, and can be controlled by a text editor or a word processor more completely than SPITBOL's command line options. As such, the following command line options are not implemented: 
+
+* -g   Listing page length
+* -p   Long listing format
+* -t   Listing line width
+* -z   Standard listing options
+
+
+The following command line options are not implemented:
+
+* -e   Errors to list file only
+* -r   Input from source file following END statement
+* -T   Write terminal output to file 
+* -#   Associate file with I/O channel number 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 * INPUT() and OUTPUT() functions.
 
