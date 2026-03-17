@@ -32,6 +32,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharpLibrary", "CustomFunc
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharpOptionLibrary", "CustomFunction\FSharpOptionLibrary\FSharpOptionLibrary.fsproj", "{D3A82F1C-6E44-4B9A-BC37-2E5A8F0C1D72}"
 EndProject
+Project("{F184B08F-C81C-45F3-A916-0D75400D9B2E}") = "VbLibrary", "CustomFunction\VbLibrary\VbLibrary.vbproj", "{A7C5E3D2-9F1B-4E8A-BD26-3F7C0A5E2B91}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReflectLibrary", "CustomFunction\ReflectLibrary\ReflectLibrary.csproj", "{C23305BD-1D76-420A-9E16-161AB071D846}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjectLifecycleLibrary", "CustomFunction\ObjectLifecycleLibrary\ObjectLifecycleLibrary.csproj", "{A91BC76C-04F9-4131-84E0-328DD8C9D633}"
@@ -154,6 +156,18 @@ Global
 		{D3A82F1C-6E44-4B9A-BC37-2E5A8F0C1D72}.Release|x64.Build.0 = Release|Any CPU
 		{D3A82F1C-6E44-4B9A-BC37-2E5A8F0C1D72}.Release|x86.ActiveCfg = Release|Any CPU
 		{D3A82F1C-6E44-4B9A-BC37-2E5A8F0C1D72}.Release|x86.Build.0 = Release|Any CPU
+		{A7C5E3D2-9F1B-4E8A-BD26-3F7C0A5E2B91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7C5E3D2-9F1B-4E8A-BD26-3F7C0A5E2B91}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7C5E3D2-9F1B-4E8A-BD26-3F7C0A5E2B91}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A7C5E3D2-9F1B-4E8A-BD26-3F7C0A5E2B91}.Debug|x64.Build.0 = Debug|Any CPU
+		{A7C5E3D2-9F1B-4E8A-BD26-3F7C0A5E2B91}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A7C5E3D2-9F1B-4E8A-BD26-3F7C0A5E2B91}.Debug|x86.Build.0 = Debug|Any CPU
+		{A7C5E3D2-9F1B-4E8A-BD26-3F7C0A5E2B91}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7C5E3D2-9F1B-4E8A-BD26-3F7C0A5E2B91}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7C5E3D2-9F1B-4E8A-BD26-3F7C0A5E2B91}.Release|x64.ActiveCfg = Release|Any CPU
+		{A7C5E3D2-9F1B-4E8A-BD26-3F7C0A5E2B91}.Release|x64.Build.0 = Release|Any CPU
+		{A7C5E3D2-9F1B-4E8A-BD26-3F7C0A5E2B91}.Release|x86.ActiveCfg = Release|Any CPU
+		{A7C5E3D2-9F1B-4E8A-BD26-3F7C0A5E2B91}.Release|x86.Build.0 = Release|Any CPU
 		{C23305BD-1D76-420A-9E16-161AB071D846}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C23305BD-1D76-420A-9E16-161AB071D846}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C23305BD-1D76-420A-9E16-161AB071D846}.Debug|x64.ActiveCfg = Debug|Any CPU
