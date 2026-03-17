@@ -266,9 +266,8 @@ end";
 end";
         var build = Run(s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        // DOTNET &ALPHABET = 255; &UCASE/&LCASE reported as 58 (includes extended chars)
         var r1 = ((IntegerVar)build.Execute!.IdentifierTable[build.FoldCase("R1")]).Data;
-        Assert.IsTrue(r1 == 255L || r1 == 256L, $"&ALPHABET SIZE expected 255 or 256, got {r1}");
+        Assert.AreEqual(256L, r1, $"&ALPHABET SIZE expected 256, got {r1}");
         var r2 = ((IntegerVar)build.Execute!.IdentifierTable[build.FoldCase("R2")]).Data;
         Assert.IsTrue(r2 >= 26L, $"&UCASE SIZE expected >= 26, got {r2}");
         var r3 = ((IntegerVar)build.Execute!.IdentifierTable[build.FoldCase("R3")]).Data;

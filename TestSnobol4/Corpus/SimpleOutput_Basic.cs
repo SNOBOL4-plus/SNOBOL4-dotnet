@@ -86,10 +86,8 @@ end";
 end";
         var build = Run(s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        // DOTNET &ALPHABET has 255 characters (0x01–0xFF; implementation-specific)
         var alphabetSize = ((IntegerVar)build.Execute!.IdentifierTable[build.FoldCase("RESULT")]).Data;
-        Assert.IsTrue(alphabetSize == 255L || alphabetSize == 256L,
-            $"&ALPHABET SIZE should be 255 or 256, got {alphabetSize}");
+        Assert.AreEqual(256L, alphabetSize, $"&ALPHABET SIZE should be 256, got {alphabetSize}");
     }
 
     [TestMethod]

@@ -31,7 +31,7 @@ end";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual(255, ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("a")]).Data.Length);
+        Assert.AreEqual(256, ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("a")]).Data.Length);
     }
 
     [TestMethod]

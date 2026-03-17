@@ -311,7 +311,7 @@ public partial class Executive
             { "UNLOAD", new FunctionTableEntry(this, "unload", UnloadExternalFunction, 1,  true) }
         };
 
-        var alphabet = Enumerable.Range(0, 255).Select(i => (char)i).ToArray();
+        var alphabet = Enumerable.Range(0, 256).Select(i => (char)i).ToArray();
         AmpAlphabet = "";
         AmpLowerCaseLetters = "";
         AmpUpperCaseLetters = "";
