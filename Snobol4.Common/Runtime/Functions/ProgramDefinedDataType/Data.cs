@@ -70,9 +70,11 @@ public partial class Executive
             return;
         }
 
-        // datatype name cannot be an existing function
+        // datatype name cannot be an existing user-defined function
+        // (protected builtins may be shadowed by DATA type names, per SNOBOL4 spec)
         //if (FunctionTable.ContainsKey(dataName))
-        if (FunctionTable[dataName] is not null)
+        var existingDataType = FunctionTable[dataName];
+        if (existingDataType is not null && !existingDataType.IsProtected)
         {
             LogRuntimeException(248);
             return;
@@ -107,12 +109,20 @@ public partial class Executive
                 return;
             }
 
-            // field name cannot be an existing function
+            // field name cannot be an existing user-defined function
+            // (protected builtins may be shadowed by DATA field accessors, per SNOBOL4 spec)
             //if (FunctionTable.ContainsKey(fields[i]))
-            if (FunctionTable[fields[i]] is not null)
+            var existingField = FunctionTable[fields[i]];
+            if (existingField is not null && !existingField.IsProtected)
             {
-                LogRuntimeException(248);
-                return;
+                // Allow redefinition of DATA field accessors (polymorphic dispatch by type)
+                // Only block redefinition of user-defined functions (DEFINE'd)
+                if (existingField.Handler != GetProgramDefinedDataField)
+                {
+                    LogRuntimeException(248);
+                    return;
+                }
+                // else: existing field accessor will be overwritten below — that's correct
             }
         }
 
@@ -123,7 +133,14 @@ public partial class Executive
 
         foreach (var fieldName in fields)
         {
-            FunctionTable[fieldName] = new FunctionTableEntry(this, fieldName, GetProgramDefinedDataField, 1, false);
+            var existingEntry = FunctionTable[fieldName];
+            if (existingEntry is null || !existingEntry.IsProtected)
+            {
+                // Only register if no protected builtin owns this name.
+                // Protected builtins (e.g. VALUE) keep their slot; GetProgramDefinedDataField
+                // dispatches by argument type at runtime so field access still works.
+                FunctionTable[fieldName] = new FunctionTableEntry(this, fieldName, GetProgramDefinedDataField, 1, false);
+            }
         }
 
         PredicateSuccess();

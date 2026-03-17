@@ -42,15 +42,14 @@ public class Rung2_Indirect
     }
 
     [TestMethod]
-    [Ignore("net-gap-value-indirect: $.var indirect syntax not yet implemented")]
     public void TEST_Corpus_210_indirect_ref()
     {
         var s = @"
-        bal = 'the real bal'
-        differ($'bal', bal)                   :f(e001)
+        myvar = 'the real myvar'
+        differ($'myvar', myvar)                   :f(e001)
         output = 'FAIL 210/001: $string lookup'        :(end)
 e001
-        differ($.bal, bal)                   :f(e002)
+        differ($.myvar, myvar)                   :f(e002)
         output = 'FAIL 210/002: $.var lookup'          :(end)
 e002
         output = 'PASS 210_indirect_ref (2/2)'

@@ -296,6 +296,7 @@ public partial class Executive
             { "SETEXIT", new FunctionTableEntry(this, "setexit", SetExit, 1, true)},
             { "SIN", new FunctionTableEntry(this, "sin", Sin, 1,  true) },
             { "SIZE", new FunctionTableEntry(this, "size", Size, 1,true)},
+            { "VALUE", new FunctionTableEntry(this, "value", Value, 1, true)},
             { "SORT", new FunctionTableEntry(this, "sort", Sort, 2,true)},
             { "SPAN", new FunctionTableEntry(this, "span", CreateSpanPattern, 1,true)},
             { "SQRT", new FunctionTableEntry(this, "sqrt", Sqrt, 1,  true) },
