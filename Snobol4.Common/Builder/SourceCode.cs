@@ -229,8 +229,18 @@ public class SourceCode
     private void ProcessLineWithSubLines(string line, string pathName)
     {
         SubLineCount = 0;
+
+        // In SNOBOL4, a comment line has '*' in column 1. Such lines must be
+        // skipped BEFORE semicolon splitting — otherwise "* comment; key/value"
+        // splits into "* comment" (skipped) and "key/value" (parsed as code, error 233).
+        if (line.Length > 0 && line[0] == '*')
+        {
+            CommentContinuationDirectiveCount++;
+            return;
+        }
+
         var subLines = SplitLineByDelimiter(line, _semicolonChar);
-        
+
         foreach (var subLine in subLines)
         {
             ProcessSubLine(subLine, pathName);
