@@ -160,26 +160,43 @@ public partial class Builder
 
             // ── Detect what can be absorbed into the body delegate ─────────
             // Plain-paren form :(LABEL) / :S(LABEL) / :F(LABEL) with a single
-            // bare IDENTIFIER.  Angle-bracket forms (DirectGotoFirst == true)
-            // use GotoIndirectCode and remain in the thread.
-            string? directUncondLabel = null;
-            if (!line.DirectGotoFirst &&
-                line.ParseUnconditionalGoto.Count == 1 &&
-                line.ParseUnconditionalGoto[0].TokenType == Token.Type.IDENTIFIER)
+            // bare IDENTIFIER → directGotoLabel (IP returned directly, no thread op).
+            // Angle-bracket forms (DirectGotoFirst == true) → indirectGotoExpr
+            // absorbed into the delegate via EmitIndirectGotoIL — no GotoIndirectCode
+            // remains in the thread, keeping ThreadIsMsilOnly=true.
+            string?      directUncondLabel  = null;
+            List<Token>? indirectUncondExpr = null;
+            bool         indirectUncondCode = false;
+
+            if (line.ParseUnconditionalGoto.Count > 0)
             {
-                directUncondLabel = line.ParseUnconditionalGoto[0].MatchedString;
+                if (!line.DirectGotoFirst &&
+                    line.ParseUnconditionalGoto.Count == 1 &&
+                    line.ParseUnconditionalGoto[0].TokenType == Token.Type.IDENTIFIER)
+                {
+                    // Plain :(LABEL) — absorb as direct IP return.
+                    directUncondLabel = line.ParseUnconditionalGoto[0].MatchedString;
+                }
+                else if (line.DirectGotoFirst)
+                {
+                    // Angle-bracket :(<EXPR>) or :<VAR> — absorb via indirectGotoExpr.
+                    indirectUncondExpr = line.ParseUnconditionalGoto;
+                    indirectUncondCode = true;
+                }
             }
 
             // Conditional gotos — only when no unconditional goto (mutually exclusive).
-            string? successLabel = null;
-            string? failureLabel = null;
-            if (directUncondLabel == null)
+            string?      successLabel    = null;
+            List<Token>? successExpr     = null;
+            bool         successExprCode = false;
+            string?      failureLabel    = null;
+            List<Token>? failureExpr     = null;
+            bool         failureExprCode = false;
+
+            if (directUncondLabel == null && indirectUncondExpr == null)
             {
                 bool hasBoth = line.ParseSuccessGoto.Count > 0 && line.ParseFailureGoto.Count > 0;
 
-                // Determine which DirectGotoX flag applies to each side.
-                // DirectGotoFirst applies to whichever goto is listed first in source.
-                // DirectGotoSecond applies to the other.
                 bool successIsFirst  = line.SuccessFirst;
                 bool successIsDirect = hasBoth
                     ? (successIsFirst ? line.DirectGotoFirst : line.DirectGotoSecond)
@@ -188,38 +205,56 @@ public partial class Builder
                     ? (successIsFirst ? line.DirectGotoSecond : line.DirectGotoFirst)
                     : line.DirectGotoFirst;
 
-                if (!successIsDirect &&
-                    line.ParseSuccessGoto.Count == 1 &&
-                    line.ParseSuccessGoto[0].TokenType == Token.Type.IDENTIFIER)
-                    successLabel = line.ParseSuccessGoto[0].MatchedString;
-
-                if (!failureIsDirect &&
-                    line.ParseFailureGoto.Count == 1 &&
-                    line.ParseFailureGoto[0].TokenType == Token.Type.IDENTIFIER)
-                    failureLabel = line.ParseFailureGoto[0].MatchedString;
-
-                // If both gotos present but only one can be absorbed, absorb neither —
-                // the delegate needs to handle both or the threaded path handles both.
-                // (Partial absorption would require a more complex hybrid approach.)
-                if (hasBoth && (successLabel == null) != (failureLabel == null))
+                // Success goto
+                if (line.ParseSuccessGoto.Count > 0)
                 {
-                    successLabel = null;
-                    failureLabel = null;
+                    if (!successIsDirect &&
+                        line.ParseSuccessGoto.Count == 1 &&
+                        line.ParseSuccessGoto[0].TokenType == Token.Type.IDENTIFIER)
+                        successLabel = line.ParseSuccessGoto[0].MatchedString;
+                    else if (successIsDirect)
+                    {
+                        successExpr     = line.ParseSuccessGoto;
+                        successExprCode = true;
+                    }
                 }
+
+                // Failure goto
+                if (line.ParseFailureGoto.Count > 0)
+                {
+                    if (!failureIsDirect &&
+                        line.ParseFailureGoto.Count == 1 &&
+                        line.ParseFailureGoto[0].TokenType == Token.Type.IDENTIFIER)
+                        failureLabel = line.ParseFailureGoto[0].MatchedString;
+                    else if (failureIsDirect)
+                    {
+                        failureExpr     = line.ParseFailureGoto;
+                        failureExprCode = true;
+                    }
+                }
+
+                // Mixed cases (one side direct-label, other side indirect-expr) are
+                // handled by EmitAndCache — both sides are passed and emitted together.
             }
 
             TryCache(line.ParseBody, stmtIdx: si, isBody: true,
-                     directGotoLabel: directUncondLabel,
-                     successLabel:    successLabel,
-                     failureLabel:    failureLabel,
-                     successFirst:    line.SuccessFirst);
+                     directGotoLabel:  directUncondLabel,
+                     indirectGotoExpr: indirectUncondExpr,
+                     indirectGotoCode: indirectUncondCode,
+                     successLabel:     successLabel,
+                     successExpr:      successExpr,
+                     successExprCode:  successExprCode,
+                     failureLabel:     failureLabel,
+                     failureExpr:      failureExpr,
+                     failureExprCode:  failureExprCode,
+                     successFirst:     line.SuccessFirst);
 
             // Only cache goto token lists separately when NOT absorbed into body.
-            if (directUncondLabel == null)
+            if (directUncondLabel == null && indirectUncondExpr == null)
                 TryCache(line.ParseUnconditionalGoto, stmtIdx: si, isBody: false);
-            if (successLabel == null)
+            if (successLabel == null && successExpr == null)
                 TryCache(line.ParseSuccessGoto,       stmtIdx: si, isBody: false);
-            if (failureLabel == null)
+            if (failureLabel == null && failureExpr == null)
                 TryCache(line.ParseFailureGoto,       stmtIdx: si, isBody: false);
         }
     }
@@ -356,19 +391,33 @@ public partial class Builder
                 return (Func<Executive, int>)dm.CreateDelegate(typeof(Func<Executive, int>));
             }
 
-            if (successLabel != null || failureLabel != null)
+            if ((successLabel != null || failureLabel != null) &&
+                successExpr == null && failureExpr == null)
             {
-                // Direct-label conditional gotos.
+                // Both sides plain direct-label (or one absent).
                 EmitConditionalGotoIL(il, successLabel, failureLabel, successFirst);
                 return (Func<Executive, int>)dm.CreateDelegate(typeof(Func<Executive, int>));
             }
 
-            if (successExpr != null || failureExpr != null)
+            if ((successExpr != null || failureExpr != null) &&
+                successLabel == null && failureLabel == null)
             {
-                // Indirect-expression conditional gotos.
+                // Both sides indirect-expression (or one absent).
                 if (!EmitConditionalIndirectGotoIL(il,
                         successExpr, successExprCode,
                         failureExpr, failureExprCode,
+                        successFirst))
+                    return null;
+                return (Func<Executive, int>)dm.CreateDelegate(typeof(Func<Executive, int>));
+            }
+
+            if (successLabel != null || successExpr != null ||
+                failureLabel != null || failureExpr != null)
+            {
+                // Mixed: one side direct-label, other side indirect-expr.
+                if (!EmitMixedConditionalGotoIL(il,
+                        successLabel, successExpr, successExprCode,
+                        failureLabel, failureExpr, failureExprCode,
                         successFirst))
                     return null;
                 return (Func<Executive, int>)dm.CreateDelegate(typeof(Func<Executive, int>));
@@ -394,6 +443,13 @@ public partial class Builder
     private bool EmitIndirectGotoIL(ILGenerator il, List<Token> gotoExpr, bool isCode,
                                      bool isConditional, bool isFailureSide)
     {
+        // SaveFailure: stash Failure in a local before the skip branch so the
+        // skip path can restore it correctly even when the body is not entered.
+        var savedFailure = il.DeclareLocal(typeof(bool));
+        il.Emit(OpCodes.Ldarg_0);
+        il.Emit(OpCodes.Ldfld, _failureField);
+        il.Emit(OpCodes.Stloc, savedFailure);
+
         Label skipGoto = default;
         if (isConditional)
         {
@@ -407,11 +463,7 @@ public partial class Builder
                 il.Emit(OpCodes.Brtrue,  skipGoto);  // Failure  → skip success goto
         }
 
-        // SaveFailure: stash Failure in a local, clear it for expr eval.
-        var savedFailure = il.DeclareLocal(typeof(bool));
-        il.Emit(OpCodes.Ldarg_0);
-        il.Emit(OpCodes.Ldfld, _failureField);
-        il.Emit(OpCodes.Stloc, savedFailure);
+        // Clear Failure for expr eval.
         il.Emit(OpCodes.Ldarg_0);
         il.Emit(OpCodes.Ldc_I4_0);
         il.Emit(OpCodes.Stfld, _failureField);
@@ -490,6 +542,68 @@ public partial class Builder
                 if (!EmitIndirectGotoIL(il, failureExpr, failureCode, true, true))  return false;
             if (successExpr != null)
                 if (!EmitIndirectGotoIL(il, successExpr, successCode, true, false)) return false;
+        }
+        il.Emit(OpCodes.Ldc_I4, int.MinValue);
+        il.Emit(OpCodes.Ret);
+        return true;
+    }
+
+    /// <summary>
+    /// Emit mixed conditional gotos where one side is a direct label and the other
+    /// is an indirect expression — e.g. :S&lt;VAR&gt;F(LABEL) or :S(LABEL)F&lt;VAR&gt;.
+    /// Emits each side in source order (successFirst governs order).
+    /// The direct-label side is emitted as an inline Failure-check + ResolveLabel + Ret.
+    /// The indirect-expr side is emitted via EmitIndirectGotoIL.
+    /// </summary>
+    private bool EmitMixedConditionalGotoIL(ILGenerator il,
+                                             string?      successLabel,
+                                             List<Token>? successExpr,  bool successExprCode,
+                                             string?      failureLabel,
+                                             List<Token>? failureExpr,  bool failureExprCode,
+                                             bool successFirst)
+    {
+        // Emit one side: either a direct label or an indirect expr, conditioned on Failure flag.
+        bool EmitOneSide(string? directLabel, List<Token>? indirectExpr, bool indirectCode, bool isFailureSide)
+        {
+            if (directLabel != null)
+            {
+                // Direct-label side: check Failure, resolve by name if triggered.
+                var skip = il.DefineLabel();
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldfld, _failureField);
+                if (isFailureSide)
+                    il.Emit(OpCodes.Brfalse, skip);   // !Failure → skip failure goto
+                else
+                    il.Emit(OpCodes.Brtrue, skip);    // Failure  → skip success goto
+                if (isFailureSide)
+                {
+                    // Clear Failure before resolving failure goto.
+                    il.Emit(OpCodes.Ldarg_0);
+                    il.Emit(OpCodes.Ldc_I4_0);
+                    il.Emit(OpCodes.Stfld, _failureField);
+                }
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldstr, directLabel);
+                il.Emit(OpCodes.Ldc_I4, 23);
+                il.Emit(OpCodes.Call, _resolveLabel);
+                il.Emit(OpCodes.Ret);
+                il.MarkLabel(skip);
+                return true;
+            }
+            if (indirectExpr != null)
+                return EmitIndirectGotoIL(il, indirectExpr, indirectCode, true, isFailureSide);
+            return true; // absent side — nothing to emit
+        }
+
+        if (successFirst)
+        {
+            if (!EmitOneSide(successLabel, successExpr, successExprCode, false)) return false;
+            if (!EmitOneSide(failureLabel, failureExpr, failureExprCode, true))  return false;
+        }
+        else
+        {
+            if (!EmitOneSide(failureLabel, failureExpr, failureExprCode, true))  return false;
+            if (!EmitOneSide(successLabel, successExpr, successExprCode, false)) return false;
         }
         il.Emit(OpCodes.Ldc_I4, int.MinValue);
         il.Emit(OpCodes.Ret);

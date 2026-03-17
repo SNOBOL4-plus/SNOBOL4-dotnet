@@ -849,4 +849,65 @@ end");
         Assert.IsTrue(b.ThreadIsMsilOnly,
             "Pattern-match program with :F/:S must be ThreadIsMsilOnly=true");
     }
+
+    // -----------------------------------------------------------------------
+    // Step 16 tests — audit ThreadIsMsilOnly=false cases
+    // Angle-bracket gotos and CODE() are the two sources.
+    // -----------------------------------------------------------------------
+
+    [TestMethod]
+    public void Step16_AngleBracketGoto_IsAbsorbedByDelegate()
+    {
+        // :<VAR> (angle-bracket indirect goto) must be absorbed into the
+        // body delegate — the thread must still be pure MSIL (ThreadIsMsilOnly=true).
+        // This confirms angle-bracket gotos do NOT prevent the fast path.
+        var b = Compile(@"
+        DEST = 'END'
+        :<DEST>
+        OUTPUT = 'SHOULD NOT REACH'
+end");
+        Assert.IsTrue(b.ThreadIsMsilOnly,
+            "Angle-bracket goto :<VAR> must be absorbed into delegate — ThreadIsMsilOnly=true");
+    }
+
+    [TestMethod]
+    public void Step16_AngleBracketGoto_SuccessConditional_IsAbsorbed()
+    {
+        // :S<VAR> conditional angle-bracket goto must also be absorbed.
+        var b = Compile(@"
+        DEST = 'END'
+        EQ(1,1)  :S<DEST>
+        OUTPUT = 'SHOULD NOT REACH'
+end");
+        Assert.IsTrue(b.ThreadIsMsilOnly,
+            "Conditional :S<VAR> angle-bracket goto must be absorbed — ThreadIsMsilOnly=true");
+    }
+
+    [TestMethod]
+    public void Step16_CodeBuiltin_StaticProgram_RemainsTrue()
+    {
+        // A program that calls CODE() at compile time (via Compile path) but
+        // whose appended thread is also pure MSIL keeps ThreadIsMsilOnly=true.
+        var b = Run(@"
+        N = 0
+        C = CODE(' N = 42 :(END)')
+        :<C>
+        N = 99
+end");
+        Assert.AreEqual(0, b.ErrorCodeHistory.Count, "CODE() program must run without errors");
+        Assert.AreEqual(42L, Int("N", b), "CODE() indirect goto must jump to appended statement");
+    }
+
+    [TestMethod]
+    public void Step16_CodeBuiltin_ThreadIsMsilOnly_AfterAppend()
+    {
+        // After CODE() appends new statements, ComputeThreadIsMsilOnly() is
+        // re-run.  For a simple arithmetic snippet the thread stays pure MSIL.
+        var b = Compile(@"
+        N = 0
+        C = CODE(' N = 42 :(END)')
+end");
+        Assert.IsTrue(b.ThreadIsMsilOnly,
+            "After CODE() AppendCompile, ThreadIsMsilOnly must be recomputed — pure snippets stay true");
+    }
 }
