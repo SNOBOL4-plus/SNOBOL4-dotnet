@@ -359,13 +359,19 @@ public partial class Executive
                         doubles[i] = (double)rv;
                         break;
                     case "NOCONV":
-                        // Pass the Var object itself as a pinned GCHandle pointer.
-                        // The C function receives a raw pointer to the Var's heap
-                        // data — it is responsible for reading it correctly using
-                        // the block layout from libsnobol4_rt.h / blocks32.h.
-                        var gh = GCHandle.Alloc(v, GCHandleType.Pinned);
-                        noconvHandles.Add(gh);
-                        ptrs[i] = gh.AddrOfPinnedObject();
+                        // ExternalVar fast-path: pass the raw native pointer directly —
+                        // no GCHandle needed, the pointer is already an unmanaged address.
+                        if (v is ExternalVar extVar)
+                        {
+                            ptrs[i] = extVar.Pointer;
+                        }
+                        else
+                        {
+                            // Pass the Var object itself as a pinned GCHandle pointer.
+                            var gh = GCHandle.Alloc(v, GCHandleType.Pinned);
+                            noconvHandles.Add(gh);
+                            ptrs[i] = gh.AddrOfPinnedObject();
+                        }
                         break;
                     default:
                         v.Convert(VarType.STRING, out _, out var sv, this);
@@ -393,7 +399,7 @@ public partial class Executive
             // I=INTEGER, R=REAL, S=STRING/other, N=NOCONV (passes raw IntPtr like S)
             var argSig = string.Concat(argTypes.Select(t => t switch {
                 "INTEGER" => "I", "REAL" => "R", "NOCONV" => "N", _ => "S" }));
-            var retSig  = retType switch { "INTEGER" => "I", "REAL" => "R", _ => "S" };
+            var retSig  = retType switch { "INTEGER" => "I", "REAL" => "R", "EXTERNAL" => "X", _ => "S" };
 
             Var resultVar = InvokeNative(fp, retSig, argSig, longs, doubles, ptrs);
             SystemStack.Push(resultVar);
@@ -511,6 +517,18 @@ public partial class Executive
             case ("S", "SI"): return PtrToStr(((delegate* unmanaged[Cdecl]<IntPtr,long,IntPtr>)fp)(lp[0],li[1]));
             case ("S", "SR"): return PtrToStr(((delegate* unmanaged[Cdecl]<IntPtr,double,IntPtr>)fp)(lp[0],ld[1]));
             case ("S", "SS"): return PtrToStr(((delegate* unmanaged[Cdecl]<IntPtr,IntPtr,IntPtr>)fp)(lp[0],lp[1]));
+            // ── EXTERNAL return — opaque pointer wrapped in ExternalVar ──────
+            case ("X", ""):   return new ExternalVar(((delegate* unmanaged[Cdecl]<IntPtr>)fp)());
+            case ("X", "I"):  return new ExternalVar(((delegate* unmanaged[Cdecl]<long,IntPtr>)fp)(li[0]));
+            case ("X", "R"):  return new ExternalVar(((delegate* unmanaged[Cdecl]<double,IntPtr>)fp)(ld[0]));
+            case ("X", "S"):  return new ExternalVar(((delegate* unmanaged[Cdecl]<IntPtr,IntPtr>)fp)(lp[0]));
+            case ("X", "N"):  return new ExternalVar(((delegate* unmanaged[Cdecl]<IntPtr,IntPtr>)fp)(lp[0]));
+            case ("X", "II"): return new ExternalVar(((delegate* unmanaged[Cdecl]<long,long,IntPtr>)fp)(li[0],li[1]));
+            case ("X", "IS"): return new ExternalVar(((delegate* unmanaged[Cdecl]<long,IntPtr,IntPtr>)fp)(li[0],lp[1]));
+            case ("X", "SI"): return new ExternalVar(((delegate* unmanaged[Cdecl]<IntPtr,long,IntPtr>)fp)(lp[0],li[1]));
+            case ("X", "SS"): return new ExternalVar(((delegate* unmanaged[Cdecl]<IntPtr,IntPtr,IntPtr>)fp)(lp[0],lp[1]));
+            case ("X", "NI"): return new ExternalVar(((delegate* unmanaged[Cdecl]<IntPtr,long,IntPtr>)fp)(lp[0],li[1]));
+            case ("X", "NS"): return new ExternalVar(((delegate* unmanaged[Cdecl]<IntPtr,IntPtr,IntPtr>)fp)(lp[0],lp[1]));
             default:
                 // NOCONV single-arg cases (N slots share IntPtr ABI with S)
                 // arity 1

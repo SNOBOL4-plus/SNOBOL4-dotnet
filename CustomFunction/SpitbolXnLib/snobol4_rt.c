@@ -74,3 +74,36 @@ int snobol4_reload_call(void)
 {
     return 0;
 }
+
+/* ── allocation helpers (net-ext-create) ────────────────────────────────── */
+/*
+ * These helpers let a C external function allocate a simple heap block and
+ * return it as an EXTERNAL pointer to SNOBOL4.  The block is a plain malloc
+ * region — the C function owns its layout.  SNOBOL4 stores the pointer in an
+ * ExternalVar and passes it back as NOCONV on subsequent calls.
+ *
+ * snobol4_alloc(n)        — allocate n bytes, zero-filled; return pointer
+ * snobol4_alloc_longs(n)  — allocate n longs (8*n bytes), zero-filled
+ * snobol4_free(p)         — release a block allocated by snobol4_alloc*
+ */
+
+#include <stdlib.h>
+#include <string.h>
+
+void *snobol4_alloc(long n)
+{
+    if (n <= 0) return NULL;
+    void *p = malloc((size_t)n);
+    if (p) memset(p, 0, (size_t)n);
+    return p;
+}
+
+long *snobol4_alloc_longs(long n)
+{
+    return (long *)snobol4_alloc(n * (long)sizeof(long));
+}
+
+void snobol4_free(void *p)
+{
+    free(p);
+}

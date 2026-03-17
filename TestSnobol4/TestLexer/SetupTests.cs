@@ -103,6 +103,17 @@ public class SetupTests
         }
     }
 
+    public static string CreateCLibPath
+    {
+        get
+        {
+            var dir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
+            for (var i = 0; i < 4; i++)
+                dir = Path.GetDirectoryName(dir) ?? dir;
+            return Path.Combine(dir, "CustomFunction", "SpitbolCreateLib", "libspitbol_create.so");
+        }
+    }
+
     private static string LibraryPath(string project, string dll)
     {
         // AppDomain.BaseDirectory = …/TestSnobol4/bin/Release/net10.0/
