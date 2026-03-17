@@ -124,8 +124,11 @@ public partial class Executive
                 break;
 
             default:
+                // If the lvalue is a NameVar (e.g. returned via NRETURN), assign through
+                // its Pointer — the actual variable being referenced — not leftVar.Symbol.
+                var targetSymbol = leftVar is NameVar nameVar ? nameVar.Pointer : leftVar.Symbol;
                 var newVar = rightVar is ArrayVar or TableVar ? rightVar : rightVar.Clone();
-                newVar.Symbol = leftVar.Symbol;
+                newVar.Symbol = targetSymbol;
                 newVar.OutputChannel = leftVar.OutputChannel;
                 newVar.InputChannel = leftVar.InputChannel;
                 IdentifierTable[newVar.Symbol] = newVar;

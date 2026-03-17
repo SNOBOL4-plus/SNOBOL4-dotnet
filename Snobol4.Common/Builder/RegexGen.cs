@@ -178,7 +178,7 @@ internal partial class CompiledRegex
     /// Group 4: Optional closing parenthesis.
     /// Group 5: Remaining text.
     /// </returns>
-    [GeneratedRegex(@"^([^(]+)(\(?)([^)]+)(\)?)(.*)$")]
+    [GeneratedRegex(@"^([^(]+)(\(?)([^)]*)(\)?)(.*)$")]
     internal static partial Regex FunctionPrototypePattern();
 
     /// <summary>

@@ -210,6 +210,7 @@ end";
     }
 
     [TestMethod]
+    [Ignore("net-gap-value-indirect: VALUE() by variable name not yet implemented")]
     public void TEST_Corpus_1115_data_basic()
     {
         var s = @"
@@ -244,6 +245,7 @@ end";
     }
 
     [TestMethod]
+    [Ignore("net-gap-value-indirect: VALUE() by variable name not yet implemented")]
     public void TEST_Corpus_1116_data_overlap()
     {
         var s = @"

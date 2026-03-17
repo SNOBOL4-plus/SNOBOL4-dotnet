@@ -142,7 +142,6 @@ end";
     }
 
     [TestMethod]
-    [Ignore(/* DOTNET gap */ "NRETURN (lvalue return) not implemented in DOTNET")]
     public void TEST_Corpus_1013_func_nreturn()
     {
         var s = @"
@@ -167,7 +166,6 @@ end";
     }
 
     [TestMethod]
-    [Ignore(/* DOTNET gap */ "FRETURN from unnamed function not supported in DOTNET threaded path")]
     public void TEST_Corpus_1014_func_freturn()
     {
         var s = @"
