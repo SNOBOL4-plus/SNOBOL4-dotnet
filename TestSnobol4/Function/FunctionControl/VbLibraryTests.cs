@@ -173,18 +173,17 @@ end");
     [TestMethod]
     public void Vb_Unload_RemovesFunction()
     {
-        // After UNLOAD the function is gone; calling it is a runtime error
+        // After UNLOAD the function is gone; calling it produces error 22 (undefined function).
+        // Error 22 is a fatal runtime error, not a predicate failure, so we verify ErrorCodeHistory.
         var dll = SetupTests.VbLibraryPath;
         var b = Run($@"
         load('{dll}', 'VbLibrary.Reverser')
         r1 = Reverse('ab')
         unload('{dll}')
-        r2 = Reverse('cd')  :S(OK)F(FAIL)
-FAIL    result = 'unloaded' :(END)
-OK      result = 'still-loaded'
-END
+        r2 = Reverse('cd')
 end");
-        Assert.AreEqual("ba",       Str("r1",    b));
-        Assert.AreEqual("unloaded", Str("result", b));
+        Assert.AreEqual("ba", Str("r1", b));
+        Assert.AreEqual(1, b.ErrorCodeHistory.Count);
+        Assert.AreEqual(22, b.ErrorCodeHistory[0]);
     }
 }

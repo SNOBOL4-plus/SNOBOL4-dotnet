@@ -93,6 +93,40 @@ public partial class Executive
                     ? Path.GetDirectoryName(Parent.FilesToCompile[^1]) ?? Directory.GetCurrentDirectory()
                     : Directory.GetCurrentDirectory());
 
+        // ── Reflect path: path-based UNLOAD — sweep all fnames for this DLL ──
+        var reflectKeys = DotNetReflectContexts
+            .Where(kv => kv.Value.ResolvedPath == resolvedPath)
+            .Select(kv => kv.Key)
+            .ToList();
+        if (reflectKeys.Count > 0)
+        {
+            foreach (var key in reflectKeys)
+            {
+                FunctionTable.Remove(key);
+                DotNetReflectContexts.Remove(key);
+            }
+            var count = DllRefCounts.GetValueOrDefault(resolvedPath) - reflectKeys.Count;
+            if (count <= 0)
+            {
+                DllRefCounts.Remove(resolvedPath);
+                if (DllSharedContexts.TryGetValue(resolvedPath, out var sharedCtx))
+                {
+                    DllSharedContexts.Remove(resolvedPath);
+                    sharedCtx.Unload();
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    GC.Collect();
+                }
+            }
+            else
+            {
+                DllRefCounts[resolvedPath] = count;
+            }
+            SystemStack.Push(StringVar.Null());
+            PredicateSuccess();
+            return;
+        }
+
         if (!ActiveContexts.TryGetValue(resolvedPath, out var entry))
         {
             // Not loaded under either path — idempotent success
