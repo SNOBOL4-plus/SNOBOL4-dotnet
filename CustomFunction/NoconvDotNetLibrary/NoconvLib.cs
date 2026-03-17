@@ -21,21 +21,15 @@ public sealed class NoconvLib : IExternalLibrary
     public void Init(Executive executive)
     {
         _exec = executive;
+        Register(executive, "Traverser",      1, args => Traverser(args));
+        Register(executive, "TableInspector", 1, args => TableInspector(args));
+        Register(executive, "DataFieldCount", 1, args => DataFieldCount(args));
+    }
 
-        executive.FunctionTable["traverser"] = new FunctionTableEntry(
-            executive, "traverser",
-            args => Traverser(args),
-            1, false);
-
-        executive.FunctionTable["tableinspector"] = new FunctionTableEntry(
-            executive, "tableinspector",
-            args => TableInspector(args),
-            1, false);
-
-        executive.FunctionTable["datafieldcount"] = new FunctionTableEntry(
-            executive, "datafieldcount",
-            args => DataFieldCount(args),
-            1, false);
+    private static void Register(Executive executive, string name, int arity, FunctionTableEntry.FunctionHandler fn)
+    {
+        var key = executive.Parent.FoldCase(name);
+        executive.FunctionTable[key] = new FunctionTableEntry(executive, key, fn, arity, false);
     }
 
     private void Traverser(List<Var> args)
@@ -49,8 +43,8 @@ public sealed class NoconvLib : IExternalLibrary
         long sum = 0;
         _exec.TraverseArray(arr, (_, v) =>
         {
-            if (v.Convert(VarType.INTEGER, out _, out var iv, _exec))
-                sum += (long)iv;
+            if (v.Convert(Executive.VarType.INTEGER, out Var _, out object iv, _exec))
+                sum += (long)(iv);
         });
 
         _exec.SystemStack.Push(new IntegerVar(sum));

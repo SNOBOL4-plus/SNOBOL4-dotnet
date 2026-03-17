@@ -13,8 +13,13 @@
   <ItemGroup>
     <Compile Remove="MathLibrary/**" />
     <Compile Remove="FSharpLibrary/**" />
+    <Compile Remove="FSharpOptionLibrary/**" />
     <Compile Remove="ReflectLibrary/**" />
     <Compile Remove="ObjectLifecycleLibrary/**" />
+    <Compile Remove="NoconvDotNetLibrary/**" />
+    <Compile Remove="VbLibrary/**" />
+    <Compile Remove="SpitbolCLib/**" />
+    <Compile Remove="SpitbolNoconvLib/**" />
   </ItemGroup>
 
   <ItemGroup>
