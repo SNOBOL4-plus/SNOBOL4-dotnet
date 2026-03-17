@@ -26,7 +26,6 @@ public partial class Executive
             // Non-negative: threaded loop exited to a CODE'd Statements[] index — run it.
             if (result < 0) return result;
             i = result;
-            // fall through to Roslyn Statements[] loop below
         }
 
         if (LabelTable[Parent.FoldCase(Parent.EntryLabel)] != GotoNotFound)

@@ -152,7 +152,7 @@ internal sealed class ThreadedCodeCompiler
     }
 
     // -----------------------------------------------------------------------
-    // Goto logic — mirrors GenerateStatementGotos in CodeGenerator
+    // Goto logic
     // -----------------------------------------------------------------------
 
     private void EmitGotos(SourceLine line, int si)
@@ -485,8 +485,7 @@ internal sealed class ThreadedCodeCompiler
 
     /// <summary>
     /// Compiles a single postfix token list (a star function body) into a
-    /// standalone Instruction[] ending with Halt. Used to replace Roslyn-generated
-    /// Star delegate methods with threaded sub-programs.
+    /// standalone Instruction[] ending with Halt.
     /// </summary>
     internal Instruction[] CompileSubExpression(List<Token> tokens)
     {

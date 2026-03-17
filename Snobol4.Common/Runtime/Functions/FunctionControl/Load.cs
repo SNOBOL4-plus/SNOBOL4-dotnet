@@ -634,8 +634,11 @@ public partial class Executive
         }
 
         // Map return value to Var
+        // Step 7: Var subclasses (ArrayVar, TableVar, PatternVar, ProgramDefinedDataVar)
+        // pass through directly — zero-copy, no coercion overhead.
         Var result = raw switch
         {
+            Var    v => v,
             long   l => new IntegerVar(l),
             int    n => new IntegerVar(n),
             double d => new RealVar(d),

@@ -16,8 +16,7 @@ public static class Scripts
     // -------------------------------------------------------------------------
     // Roman — recursive function, heavy identifier lookup and function dispatch.
     // ROMAN('1776') recurses 4 levels, exercising DEFINE, RPOS, LEN, BREAK,
-    // REPLACE, label-table gotos. Most sensitive to Roslyn compile overhead
-    // and function dispatch cost.
+    // REPLACE, label-table gotos.
     // -------------------------------------------------------------------------
     public const string Roman = @"
     DEFINE('ROMAN(N)T')                 :(ROMAN_END)

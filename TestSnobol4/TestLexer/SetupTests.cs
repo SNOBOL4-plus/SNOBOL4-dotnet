@@ -35,7 +35,6 @@ public class SetupTests
 
         Builder builder = new();
         builder.ParseCommandLine(args);
-        builder.BuildOptions.UseThreadedExecution = true;
         builder.Code.ReadTestScript(new MemoryStream(Encoding.UTF8.GetBytes(script)));
         if (compileOnly)
             builder.BuildMainCompileOnly();
