@@ -202,4 +202,96 @@ end");
         Assert.AreEqual("15",  Str("r1", b));
         Assert.AreEqual("14",  Str("r2", b));
     }
+
+    // ── Step 4: ref-count ActiveContexts by DLL path ──────────────────────
+
+    [TestMethod]
+    public void RefCount_TwoFunctionsFromSameDll_BothWork()
+    {
+        // Load Square and Cube from the same DLL — only one ALC should be created.
+        // Both functions must work correctly after both LOADs.
+        var b = Run($@"
+        load('{Dll}', 'ReflectFunction.Calculator::Square')
+        load('{Dll}', 'ReflectFunction.Calculator::Cube')
+        r1 = Square(5.0)
+        r2 = Cube(3.0)
+end");
+        Assert.AreEqual(0, b.ErrorCodeHistory.Count);
+        Assert.AreEqual("25.", Str("r1", b));
+        Assert.AreEqual("27.", Str("r2", b));
+    }
+
+    [TestMethod]
+    public void RefCount_UnloadFirst_SecondStillWorks()
+    {
+        // UNLOAD(Square) should decrement count to 1 — Cube must still be callable.
+        var b = Run($@"
+        load('{Dll}', 'ReflectFunction.Calculator::Square')
+        load('{Dll}', 'ReflectFunction.Calculator::Cube')
+        r1 = Square(4.0)
+        unload('Square')
+        r2 = Cube(2.0)
+end");
+        Assert.AreEqual(0, b.ErrorCodeHistory.Count);
+        Assert.AreEqual("16.", Str("r1", b));
+        Assert.AreEqual("8.",  Str("r2", b));
+    }
+
+    [TestMethod]
+    public void RefCount_UnloadBoth_AlcReleased()
+    {
+        // UNLOAD both — ref-count reaches zero, ALC released.
+        // Neither function should be callable after both UNLOADs.
+        // (We just verify no error during UNLOAD and results before UNLOAD are correct.)
+        var b = Run($@"
+        load('{Dll}', 'ReflectFunction.Calculator::Square')
+        load('{Dll}', 'ReflectFunction.Calculator::Cube')
+        r1 = Square(3.0)
+        r2 = Cube(2.0)
+        unload('Square')
+        unload('Cube')
+end");
+        Assert.AreEqual(0, b.ErrorCodeHistory.Count);
+        Assert.AreEqual("9.",  Str("r1", b));
+        Assert.AreEqual("8.",  Str("r2", b));
+    }
+
+    [TestMethod]
+    public void RefCount_ThreeFunctionsFromSameDll_UnloadInOrder()
+    {
+        // Load Doubler, Square, Cube from same DLL — three FNAMEs, ref-count=3.
+        // Unload one at a time; remaining functions continue to work.
+        var b = Run($@"
+        load('{Dll}', 'ReflectFunction.Doubler')
+        load('{Dll}', 'ReflectFunction.Calculator::Square')
+        load('{Dll}', 'ReflectFunction.Calculator::Cube')
+        r1 = Double(6)
+        r2 = Square(4.0)
+        unload('Double')
+        r3 = Cube(3.0)
+        unload('Square')
+        r4 = r3
+        unload('Cube')
+end");
+        Assert.AreEqual(0, b.ErrorCodeHistory.Count);
+        Assert.AreEqual("12",  Str("r1", b));
+        Assert.AreEqual("16.", Str("r2", b));
+        Assert.AreEqual("27.", Str("r3", b));
+    }
+
+    [TestMethod]
+    public void RefCount_ReloadAfterFullUnload_Works()
+    {
+        // After all FNAMEs from a DLL are unloaded (ref=0), a fresh LOAD should succeed.
+        var b = Run($@"
+        load('{Dll}', 'ReflectFunction.Doubler')
+        r1 = Double(7)
+        unload('Double')
+        load('{Dll}', 'ReflectFunction.Doubler')
+        r2 = Double(9)
+end");
+        Assert.AreEqual(0, b.ErrorCodeHistory.Count);
+        Assert.AreEqual("14", Str("r1", b));
+        Assert.AreEqual("18", Str("r2", b));
+    }
 }

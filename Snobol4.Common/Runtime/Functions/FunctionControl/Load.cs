@@ -409,16 +409,13 @@ public partial class Executive
     // ── .NET-reflect tracking (auto-prototype) ────────────────────────────
 
     /// <summary>
-    /// Entry for a reflection-loaded function: keeps the ALC alive and records
-    /// which DLL it came from so UNLOAD(fname) can ref-count and unload at zero.
-    /// Keyed by folded FNAME in DotNetReflectContexts.
+    /// Entry for a reflection-loaded function: records which DLL it came from
+    /// so UNLOAD(fname) can decrement the ref-count and release the shared ALC
+    /// when it reaches zero. Keyed by folded FNAME in DotNetReflectContexts.
     /// </summary>
-    internal sealed class ReflectEntry(
-        string resolvedPath,
-        AssemblyLoadContext loadContext)
+    internal sealed class ReflectEntry(string resolvedPath)
     {
-        internal readonly string              ResolvedPath = resolvedPath;
-        internal readonly AssemblyLoadContext LoadContext  = loadContext;
+        internal readonly string ResolvedPath = resolvedPath;
     }
 
     /// <summary>
@@ -426,6 +423,18 @@ public partial class Executive
     /// ActiveContexts (IExternalLibrary path). Used by UNLOAD(fname).
     /// </summary>
     internal Dictionary<string, ReflectEntry> DotNetReflectContexts = [];
+
+    /// <summary>
+    /// Step 4: one shared PluginLoadContext per resolved DLL path, shared across
+    /// all FNAMEs loaded from the same assembly.
+    /// </summary>
+    internal Dictionary<string, AssemblyLoadContext> DllSharedContexts = [];
+
+    /// <summary>
+    /// Step 4: ref-count of how many FNAMEs are currently registered from each
+    /// resolved DLL path. The ALC is unloaded when the count reaches zero.
+    /// </summary>
+    internal Dictionary<string, int> DllRefCounts = [];
 
     // ── .NET-native path (IExternalLibrary + auto-prototype) ─────────────
 
@@ -473,13 +482,22 @@ public partial class Executive
 
         try
         {
-            var loadContext = new PluginLoadContext(resolvedPath);
-            var assembly    = loadContext.LoadFromAssemblyPath(resolvedPath);
-            var type        = assembly.GetType(className);
+            // Step 4: reuse shared ALC if this DLL is already loaded; create one if not.
+            bool ownedNewContext = false;
+            if (!DllSharedContexts.TryGetValue(resolvedPath, out var loadContext))
+            {
+                loadContext = new PluginLoadContext(resolvedPath);
+                DllSharedContexts[resolvedPath] = loadContext;
+                DllRefCounts[resolvedPath] = 0;
+                ownedNewContext = true;
+            }
+
+            var assembly = loadContext.LoadFromAssemblyPath(resolvedPath);
+            var type     = assembly.GetType(className);
 
             if (type == null)
             {
-                loadContext.Unload();
+                if (ownedNewContext) { DllSharedContexts.Remove(resolvedPath); DllRefCounts.Remove(resolvedPath); loadContext.Unload(); }
                 NonExceptionFailure();
                 return;
             }
@@ -488,6 +506,9 @@ public partial class Executive
             var instance = Activator.CreateInstance(type) as IExternalLibrary;
             if (instance != null)
             {
+                // IExternalLibrary uses ActiveContexts (keyed by path), not the
+                // shared-ALC machinery. Remove the shared entry we may have created.
+                if (ownedNewContext) { DllSharedContexts.Remove(resolvedPath); DllRefCounts.Remove(resolvedPath); }
                 instance.Init(this);
                 ActiveContexts[resolvedPath] = (loadContext, instance);
                 SystemStack.Push(StringVar.Null());
@@ -509,15 +530,15 @@ public partial class Executive
                 var found = candidates.Where(m =>
                     string.Equals(m.Name, explicitMethod, StringComparison.OrdinalIgnoreCase))
                     .ToList();
-                if (found.Count == 0) { loadContext.Unload(); NonExceptionFailure(); return; }
-                if (found.Count > 1)  { loadContext.Unload(); NonExceptionFailure(); return; }
+                if (found.Count == 0) { if (ownedNewContext) { DllSharedContexts.Remove(resolvedPath); DllRefCounts.Remove(resolvedPath); loadContext.Unload(); } NonExceptionFailure(); return; }
+                if (found.Count > 1)  { if (ownedNewContext) { DllSharedContexts.Remove(resolvedPath); DllRefCounts.Remove(resolvedPath); loadContext.Unload(); } NonExceptionFailure(); return; }
                 method = found[0];
             }
             else
             {
                 // Step 2: auto-discover single unambiguous public method
-                if (candidates.Count == 0) { loadContext.Unload(); NonExceptionFailure(); return; }
-                if (candidates.Count > 1)  { loadContext.Unload(); NonExceptionFailure(); return; }
+                if (candidates.Count == 0) { if (ownedNewContext) { DllSharedContexts.Remove(resolvedPath); DllRefCounts.Remove(resolvedPath); loadContext.Unload(); } NonExceptionFailure(); return; }
+                if (candidates.Count > 1)  { if (ownedNewContext) { DllSharedContexts.Remove(resolvedPath); DllRefCounts.Remove(resolvedPath); loadContext.Unload(); } NonExceptionFailure(); return; }
                 method = candidates[0];
             }
 
@@ -528,7 +549,7 @@ public partial class Executive
             // Idempotent for reflect path (keyed by fname)
             if (DotNetReflectContexts.ContainsKey(fnameKey))
             {
-                loadContext.Unload();
+                if (ownedNewContext) { DllSharedContexts.Remove(resolvedPath); DllRefCounts.Remove(resolvedPath); loadContext.Unload(); }
                 SystemStack.Push(StringVar.Null());
                 PredicateSuccess();
                 return;
@@ -547,7 +568,9 @@ public partial class Executive
                 args => CallReflectFunction(method, target, parameters, args),
                 argCount, false);
 
-            DotNetReflectContexts[fnameKey] = new ReflectEntry(resolvedPath, loadContext);
+            // Step 4: record entry (path only; ALC lives in DllSharedContexts)
+            DotNetReflectContexts[fnameKey] = new ReflectEntry(resolvedPath);
+            DllRefCounts[resolvedPath] = DllRefCounts.GetValueOrDefault(resolvedPath) + 1;
 
             SystemStack.Push(StringVar.Null());
             PredicateSuccess();

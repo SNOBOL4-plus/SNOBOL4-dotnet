@@ -58,10 +58,26 @@ public partial class Executive
         {
             FunctionTable.Remove(fnameKey);
             DotNetReflectContexts.Remove(fnameKey);
-            reflectEntry.LoadContext.Unload();
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
+
+            // Step 4: decrement ref-count; release shared ALC only when it hits zero.
+            var dllPath = reflectEntry.ResolvedPath;
+            var count   = DllRefCounts.GetValueOrDefault(dllPath) - 1;
+            if (count <= 0)
+            {
+                DllRefCounts.Remove(dllPath);
+                if (DllSharedContexts.TryGetValue(dllPath, out var sharedCtx))
+                {
+                    DllSharedContexts.Remove(dllPath);
+                    sharedCtx.Unload();
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    GC.Collect();
+                }
+            }
+            else
+            {
+                DllRefCounts[dllPath] = count;
+            }
 
             SystemStack.Push(StringVar.Null());
             PredicateSuccess();
