@@ -84,4 +84,43 @@ public partial class Executive
 
     /// <summary>Number of entries currently in a TableVar.</summary>
     public int TableCount(TableVar tbl) => tbl.Count;
+
+    // ── Traversal API (net-ext-noconv Step 3) ────────────────────────────
+
+    /// <summary>
+    /// Walk every element of a 1-D ArrayVar in 1-based index order,
+    /// calling <paramref name="action"/> with (index, value) for each slot.
+    /// </summary>
+    public void TraverseArray(ArrayVar arr, Action<long, Var> action)
+    {
+        var data = arr.Data;
+        for (var i = 0; i < data.Count; i++)
+            action(i + 1, data[i]);
+    }
+
+    /// <summary>
+    /// Walk every key-value pair currently stored in a TableVar,
+    /// calling <paramref name="action"/> with (key-as-Var, value) for each entry.
+    /// String keys are wrapped in a StringVar; integer keys in an IntegerVar.
+    /// </summary>
+    public void TraverseTable(TableVar tbl, Action<Var, Var> action)
+    {
+        foreach (var kv in tbl.Data)
+        {
+            Var keyVar = kv.Key switch
+            {
+                string s  => new StringVar(s),
+                long   l  => new IntegerVar(l),
+                _         => new StringVar(kv.Key.ToString() ?? ""),
+            };
+            action(keyVar, kv.Value);
+        }
+    }
+
+    /// <summary>
+    /// Return an ordered read-only list of the field values of a user-defined
+    /// DATA type instance (ProgramDefinedDataVar).
+    /// </summary>
+    public IReadOnlyList<Var> GetDataFields(ProgramDefinedDataVar pdv) =>
+        pdv.FieldValues.Data;
 }

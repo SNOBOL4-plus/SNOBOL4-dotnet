@@ -44,7 +44,14 @@ public partial class Executive
         var argStr = s1[(lp + 1)..rp].Trim();
         var argTypes = argStr.Length == 0
             ? Array.Empty<string>()
-            : argStr.Split(',').Select(t => t.Trim().ToUpperInvariant()).ToArray();
+            : argStr.Split(',').Select(t =>
+            {
+                var tok = t.Trim().ToUpperInvariant();
+                // Known type keywords.  Anything else (including empty token,
+                // "NOCONV", or an unknown keyword) → "NOCONV" (type code 0).
+                return tok is "INTEGER" or "REAL" or "STRING" or "FILE" or "EXTERNAL"
+                    ? tok : "NOCONV";
+            }).ToArray();
 
         var returnType = s1[(rp + 1)..].Trim().ToUpperInvariant();
         return new PrototypeInfo(fname, argTypes, returnType);
@@ -279,6 +286,7 @@ public partial class Executive
         var doubles = new double[n];
         var ptrs    = new IntPtr[n];
         var allocated = new List<IntPtr>();
+        var noconvHandles = new List<GCHandle>();
 
         try
         {
@@ -294,6 +302,15 @@ public partial class Executive
                     case "REAL":
                         v.Convert(VarType.REAL, out _, out var rv, this);
                         doubles[i] = (double)rv;
+                        break;
+                    case "NOCONV":
+                        // Pass the Var object itself as a pinned GCHandle pointer.
+                        // The C function receives a raw pointer to the Var's heap
+                        // data — it is responsible for reading it correctly using
+                        // the block layout from libsnobol4_rt.h / blocks32.h.
+                        var gh = GCHandle.Alloc(v, GCHandleType.Pinned);
+                        noconvHandles.Add(gh);
+                        ptrs[i] = gh.AddrOfPinnedObject();
                         break;
                     default:
                         v.Convert(VarType.STRING, out _, out var sv, this);
@@ -318,9 +335,9 @@ public partial class Executive
             // tuple using a helper that selects the right delegate type per slot.
 
             // Encode arg signature for dispatch selection
-            // I=INTEGER, R=REAL, S=STRING/other
+            // I=INTEGER, R=REAL, S=STRING/other, N=NOCONV (passes raw IntPtr like S)
             var argSig = string.Concat(argTypes.Select(t => t switch {
-                "INTEGER" => "I", "REAL" => "R", _ => "S" }));
+                "INTEGER" => "I", "REAL" => "R", "NOCONV" => "N", _ => "S" }));
             var retSig  = retType switch { "INTEGER" => "I", "REAL" => "R", _ => "S" };
 
             Var resultVar = InvokeNative(fp, retSig, argSig, longs, doubles, ptrs);
@@ -334,6 +351,7 @@ public partial class Executive
         finally
         {
             foreach (var p in allocated) Marshal.FreeHGlobal(p);
+            foreach (var gh in noconvHandles) if (gh.IsAllocated) gh.Free();
         }
     }
 
@@ -397,6 +415,52 @@ public partial class Executive
             case ("S", "SR"): return PtrToStr(((delegate* unmanaged[Cdecl]<IntPtr,double,IntPtr>)fp)(lp[0],ld[1]));
             case ("S", "SS"): return PtrToStr(((delegate* unmanaged[Cdecl]<IntPtr,IntPtr,IntPtr>)fp)(lp[0],lp[1]));
             default:
+                // NOCONV single-arg cases (N slots share IntPtr ABI with S)
+                // arity 1
+                if (argSig is "N")
+                    return retSig switch {
+                        "I" => new IntegerVar(((delegate* unmanaged[Cdecl]<IntPtr,long>)fp)(lp[0])),
+                        "R" => new RealVar(((delegate* unmanaged[Cdecl]<IntPtr,double>)fp)(lp[0])),
+                        _   => PtrToStr(((delegate* unmanaged[Cdecl]<IntPtr,IntPtr>)fp)(lp[0])),
+                    };
+                // arity 2 — one noconv slot
+                if (argSig is "NI")
+                    return retSig switch {
+                        "I" => new IntegerVar(((delegate* unmanaged[Cdecl]<IntPtr,long,long>)fp)(lp[0],li[1])),
+                        _   => PtrToStr(((delegate* unmanaged[Cdecl]<IntPtr,long,IntPtr>)fp)(lp[0],li[1])),
+                    };
+                if (argSig is "NS")
+                    return retSig switch {
+                        "I" => new IntegerVar(((delegate* unmanaged[Cdecl]<IntPtr,IntPtr,long>)fp)(lp[0],lp[1])),
+                        _   => PtrToStr(((delegate* unmanaged[Cdecl]<IntPtr,IntPtr,IntPtr>)fp)(lp[0],lp[1])),
+                    };
+                if (argSig is "IN")
+                    return retSig switch {
+                        "I" => new IntegerVar(((delegate* unmanaged[Cdecl]<long,IntPtr,long>)fp)(li[0],lp[1])),
+                        _   => PtrToStr(((delegate* unmanaged[Cdecl]<long,IntPtr,IntPtr>)fp)(li[0],lp[1])),
+                    };
+                if (argSig is "SN")
+                    return retSig switch {
+                        "I" => new IntegerVar(((delegate* unmanaged[Cdecl]<IntPtr,IntPtr,long>)fp)(lp[0],lp[1])),
+                        _   => PtrToStr(((delegate* unmanaged[Cdecl]<IntPtr,IntPtr,IntPtr>)fp)(lp[0],lp[1])),
+                    };
+                // arity 2 — two noconv slots
+                if (argSig is "NN")
+                    return retSig switch {
+                        "I" => new IntegerVar(((delegate* unmanaged[Cdecl]<IntPtr,IntPtr,long>)fp)(lp[0],lp[1])),
+                        _   => PtrToStr(((delegate* unmanaged[Cdecl]<IntPtr,IntPtr,IntPtr>)fp)(lp[0],lp[1])),
+                    };
+                // arity 3 — common noconv patterns
+                if (argSig is "NII")
+                    return retSig switch {
+                        "I" => new IntegerVar(((delegate* unmanaged[Cdecl]<IntPtr,long,long,long>)fp)(lp[0],li[1],li[2])),
+                        _   => PtrToStr(((delegate* unmanaged[Cdecl]<IntPtr,long,long,IntPtr>)fp)(lp[0],li[1],li[2])),
+                    };
+                if (argSig is "NNI")
+                    return retSig switch {
+                        "I" => new IntegerVar(((delegate* unmanaged[Cdecl]<IntPtr,IntPtr,long,long>)fp)(lp[0],lp[1],li[2])),
+                        _   => PtrToStr(((delegate* unmanaged[Cdecl]<IntPtr,IntPtr,long,IntPtr>)fp)(lp[0],lp[1],li[2])),
+                    };
                 throw new NotSupportedException($"Native call sig ({retSig},{argSig}) arity>3 or unknown");
         }
     }

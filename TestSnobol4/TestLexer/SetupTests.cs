@@ -68,6 +68,19 @@ public class SetupTests
     /// <summary>Absolute path to ObjectLifecycleLibrary.dll.</summary>
     public static string ObjectLifecycleLibraryPath => LibraryPath("ObjectLifecycleLibrary", "ObjectLifecycleLibrary.dll");
 
+    public static string NoconvDotNetLibraryPath => LibraryPath("NoconvDotNetLibrary", "NoconvDotNetLibrary.dll");
+
+    public static string NoconvCLibPath
+    {
+        get
+        {
+            var dir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
+            for (var i = 0; i < 4; i++)
+                dir = Path.GetDirectoryName(dir) ?? dir;
+            return Path.Combine(dir, "CustomFunction", "SpitbolNoconvLib", "libspitbol_noconv.so");
+        }
+    }
+
     private static string LibraryPath(string project, string dll)
     {
         // AppDomain.BaseDirectory = …/TestSnobol4/bin/Release/net10.0/

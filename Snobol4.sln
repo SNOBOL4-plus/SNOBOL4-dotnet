@@ -38,6 +38,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReflectLibrary", "CustomFun
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjectLifecycleLibrary", "CustomFunction\ObjectLifecycleLibrary\ObjectLifecycleLibrary.csproj", "{A91BC76C-04F9-4131-84E0-328DD8C9D633}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoconvDotNetLibrary", "CustomFunction\NoconvDotNetLibrary\NoconvDotNetLibrary.csproj", "{B3D2F1A0-8E4C-4D7B-A923-1C5E6F0B8D44}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
