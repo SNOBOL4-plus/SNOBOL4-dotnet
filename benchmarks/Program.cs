@@ -1,11 +1,11 @@
 // benchmarks/Program.cs
 //
-// SNOBOL4.NET Benchmark Runner — loads .sno programs from SNOBOL4-corpus submodule.
+// SNOBOL4.NET Benchmark Runner — loads .sno programs from snobol4corpus submodule.
 //
 // Programs live in:  corpus/benchmarks/*.sno
 //
 // Run with:
-//   cd SNOBOL4-dotnet
+//   cd snobol4dotnet
 //   export PATH=$PATH:/usr/local/dotnet
 //   dotnet run --project benchmarks/Benchmarks.csproj -c Release
 
@@ -32,7 +32,7 @@ static string FindCorpus()
         dir = parent;
     }
     throw new DirectoryNotFoundException(
-        "Cannot find corpus/benchmarks/ — ensure the SNOBOL4-corpus submodule is initialised.\n" +
+        "Cannot find corpus/benchmarks/ — ensure the snobol4corpus submodule is initialised.\n" +
         "Run: git submodule update --init --recursive");
 }
 
