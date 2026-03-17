@@ -75,6 +75,13 @@ public partial class Executive
             return;
         }
 
+        // Protected natural variables (arb, bal, fail, fence, rem, succeed) — error 42
+        if (!leftVar.IsKeyword && leftVar.IsReadOnly)
+        {
+            LogRuntimeException(42);
+            return;
+        }
+
         // Special checks for keywords
         if (leftVar.IsKeyword)
         {
