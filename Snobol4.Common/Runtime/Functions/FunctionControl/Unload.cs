@@ -76,6 +76,14 @@ public partial class Executive
         entry.Context.Unload();
         ActiveContexts.Remove(resolvedPath);
 
+        // Collectible ALCs are not unloaded until the GC reclaims all references.
+        // Force a full collect so the assembly is truly gone before we return.
+        // This matters in test suites where a subsequent NativeLibrary.Load in the
+        // same process can race against a lingering FSharp.Core or native handle.
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
         SystemStack.Push(StringVar.Null());
         PredicateSuccess();
     }

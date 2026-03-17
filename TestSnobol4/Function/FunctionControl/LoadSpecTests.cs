@@ -13,7 +13,9 @@ namespace Test.FunctionControl;
 ///   F. Error conditions: Error 139-141, Error 202
 ///   G. Regression: existing .NET-native tests unaffected
 /// </summary>
+// SNOLIB tests mutate process-wide env vars; must not run in parallel with anything else.
 [TestClass]
+[DoNotParallelize]
 public class LoadSpecTests
 {
     private static Builder Run(string script) =>
