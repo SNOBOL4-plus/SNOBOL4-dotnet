@@ -104,6 +104,7 @@ public partial class Builder : IDisposable
             CompileStarFunctions(tc);
             PopulateMainMetadata();
             ComputeThreadIsMsilOnly();
+            if (BuildOptions.WriteDll) SaveDll();
             _timerBuild.Stop();
             PrintCompilationStatistics();
             Execute._timerExecute.Restart();
@@ -187,7 +188,7 @@ public partial class Builder : IDisposable
         return false;
     }
 
-    /// <summary>Load a pre-compiled Roslyn DLL and run it (legacy entry point).</summary>
+    /// <summary>Load a pre-compiled DLL and run it. Handles both threaded (sentinel) and legacy formats.</summary>
     public void RunDll(string dllFileName)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(dllFileName);
@@ -195,6 +196,10 @@ public partial class Builder : IDisposable
         try
         {
             ClearExceptionHistory();
+            // Threaded format: detect Snobol4ThreadedDll sentinel → re-compile from embedded source
+            if (TryRunThreadedDll(dllFileName))
+                return;
+            // Legacy format: Roslyn-generated DLL with a Run(Executive) method
             var loadContext = CreateTrackedLoadContext("RunDll");
             var dll = loadContext.LoadFromAssemblyPath(dllFileName);
             Execute = new Executive(this);
