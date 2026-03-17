@@ -406,17 +406,40 @@ public partial class Executive
 
     // ── .NET-native path (existing, unchanged) ────────────────────────────
 
+    // ── .NET-reflect tracking (auto-prototype) ────────────────────────────
+
+    /// <summary>
+    /// Entry for a reflection-loaded function: keeps the ALC alive and records
+    /// which DLL it came from so UNLOAD(fname) can ref-count and unload at zero.
+    /// Keyed by folded FNAME in DotNetReflectContexts.
+    /// </summary>
+    internal sealed class ReflectEntry(
+        string resolvedPath,
+        AssemblyLoadContext loadContext)
+    {
+        internal readonly string              ResolvedPath = resolvedPath;
+        internal readonly AssemblyLoadContext LoadContext  = loadContext;
+    }
+
+    /// <summary>
+    /// Keyed by folded FNAME. Parallel to NativeContexts (spec path) and
+    /// ActiveContexts (IExternalLibrary path). Used by UNLOAD(fname).
+    /// </summary>
+    internal Dictionary<string, ReflectEntry> DotNetReflectContexts = [];
+
+    // ── .NET-native path (IExternalLibrary + auto-prototype) ─────────────
+
     private void LoadDotNetPath(string s1, List<Var> arguments)
     {
-        // s1 = DLL path, arg 1 = fully-qualified class name
+        // s1 = DLL path.  s2 = 'Namespace.Class' or 'Namespace.Class::MethodName'
         if (arguments.Count < 2 || !arguments[1].Convert(VarType.STRING, out _, out var nameObj, this))
         {
             LogRuntimeException(136);
             return;
         }
 
-        var rawPath  = s1;
-        var className = (string)nameObj;
+        var rawPath   = s1;
+        var classSpec = (string)nameObj;   // e.g. "MyNs.Foo" or "MyNs.Foo::Bar"
 
         // Resolve relative paths against the directory of the source file
         var resolvedPath = Path.IsPathRooted(rawPath)
@@ -426,8 +449,22 @@ public partial class Executive
                     ? Path.GetDirectoryName(Parent.FilesToCompile[^1]) ?? Directory.GetCurrentDirectory()
                     : Directory.GetCurrentDirectory());
 
-        // Idempotent: already loaded — succeed silently
-        if (ActiveContexts.ContainsKey(resolvedPath))
+        // Split 'Namespace.Class::MethodName' into className + optional explicitMethod
+        string className;
+        string? explicitMethod = null;
+        var colonColon = classSpec.IndexOf("::", StringComparison.Ordinal);
+        if (colonColon >= 0)
+        {
+            className      = classSpec[..colonColon];
+            explicitMethod = classSpec[(colonColon + 2)..];
+        }
+        else
+        {
+            className = classSpec;
+        }
+
+        // Idempotent for IExternalLibrary path (keyed by resolved path)
+        if (ActiveContexts.ContainsKey(resolvedPath) && explicitMethod == null)
         {
             SystemStack.Push(StringVar.Null());
             PredicateSuccess();
@@ -438,24 +475,142 @@ public partial class Executive
         {
             var loadContext = new PluginLoadContext(resolvedPath);
             var assembly    = loadContext.LoadFromAssemblyPath(resolvedPath);
-            var instance    = assembly.CreateInstance(className) as IExternalLibrary;
+            var type        = assembly.GetType(className);
 
-            if (instance == null)
+            if (type == null)
             {
                 loadContext.Unload();
-                NonExceptionFailure();      // :F branch — class not IExternalLibrary
+                NonExceptionFailure();
                 return;
             }
 
-            instance.Init(this);
-            ActiveContexts[resolvedPath] = (loadContext, instance);
+            // ── Fast path: IExternalLibrary ───────────────────────────────
+            var instance = Activator.CreateInstance(type) as IExternalLibrary;
+            if (instance != null)
+            {
+                instance.Init(this);
+                ActiveContexts[resolvedPath] = (loadContext, instance);
+                SystemStack.Push(StringVar.Null());
+                PredicateSuccess();
+                return;
+            }
+
+            // ── Auto-prototype: reflect the class ─────────────────────────
+            // Find candidate public methods (instance + static, exclude Object members)
+            var candidates = type.GetMethods(
+                    BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)
+                .Where(m => m.DeclaringType != typeof(object) && !m.IsSpecialName)
+                .ToList();
+
+            MethodInfo method;
+            if (explicitMethod != null)
+            {
+                // Step 3: explicit ::MethodName binding
+                var found = candidates.Where(m =>
+                    string.Equals(m.Name, explicitMethod, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+                if (found.Count == 0) { loadContext.Unload(); NonExceptionFailure(); return; }
+                if (found.Count > 1)  { loadContext.Unload(); NonExceptionFailure(); return; }
+                method = found[0];
+            }
+            else
+            {
+                // Step 2: auto-discover single unambiguous public method
+                if (candidates.Count == 0) { loadContext.Unload(); NonExceptionFailure(); return; }
+                if (candidates.Count > 1)  { loadContext.Unload(); NonExceptionFailure(); return; }
+                method = candidates[0];
+            }
+
+            // SNOBOL4 function name = method name (folded)
+            var fname    = method.Name;
+            var fnameKey = Parent.FoldCase(fname);
+
+            // Idempotent for reflect path (keyed by fname)
+            if (DotNetReflectContexts.ContainsKey(fnameKey))
+            {
+                loadContext.Unload();
+                SystemStack.Push(StringVar.Null());
+                PredicateSuccess();
+                return;
+            }
+
+            // Build the instance if method is not static
+            object? target = method.IsStatic ? null : Activator.CreateInstance(type);
+
+            // Map parameter count for FunctionTableEntry
+            var parameters = method.GetParameters();
+            var argCount   = parameters.Length;
+
+            // Register FunctionTableEntry using reflection dispatch
+            FunctionTable[fnameKey] = new FunctionTableEntry(
+                this, fnameKey,
+                args => CallReflectFunction(method, target, parameters, args),
+                argCount, false);
+
+            DotNetReflectContexts[fnameKey] = new ReflectEntry(resolvedPath, loadContext);
 
             SystemStack.Push(StringVar.Null());
             PredicateSuccess();
         }
         catch (Exception)
         {
-            NonExceptionFailure();      // :F branch — file not found or reflection error
+            NonExceptionFailure();
         }
+    }
+
+    // ── Type mapping: .NET parameter/return → SNOBOL4 coercion ───────────
+
+    /// <summary>
+    /// Map a .NET Type to the SNOBOL4 VarType used for coercion.
+    /// long/int/short/byte → INTEGER; double/float → REAL; everything else → STRING.
+    /// </summary>
+    private static VarType MapDotNetType(Type t)
+    {
+        if (t == typeof(long)   || t == typeof(int)   ||
+            t == typeof(short)  || t == typeof(byte)  ||
+            t == typeof(ulong)  || t == typeof(uint))
+            return VarType.INTEGER;
+        if (t == typeof(double) || t == typeof(float))
+            return VarType.REAL;
+        return VarType.STRING;
+    }
+
+    // ── Reflection call dispatch ──────────────────────────────────────────
+
+    private void CallReflectFunction(
+        MethodInfo method, object? target,
+        ParameterInfo[] parameters, List<Var> args)
+    {
+        var callArgs = new object?[parameters.Length];
+
+        for (var i = 0; i < parameters.Length; i++)
+        {
+            var v       = i < args.Count ? args[i] : new StringVar("");
+            var vt      = MapDotNetType(parameters[i].ParameterType);
+            v.Convert(vt, out _, out var coerced, this);
+            callArgs[i] = vt switch
+            {
+                VarType.INTEGER => (long)coerced,
+                VarType.REAL    => (double)coerced,
+                _               => (string)coerced,
+            };
+        }
+
+        var raw = method.Invoke(target, callArgs);
+
+        // Map return value to Var
+        Var result = raw switch
+        {
+            long   l => new IntegerVar(l),
+            int    n => new IntegerVar(n),
+            double d => new RealVar(d),
+            float  f => new RealVar(f),
+            string s => new StringVar(s),
+            null     => StringVar.Null(),
+            _        => new StringVar(raw.ToString() ?? ""),
+        };
+
+        SystemStack.Push(result);
+        Failure = false;
     }
 }

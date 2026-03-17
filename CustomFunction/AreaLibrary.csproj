@@ -13,6 +13,7 @@
   <ItemGroup>
     <Compile Remove="MathLibrary/**" />
     <Compile Remove="FSharpLibrary/**" />
+    <Compile Remove="ReflectLibrary/**" />
   </ItemGroup>
 
   <ItemGroup>

@@ -53,6 +53,21 @@ public partial class Executive
             return;
         }
 
+        // ── Reflect path: UNLOAD(fname) — registered via auto-prototype ──
+        if (DotNetReflectContexts.TryGetValue(fnameKey, out var reflectEntry))
+        {
+            FunctionTable.Remove(fnameKey);
+            DotNetReflectContexts.Remove(fnameKey);
+            reflectEntry.LoadContext.Unload();
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+
+            SystemStack.Push(StringVar.Null());
+            PredicateSuccess();
+            return;
+        }
+
         // ── .NET-native path: UNLOAD(path) ───────────────────────────────
         // Resolve path the same way Load does
         var resolvedPath = Path.IsPathRooted(arg)
