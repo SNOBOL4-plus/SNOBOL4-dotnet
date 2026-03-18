@@ -25,7 +25,7 @@ public sealed class RealConversionStrategy : IConversionStrategy
 
     private static bool ConvertToString(RealVar realSelf, out Var varOut, out object valueOut)
     {
-        var strOut = realSelf.Data.ToString(CultureInfo.CurrentCulture);
+        var strOut = realSelf.Data.ToString(CultureInfo.InvariantCulture);
         strOut = TweakRealString(strOut);
         varOut = new StringVar(strOut);
         valueOut = strOut;
@@ -101,7 +101,7 @@ public sealed class RealConversionStrategy : IConversionStrategy
 
     private static bool ConvertToPattern(RealVar realSelf, out Var varOut, out object valueOut)
     {
-        valueOut = realSelf.Data.ToString(CultureInfo.CurrentCulture);
+        valueOut = realSelf.Data.ToString(CultureInfo.InvariantCulture);
         varOut = new PatternVar(new LiteralPattern((string)valueOut));
         return true;
     }

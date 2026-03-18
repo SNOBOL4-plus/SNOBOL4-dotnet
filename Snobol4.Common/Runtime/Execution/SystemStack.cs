@@ -21,12 +21,16 @@ public class SystemStack : Stack<Var>
 
     public bool ExtractArguments(int count, List<Var> arguments, Executive x, int start = 0)
     {
+        // Pop args off stack (they arrive in reverse order) then reverse to
+        // restore call order.  Add() is O(1) amortised; Insert(0,...) was O(n²).
+        int insertStart = arguments.Count;
         for (var i = 0; i < count; ++i)
-            arguments.Insert(0, base.Pop());
+            arguments.Add(base.Pop());
+        arguments.Reverse(insertStart, count);
 
-        if (arguments.All(arg => arg.Succeeded)) 
+        if (arguments.All(arg => arg.Succeeded))
             return false;
-        
+
         base.Push(new StringVar(false));
         return true;
     }

@@ -7,6 +7,16 @@ public sealed class IntegerConversionStrategy : IConversionStrategy
     public bool TryConvert(Var self, Executive.VarType targetType, out Var varOut, out object valueOut, Executive exec)
     {
         var intSelf = (IntegerVar)self;
+
+        // Fast path: INTEGER→INTEGER is identity — no allocation needed.
+        if (targetType == Executive.VarType.INTEGER)
+        {
+            varOut = intSelf;
+            valueOut = intSelf.Data;
+            return true;
+        }
+
+        // Defaults for non-fast-path branches (only reached when actually converting).
         varOut = IntegerVar.Create(0);
         valueOut = 0;
 
@@ -14,13 +24,15 @@ public sealed class IntegerConversionStrategy : IConversionStrategy
         {
             case Executive.VarType.STRING:
                 {
-                    var stringValue = intSelf.Data.ToString(CultureInfo.CurrentCulture);
+                    // InvariantCulture: SPITBOL integers are locale-independent.
+                    var stringValue = intSelf.Data.ToString(CultureInfo.InvariantCulture);
                     varOut = new StringVar(stringValue);
                     valueOut = stringValue;
                     return true;
                 }
 
             case Executive.VarType.INTEGER:
+                // Already handled above; unreachable.
                 varOut = intSelf;
                 valueOut = intSelf.Data;
                 return true;
@@ -35,7 +47,7 @@ public sealed class IntegerConversionStrategy : IConversionStrategy
 
             case Executive.VarType.PATTERN:
                 {
-                    var patternString = intSelf.Data.ToString(CultureInfo.CurrentCulture);
+                    var patternString = intSelf.Data.ToString(CultureInfo.InvariantCulture);
                     var pattern = new LiteralPattern(patternString);
                     varOut = new PatternVar(pattern);
                     valueOut = pattern;
@@ -44,7 +56,7 @@ public sealed class IntegerConversionStrategy : IConversionStrategy
 
             case Executive.VarType.NAME:
                 {
-                    var nameString = intSelf.Data.ToString(CultureInfo.CurrentCulture);
+                    var nameString = intSelf.Data.ToString(CultureInfo.InvariantCulture);
                     if (nameString.Length == 0)
                     {
                         return false;

@@ -12,8 +12,10 @@ public partial class Executive
             return;
         }
 
-        // Get all arguments and check for prior failure
-        List<Var> arguments = [];
+        // Get all arguments and check for prior failure.
+        // Reuse the pre-allocated arg list to avoid per-call heap allocation.
+        var arguments = _reusableArgList;
+        arguments.Clear();
         if (SystemStack.ExtractArguments(argumentCount, arguments, this))
         {
             return;
