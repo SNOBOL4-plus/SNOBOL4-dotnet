@@ -33,8 +33,8 @@ internal class PosPattern : TerminalPattern
     internal override Pattern Clone()
     {
         return _functionName is not null
-            ? new RPosPattern(_functionName)
-            : new RPosPattern(_position);
+            ? new PosPattern(_functionName)
+            : new PosPattern(_position);
     }
 
     internal override MatchResult Scan(int node, Scanner scan)
