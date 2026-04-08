@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.2.11415.280
+VisualStudioVersion = 18.4.11620.152 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Snobol4", "Snobol4\Snobol4.csproj", "{1E7BC5A6-F127-4E28-92F5-01B4B73FA01B}"
 EndProject
@@ -32,7 +32,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharpLibrary", "CustomFunc
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharpOptionLibrary", "CustomFunction\FSharpOptionLibrary\FSharpOptionLibrary.fsproj", "{D3A82F1C-6E44-4B9A-BC37-2E5A8F0C1D72}"
 EndProject
-Project("{F184B08F-C81C-45F3-A916-0D75400D9B2E}") = "VbLibrary", "CustomFunction\VbLibrary\VbLibrary.vbproj", "{A7C5E3D2-9F1B-4E8A-BD26-3F7C0A5E2B91}"
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "VbLibrary", "CustomFunction\VbLibrary\VbLibrary.vbproj", "{A7C5E3D2-9F1B-4E8A-BD26-3F7C0A5E2B91}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReflectLibrary", "CustomFunction\ReflectLibrary\ReflectLibrary.csproj", "{C23305BD-1D76-420A-9E16-161AB071D846}"
 EndProject
@@ -194,6 +194,18 @@ Global
 		{A91BC76C-04F9-4131-84E0-328DD8C9D633}.Release|x64.Build.0 = Release|Any CPU
 		{A91BC76C-04F9-4131-84E0-328DD8C9D633}.Release|x86.ActiveCfg = Release|Any CPU
 		{A91BC76C-04F9-4131-84E0-328DD8C9D633}.Release|x86.Build.0 = Release|Any CPU
+		{B3D2F1A0-8E4C-4D7B-A923-1C5E6F0B8D44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3D2F1A0-8E4C-4D7B-A923-1C5E6F0B8D44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3D2F1A0-8E4C-4D7B-A923-1C5E6F0B8D44}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B3D2F1A0-8E4C-4D7B-A923-1C5E6F0B8D44}.Debug|x64.Build.0 = Debug|Any CPU
+		{B3D2F1A0-8E4C-4D7B-A923-1C5E6F0B8D44}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B3D2F1A0-8E4C-4D7B-A923-1C5E6F0B8D44}.Debug|x86.Build.0 = Debug|Any CPU
+		{B3D2F1A0-8E4C-4D7B-A923-1C5E6F0B8D44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3D2F1A0-8E4C-4D7B-A923-1C5E6F0B8D44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3D2F1A0-8E4C-4D7B-A923-1C5E6F0B8D44}.Release|x64.ActiveCfg = Release|Any CPU
+		{B3D2F1A0-8E4C-4D7B-A923-1C5E6F0B8D44}.Release|x64.Build.0 = Release|Any CPU
+		{B3D2F1A0-8E4C-4D7B-A923-1C5E6F0B8D44}.Release|x86.ActiveCfg = Release|Any CPU
+		{B3D2F1A0-8E4C-4D7B-A923-1C5E6F0B8D44}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

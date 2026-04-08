@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Snobol4.Common;
 using Test.TestLexer;
 
@@ -28,7 +29,7 @@ public class ExtCreateTests
     [TestMethod]
     public void Create_Counter_BumpFiveTimes()
     {
-        if (!File.Exists(Lib)) Assert.Inconclusive($"libspitbol_create.so not found: {Lib}");
+        if (!File.Exists(Lib)) Assert.Inconclusive($"{Path.GetFileName(Lib)} not found: {Lib}");
 
         var b = Run($@"
             LOAD('create_counter()EXTERNAL', '{Lib}')    :F(FEND)
@@ -58,7 +59,7 @@ END");
     [TestMethod]
     public void Create_Counter_ReadDoesNotIncrement()
     {
-        if (!File.Exists(Lib)) Assert.Inconclusive($"libspitbol_create.so not found: {Lib}");
+        if (!File.Exists(Lib)) Assert.Inconclusive($"{Path.GetFileName(Lib)} not found: {Lib}");
 
         var b = Run($@"
             LOAD('create_counter()EXTERNAL', '{Lib}')    :F(FEND)
@@ -87,7 +88,7 @@ END");
     [TestMethod]
     public void Create_Pair_SumCorrect()
     {
-        if (!File.Exists(Lib)) Assert.Inconclusive($"libspitbol_create.so not found: {Lib}");
+        if (!File.Exists(Lib)) Assert.Inconclusive($"{Path.GetFileName(Lib)} not found: {Lib}");
 
         var b = Run($@"
             LOAD('create_pair(INTEGER,INTEGER)EXTERNAL', '{Lib}') :F(FEND)
@@ -114,7 +115,7 @@ END");
     [TestMethod]
     public void Create_TwoCounters_Independent()
     {
-        if (!File.Exists(Lib)) Assert.Inconclusive($"libspitbol_create.so not found: {Lib}");
+        if (!File.Exists(Lib)) Assert.Inconclusive($"{Path.GetFileName(Lib)} not found: {Lib}");
 
         var b = Run($@"
             LOAD('create_counter()EXTERNAL', '{Lib}')    :F(FEND)
@@ -132,5 +133,87 @@ END");
         var fold = b.FoldCase;
         Assert.AreEqual("3", id[fold("A3")].ToString(), "A bumped 3 times");
         Assert.AreEqual("1", id[fold("B1")].ToString(), "B independent, only 1 bump");
+    }
+
+    //[TestMethod]
+    public void Diagnostic_LoadDLL()
+    {
+        Console.WriteLine($"Test process is {(Environment.Is64BitProcess ? "64-bit" : "32-bit")}");
+        Console.WriteLine($"DLL path: {Lib}");
+        Console.WriteLine($"DLL exists: {File.Exists(Lib)}");
+
+        var pdbPath = Path.ChangeExtension(Lib, ".pdb");
+        Console.WriteLine($"PDB exists: {File.Exists(pdbPath)}");
+
+        // Try direct load to see the error
+        try
+        {
+            var handle = NativeLibrary.Load(Lib);
+            Console.WriteLine($"✅ DLL loaded: 0x{handle:X}");
+
+            if (NativeLibrary.TryGetExport(handle, "create_counter", out var funcPtr))
+            {
+                Console.WriteLine($"✅ create_counter found at: 0x{funcPtr:X}");
+            }
+            else
+            {
+                Console.WriteLine("❌ create_counter NOT exported");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Load failed: {ex.Message}");
+        }
+    }
+
+    //[TestMethod]
+    public void Verify_DLL_Exports()
+    {
+        Console.WriteLine($"DLL Path: {Lib}");
+        Console.WriteLine($"DLL Exists: {File.Exists(Lib)}");
+
+        if (!File.Exists(Lib))
+        {
+            Assert.Fail("DLL not found!");
+        }
+
+        // Check architecture
+        //var info = new System.Diagnostics.FileVersionInfo();
+        Console.WriteLine($"Process is {(Environment.Is64BitProcess ? "64-bit" : "32-bit")}");
+
+        // Try to load
+        IntPtr handle = IntPtr.Zero;
+        try
+        {
+            handle = NativeLibrary.Load(Lib);
+            Console.WriteLine($"✅ DLL loaded successfully: 0x{handle:X}");
+
+            // Check exports
+            var exports = new[] { "create_counter", "bump_counter", "read_counter", "create_pair", "pair_sum" };
+            foreach (var export in exports)
+            {
+                if (NativeLibrary.TryGetExport(handle, export, out var funcPtr))
+                {
+                    Console.WriteLine($"✅ {export} found at 0x{funcPtr:X}");
+                }
+                else
+                {
+                    Console.WriteLine($"❌ {export} NOT FOUND");
+                    Assert.Fail($"Export {export} is missing!");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Load failed: {ex.Message}");
+            Assert.Fail(ex.Message);
+        }
+        finally
+        {
+            if (handle != IntPtr.Zero)
+            {
+                NativeLibrary.Free(handle);
+            }
+        }
     }
 }

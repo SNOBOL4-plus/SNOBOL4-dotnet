@@ -47,7 +47,8 @@ public class ExtXnblkTests
     public void Xnblk_Counter_Increments()
     {
         var lib = SetupTests.XnCLibPath;
-        if (!File.Exists(lib)) Assert.Inconclusive($"libspitbol_xn.so not found: {lib}");
+        if (!File.Exists(lib)) Assert.Inconclusive($"{Path.GetFileName(lib)} not found: {lib}");
+        //if (!File.Exists(lib)) Assert.Inconclusive($"libspitbol_xn.so not found: {lib}");
 
         var b = Run($@"
             LOAD('xn_counter()INTEGER', '{lib}')  :F(FEND)

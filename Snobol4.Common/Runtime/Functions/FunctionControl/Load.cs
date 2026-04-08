@@ -374,10 +374,14 @@ public partial class Executive
                         }
                         else
                         {
-                            // Pass the Var object itself as a pinned GCHandle pointer.
-                            var gh = GCHandle.Alloc(v, GCHandleType.Pinned);
+                            // Pass a stable GCHandle to the Var as an opaque pointer.
+                            // GCHandleType.Pinned requires a blittable object and throws
+                            // for managed types like ArrayVar/TableVar. GCHandleType.Normal
+                            // works for any managed object; ToIntPtr gives a non-null cookie
+                            // the C side can test for non-null and pass back opaquely.
+                            var gh = GCHandle.Alloc(v, GCHandleType.Normal);
                             noconvHandles.Add(gh);
-                            ptrs[i] = gh.AddrOfPinnedObject();
+                            ptrs[i] = GCHandle.ToIntPtr(gh);
                         }
                         break;
                     default:

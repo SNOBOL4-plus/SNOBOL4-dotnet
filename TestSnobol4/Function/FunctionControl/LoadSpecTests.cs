@@ -14,6 +14,11 @@ namespace Test.FunctionControl;
 ///   G. Regression: existing .NET-native tests unaffected
 /// </summary>
 // SNOLIB tests mutate process-wide env vars; must not run in parallel with anything else.
+//
+// Build (Windows):
+// cl.exe /nologo /Od /Zi /MDd /D_DEBUG /Fe:libspitbol_math.dll spitbol_math.c /link /DLL /MACHINE:X64 /DEBUG /PDB:libspitbol_math.pdb
+
+
 [TestClass]
 [DoNotParallelize]
 public class LoadSpecTests
@@ -32,7 +37,12 @@ public class LoadSpecTests
             var dir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
             for (var i = 0; i < 4; i++)
                 dir = Path.GetDirectoryName(dir) ?? dir;
-            return Path.Combine(dir, "CustomFunction", "SpitbolCLib", "libspitbol_math.so");
+
+            if (SetupTests.IsWindows)
+                return Path.Combine(dir, "CustomFunction", "SpitbolCLib", "libspitbol_math.dll");
+            if (SetupTests.IsLinux)
+                return Path.Combine(dir, "CustomFunction", "SpitbolCLib", "libspitbol_math.so");
+            throw new PlatformNotSupportedException("Unsupported OS platform");
         }
     }
 

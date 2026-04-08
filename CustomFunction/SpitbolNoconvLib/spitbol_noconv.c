@@ -18,26 +18,32 @@
  *                                                    for array-passing tests
  *   long   snc_table_passed(void *blk)            -- alias for nonnull, named
  *                                                    for table-passing tests
+ *                                                    
+ *  Build (Windows):
+ *  cl.exe /nologo /Od /Zi /MDd /D_DEBUG /Fe:libspitbol_noconv.dll spitbol_noconv.c /link /DLL /MACHINE:X64 /DEBUG /PDB:libspitbol_noconv.pdb
+ *
  */
 
-#include <stddef.h>
+#include <stddef.h>   /* NULL */
 
-/* Returns 1 if the opaque block pointer is non-null, 0 otherwise. */
-long snc_noconv_nonnull(void *blk) {
+#ifdef _WIN32
+    #define EXPORT __declspec(dllexport)
+#else
+    #define EXPORT __attribute__((visibility("default")))
+#endif
+
+EXPORT long snc_noconv_nonnull(void *blk) {
     return blk != NULL ? 1 : 0;
 }
 
-/* Returns n+1 if the opaque block pointer is non-null, -1 otherwise. */
-long snc_noconv_with_int(void *blk, long n) {
+EXPORT long snc_noconv_with_int(void *blk, long n) {
     return blk != NULL ? n + 1 : -1;
 }
-
-/* Named alias used in array-passing tests. */
-long snc_array_passed(void *blk) {
+	
+EXPORT long snc_array_passed(void *blk) {
     return blk != NULL ? 1 : 0;
 }
 
-/* Named alias used in table-passing tests. */
-long snc_table_passed(void *blk) {
+EXPORT long snc_table_passed(void *blk) {
     return blk != NULL ? 1 : 0;
 }

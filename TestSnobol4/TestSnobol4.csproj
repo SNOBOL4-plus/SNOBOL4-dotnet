@@ -68,4 +68,22 @@
   <ItemGroup>
     <Folder Include="Function\ProgramControl\" />
   </ItemGroup>
+
+  <!--
+    Build the native C fixture DLLs (libspitbol_math, libspitbol_create,
+    libspitbol_noconv, libspitbol_xn) before the test project compiles.
+    Only runs on Windows; skipped silently on Linux/macOS.
+    ContinueOnError="WarnAndContinue" means a missing C++ toolchain is a
+    warning, not a hard error — tests that need the DLLs will self-mark
+    as Inconclusive rather than breaking the whole build.
+  -->
+  <Target Name="BuildNativeCLibraries"
+          BeforeTargets="PreBuildEvent"
+          Condition="'$(OS)' == 'Windows_NT'">
+    <Message Text="Building native C fixture libraries..." Importance="High" />
+    <Exec Command="powershell.exe -ExecutionPolicy Bypass -NonInteractive -File &quot;$(MSBuildThisFileDirectory)..\build_native.ps1&quot;"
+          WorkingDirectory="$(MSBuildThisFileDirectory).."
+          ContinueOnError="WarnAndContinue" />
+  </Target>
+
 </Project>

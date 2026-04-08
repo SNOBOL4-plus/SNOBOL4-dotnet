@@ -13,7 +13,7 @@ namespace Test.FunctionControl;
 /// .NET IExternalLibrary tests (Step 3): TraverseArray/TraverseTable/GetDataFields
 /// let a .NET plugin inspect SNOBOL4 objects received as arguments.
 /// </summary>
-[TestClass]
+[TestClass, DoNotParallelize]
 public class ExtNoconvTests
 {
     private static readonly object s_consoleLock = new();
@@ -82,14 +82,14 @@ public class ExtNoconvTests
     // The core net-ext-noconv feature (.NET traversal API) is covered by
     // the Noconv_DotNet_* tests above.
 
-    [TestMethod, Ignore]
+    [TestMethod]
     public void Noconv_CLib_ArrayPassed_NonNull()
     {
         // snc_array_passed(void*) returns 1 if pointer is non-null.
         // We LOAD with NOCONV arg type and pass an ARRAY — the function
         // should receive a non-null pinned pointer and return 1.
         var lib = SetupTests.NoconvCLibPath;
-        if (!File.Exists(lib)) Assert.Inconclusive($"libspitbol_noconv.so not found: {lib}");
+        if (!File.Exists(lib)) Assert.Inconclusive($"{Path.GetFileName(lib)} not found: {lib}");
 
         var output = RunCapture($@"
             LOAD('snc_array_passed(NOCONV)INTEGER', '{lib}')   :F(FEND)
@@ -104,12 +104,12 @@ END");
         Assert.AreEqual("1", output);
     }
 
-    [TestMethod, Ignore]
+    [TestMethod]
     public void Noconv_CLib_TablePassed_NonNull()
     {
         // snc_table_passed(void*) returns 1 if pointer is non-null.
         var lib = SetupTests.NoconvCLibPath;
-        if (!File.Exists(lib)) Assert.Inconclusive($"libspitbol_noconv.so not found: {lib}");
+        if (!File.Exists(lib)) Assert.Inconclusive($"{Path.GetFileName(lib)} not found: {lib}");
 
         var output = RunCapture($@"
             LOAD('snc_table_passed(NOCONV)INTEGER', '{lib}')   :F(FEND)

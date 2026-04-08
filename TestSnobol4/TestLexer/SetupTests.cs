@@ -77,7 +77,11 @@ public class SetupTests
             var dir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
             for (var i = 0; i < 4; i++)
                 dir = Path.GetDirectoryName(dir) ?? dir;
-            return Path.Combine(dir, "CustomFunction", "SpitbolNoconvLib", "libspitbol_noconv.so");
+            if(IsWindows)
+                return Path.Combine(dir, "CustomFunction", "SpitbolNoconvLib", "libspitbol_noconv.dll");
+            if (IsLinux)
+                return Path.Combine(dir, "CustomFunction", "SpitbolNoconvLib", "libspitbol_noconv.so");
+            throw new PlatformNotSupportedException("Unsupported OS platform");
         }
     }
 
@@ -88,7 +92,11 @@ public class SetupTests
             var dir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
             for (var i = 0; i < 4; i++)
                 dir = Path.GetDirectoryName(dir) ?? dir;
-            return Path.Combine(dir, "CustomFunction", "SpitbolXnLib", "libsnobol4_rt.so");
+            if (IsWindows)
+                return Path.Combine(dir, "CustomFunction", "SpitbolXnLib", "libsnobol4_rt.dll");
+            if (IsLinux)
+                return Path.Combine(dir, "CustomFunction", "SpitbolXnLib", "libsnobol4_rt.so");
+            throw new PlatformNotSupportedException("Unsupported OS platform");
         }
     }
 
@@ -99,7 +107,11 @@ public class SetupTests
             var dir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
             for (var i = 0; i < 4; i++)
                 dir = Path.GetDirectoryName(dir) ?? dir;
-            return Path.Combine(dir, "CustomFunction", "SpitbolXnLib", "libspitbol_xn.so");
+            if (IsWindows)
+                return Path.Combine(dir, "CustomFunction", "SpitbolXnLib", "libspitbol_xn.dll");
+            if (IsLinux)
+                return Path.Combine(dir, "CustomFunction", "SpitbolXnLib", "libspitbol_xn.so");
+            throw new PlatformNotSupportedException("Unsupported OS platform");
         }
     }
 
@@ -110,7 +122,11 @@ public class SetupTests
             var dir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
             for (var i = 0; i < 4; i++)
                 dir = Path.GetDirectoryName(dir) ?? dir;
-            return Path.Combine(dir, "CustomFunction", "SpitbolCreateLib", "libspitbol_create.so");
+            if(IsWindows)
+                return Path.Combine(dir, "CustomFunction", "SpitbolCreateLib", "libspitbol_create.dll");
+            if(IsLinux)
+                return Path.Combine(dir, "CustomFunction", "SpitbolCreateLib", "libspitbol_create.so");
+            throw new PlatformNotSupportedException("Unsupported OS platform");
         }
     }
 

@@ -20,6 +20,9 @@
  *   int   snobol4_first_call(void)           — 1 on first-ever call, 0 thereafter
  *   int   snobol4_reload_call(void)          — always 0 on DOTNET (no save/reload)
  *   void  snobol4_register_callback(void*)  — register xncbp shutdown callback
+ *   
+ *   Windows:
+ *      cl.exe /nologo /Od /Zi /MDd /D_DEBUG /Fe:snobol4_rt.dll snobol4_rt.c /link /DLL /MACHINE:X64 /DEBUG /PDB:snobol4_rt.pdb
  */
 
 #include <stddef.h>
