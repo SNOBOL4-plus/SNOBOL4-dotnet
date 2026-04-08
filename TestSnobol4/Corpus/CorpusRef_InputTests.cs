@@ -205,7 +205,7 @@ END";
     /// being updated for variables first created by @N at runtime.
     /// Tracked: M-NET-P35-FIX.
     /// </summary>
-    [TestMethod, Ignore("M-NET-P35-FIX: @N cursor capture clobbers via VarSlotArray — fix pending")]
+    [TestMethod]
     public void TEST_Corpus_strings_cross()
     {
         var s = @"

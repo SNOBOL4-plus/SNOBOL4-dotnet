@@ -46,9 +46,10 @@ internal class AnyPattern : TerminalPattern
 
         if (_functionName == null)
         {
-            return _charList.Contains(scan.Subject[scan.CursorPosition++])
-                ? MatchResult.Success(scan)
-                : MatchResult.Failure(scan);
+            if (!_charList.Contains(scan.Subject[scan.CursorPosition]))
+                return MatchResult.Failure(scan);
+            scan.CursorPosition++;
+            return MatchResult.Success(scan);
         }
 
         _functionName(scan.Exec);
@@ -61,9 +62,10 @@ internal class AnyPattern : TerminalPattern
         }
 
         _charList = (string)str;
-        return _charList.Contains(scan.Subject[scan.CursorPosition++]) 
-            ? MatchResult.Success(scan) 
-            : MatchResult.Failure(scan);
+        if (!_charList.Contains(scan.Subject[scan.CursorPosition]))
+            return MatchResult.Failure(scan);
+        scan.CursorPosition++;
+        return MatchResult.Success(scan);
     }
 
     #endregion

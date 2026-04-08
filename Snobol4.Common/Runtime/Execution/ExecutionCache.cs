@@ -191,14 +191,23 @@ public partial class Executive
     /// <summary>
     /// Keep VarSlotArray in sync when a symbol is written into IdentifierTable.
     /// Called by IdentifierTable setter immediately after the base setter.
+    /// On a miss (runtime-created symbols such as @N cursor captures), allocates
+    /// a new slot in Parent.VariableSlots so that PushVar reads the correct value.
     /// </summary>
     internal void SyncVarSlot(string symbol, Var value)
     {
-        if (SymbolToSlotIndex != null &&
-            SymbolToSlotIndex.TryGetValue(symbol, out var idx))
+        if (SymbolToSlotIndex == null) return;
+        if (!SymbolToSlotIndex.TryGetValue(symbol, out var idx))
         {
-            VarSlotArray[idx] = value;
+            // Symbol has no compile-time slot (e.g. first @N assignment at runtime).
+            // Register it now so subsequent PushVar reads are correct.
+            var newSlot = new VariableSlot(Parent.VariableSlots.Count, symbol);
+            Parent.VariableSlots.Add(newSlot);
+            Parent.VariableSlotIndex[symbol] = newSlot.SlotIndex;
+            ExpandVarSlotArray();   // grows VarSlotArray + adds to SymbolToSlotIndex
+            idx = newSlot.SlotIndex;
         }
+        VarSlotArray[idx] = value;
     }
 
     // -------------------------------------------------------------------------

@@ -1192,6 +1192,11 @@ public partial class Lexer
             _equalFound = true;
         }
 
+        if (tokenType == Token.Type.BINARY_QUESTION)
+        {
+            _patternMatchFound = true;
+        }
+
         sourceLine.LexBody.Add(new Token(tokenType, match.Groups[1].Value, _bracketStack.Count));
         return true;
     }
