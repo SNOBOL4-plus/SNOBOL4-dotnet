@@ -158,4 +158,37 @@ public class SetupTests
                 return config;
         return "Debug";
     }
+
+    /// <summary>
+    /// Runs a SNOBOL4 script with optional stdin input and returns all OUTPUT lines
+    /// as a single string (lines joined by newline, trailing whitespace trimmed).
+    ///
+    /// Input is fed via <see cref="Executive.ReadLineDelegate"/> — no Console.SetIn
+    /// needed. The delegate is always reset to null after the run so parallel tests
+    /// are not affected.
+    ///
+    /// Used by corpus ref tests that compare against .ref oracle files.
+    /// </summary>
+    internal static string RunWithInput(string script, string? inputText = null)
+    {
+        var inputLines = inputText?.Split('\n').Select(l => l.TrimEnd('\r')).ToArray();
+        var inputIdx   = 0;
+        Executive.ReadLineDelegate = inputLines is null ? null
+            : () => inputIdx < inputLines.Length ? inputLines[inputIdx++] : null;
+
+        var old = Console.Error;
+        using var ms = new MemoryStream();
+        using var sw = new StreamWriter(ms) { AutoFlush = true };
+        Console.SetError(sw);
+        try   { SetupScript("-b", script); }
+        finally
+        {
+            Console.SetError(old);
+            Executive.ReadLineDelegate = null;  // always reset — static field, tests run in-process
+        }
+
+        ms.Position = 0;
+        using var sr = new StreamReader(ms);
+        return sr.ReadToEnd().TrimEnd();
+    }
 }
