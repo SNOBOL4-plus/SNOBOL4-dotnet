@@ -354,4 +354,131 @@ END";
 END";
         Assert.AreEqual("7\n7\n42\n5\n2\n256", SetupTests.RunWithInput(s));
     }
+
+    [TestMethod]
+    public void TEST_Feat_f01_core_labels_goto()
+    {
+        // f01: basic :S/:F conditional goto
+        var s = @"
+        X = 'hello'
+        IDENT(X, 'hello')                       :S(OK)F(FAIL)
+OK      OUTPUT = 'PASS'                         :(END)
+FAIL    OUTPUT = 'FAIL'
+END";
+        Assert.AreEqual("PASS", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Feat_f01_goto_fail_branch()
+    {
+        // :F branch taken when predicate fails
+        var s = @"
+        X = 'world'
+        IDENT(X, 'hello')                       :S(WRONG)F(OK)
+WRONG   OUTPUT = 'FAIL'                         :(END)
+OK      OUTPUT = 'PASS'
+END";
+        Assert.AreEqual("PASS", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Feat_f13_eval()
+    {
+        // EVAL evaluates a string as a SNOBOL4 expression at runtime
+        var s = @"
+        EQ(EVAL('2 + 3'), 5)                    :F(FAIL)
+        EQ(EVAL('10 * 4'), 40)                  :F(FAIL)
+        OUTPUT = 'PASS'                         :(END)
+FAIL    OUTPUT = 'FAIL'
+END";
+        Assert.AreEqual("PASS", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Feat_f13_eval_string_expr()
+    {
+        // EVAL can evaluate string concatenation expressions
+        var s = @"
+        A = 'hel'
+        B = 'lo'
+        RESULT = EVAL('A B')
+        IDENT(RESULT, 'hello')                  :F(FAIL)
+        OUTPUT = 'PASS'                         :(END)
+FAIL    OUTPUT = 'FAIL'
+END";
+        Assert.AreEqual("PASS", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Feat_f14_dyn_opt_pattern_cache()
+    {
+        // Same literal pattern used in a loop — pattern cache must be consistent
+        var s = @"
+        COUNT = 0
+        I = 0
+LOOP    LT(I, 10)                               :F(DONE)
+        S = 'hello world'
+        S 'hello'                               :F(FAIL)
+        COUNT = COUNT + 1
+        I = I + 1                               :(LOOP)
+DONE    EQ(COUNT, 10)                           :F(FAIL)
+        OUTPUT = 'PASS'                         :(END)
+FAIL    OUTPUT = 'FAIL'
+END";
+        Assert.AreEqual("PASS", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    [Ignore("D-NET-190: STOPTR throws NullReferenceException in StopTrace — TRACE/STOPTR not fully implemented")]
+    public void TEST_Feat_f15_trace_no_crash()
+    {
+        // TRACE / STOPTR / &TRACE — verify they don't crash; output is still PASS
+        var s = @"
+        &TRACE = 1
+        TRACE('X', 'VALUE')
+        X = 'traced'
+        STOPTR('X', 'VALUE')
+        &TRACE = 0
+        OUTPUT = 'PASS'
+END";
+        Assert.AreEqual("PASS", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Feat_f16_ucase_keyword()
+    {
+        // &UCASE has exactly 26 letters
+        var s = @"
+        IDENT(SIZE(&UCASE), 26)                 :F(FAIL)
+        OUTPUT = 'PASS'                         :(END)
+FAIL    OUTPUT = 'FAIL'
+END";
+        Assert.AreEqual("PASS", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Feat_f20_alphabet_size()
+    {
+        // &ALPHABET has 256 characters
+        var s = @"
+        IDENT(SIZE(&ALPHABET), 256)             :F(FAIL)
+        OUTPUT = 'PASS'                         :(END)
+FAIL    OUTPUT = 'FAIL'
+END";
+        Assert.AreEqual("PASS", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Feat_f20_alphabet_contains_letters()
+    {
+        // &ALPHABET contains all uppercase and lowercase letters
+        var s = @"
+        &ALPHABET 'A'                           :F(FAIL)
+        &ALPHABET 'z'                           :F(FAIL)
+        &ALPHABET '0'                           :F(FAIL)
+        OUTPUT = 'PASS'                         :(END)
+FAIL    OUTPUT = 'FAIL'
+END";
+        Assert.AreEqual("PASS", SetupTests.RunWithInput(s));
+    }
 }
