@@ -429,10 +429,11 @@ END";
     }
 
     [TestMethod]
-    [Ignore("D-NET-190: STOPTR throws NullReferenceException in StopTrace — TRACE/STOPTR not fully implemented")]
     public void TEST_Feat_f15_trace_no_crash()
     {
-        // TRACE / STOPTR / &TRACE — verify they don't crash; output is still PASS
+        // TRACE / STOPTR / &TRACE — verify they don't crash; PASS is the last output line.
+        // TRACE writes diagnostic lines to stderr before the final OUTPUT = 'PASS' line,
+        // so we check that the captured output ends with PASS (not exact equality).
         var s = @"
         &TRACE = 1
         TRACE('X', 'VALUE')
@@ -441,7 +442,8 @@ END";
         &TRACE = 0
         OUTPUT = 'PASS'
 END";
-        Assert.AreEqual("PASS", SetupTests.RunWithInput(s));
+        var output = SetupTests.RunWithInput(s);
+        Assert.IsTrue(output.EndsWith("PASS"), $"Expected output to end with PASS, got: {output}");
     }
 
     [TestMethod]

@@ -103,4 +103,67 @@ e005
 END";
         Assert.AreEqual("PASS 213_indirect_name (5/5)", SetupTests.RunWithInput(s));
     }
+
+    [TestMethod]
+    public void TEST_Corpus_coverage_sno_nodes()
+    {
+        // Every major SNOBOL4 IR node kind. Oracle: sbl /tmp/cov2.sno → 25 lines.
+        var s = @"
+        OUTPUT = 'hello'
+        OUTPUT = 42
+        X = 1.5
+        OUTPUT = X
+        A = 'world'
+        OUTPUT = A
+        OUTPUT = SIZE(&ALPHABET)
+        OUTPUT = 3 + 4
+        OUTPUT = 10 - 3
+        OUTPUT = 3 * 4
+        OUTPUT = 10 / 2
+        N = -5
+        OUTPUT = N
+        OUTPUT = 2 ** 8
+        OUTPUT = 'foo' 'bar'
+        S4 = 'hello'
+        S4 LEN(3) . PART
+        OUTPUT = PART
+        S5 = 'hello world'
+        S5 'world' $ TRAIL
+        OUTPUT = TRAIL
+        S6 = 'abcdef'
+        S6 'abc' @POS1
+        OUTPUT = POS1
+        S2 = 'abcd'
+        S2 'ab' 'cd'
+        OUTPUT = 'seq ok'
+        S3 = 'cat'
+        S3 ('dog' | 'cat')
+        OUTPUT = 'alt ok'
+        S7 = 'xaby'
+        S7 ARB 'b'
+        OUTPUT = 'arb ok'
+        S8 = 'aaab'
+        S8 ARBNO('a') 'b'
+        OUTPUT = 'arbno ok'
+        PAT = LEN(2)
+        S9 = 'abcd'
+        S9 *PAT
+        OUTPUT = 'star ok'
+        VNAME = 'A'
+        OUTPUT = $VNAME
+        OUTPUT = SIZE('hello')
+        T = TABLE()
+        T<'key'> = 'val'
+        OUTPUT = T<'key'>
+        IDENT(UNDEF,)                   :F(NOTNULL)
+        OUTPUT = 'null ok'              :(DONULL)
+NOTNULL OUTPUT = 'not null'
+DONULL
+        OUTPUT = 'done'
+END";
+        var expected = "hello\n42\n1.5\nworld\n256\n7\n7\n12\n5\n-5\n256\n" +
+            "foobar\nhel\nworld\n3\nseq ok\nalt ok\narb ok\narbno ok\n" +
+            "star ok\nworld\n5\nval\nnull ok\ndone";
+        Assert.AreEqual(expected, SetupTests.RunWithInput(s));
+    }
 }

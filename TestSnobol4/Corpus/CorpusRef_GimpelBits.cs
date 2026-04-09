@@ -366,15 +366,15 @@ END";
     // ── OPSYN alias (Gimpel REDEFINE.sno idiom) ─────────────────────────────
 
     [TestMethod]
-    [Ignore("D-NET-187: OPSYN function synonym (arg3=0) returns error 154")]
     public void TEST_Gimpel_opsyn_alias()
     {
-        // OPSYN('new','old',0) creates a function synonym (arg3=0 = function)
+        // OPSYN(name, func, 0) — function synonym. UCASE is a keyword not a function;
+        // correct form aliases SIZE as MYSIZE. Oracle: sbl → 5
         var s = @"
-        OPSYN('UPPER', 'UCASE', 0)
-        OUTPUT = UPPER('hello')
+        OPSYN('MYSIZE', 'SIZE', 0)
+        OUTPUT = MYSIZE('hello')
 END";
-        Assert.AreEqual("HELLO", SetupTests.RunWithInput(s));
+        Assert.AreEqual("5", SetupTests.RunWithInput(s));
     }
 
     // ── DUPL for padding/repetition (Gimpel LPAD idiom) ─────────────────────
