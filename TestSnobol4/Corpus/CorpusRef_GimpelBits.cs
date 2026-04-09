@@ -157,7 +157,7 @@ END";
     // ── BSORT (Gimpel BSORT.sno) — array sort using LGT ────────────────────
 
     [TestMethod]
-    [Ignore("D-NET-186: LGT(A,B) V on RHS of assignment → error 212")]
+    [Ignore("D-NET-186: bsort produces wrong order — LGT(A<K>,V) A<K> assignment shifts incorrectly; SPITBOL oracle gives apple/avocado/banana/cherry/date correctly")]
     public void TEST_Gimpel_bsort_strings()
     {
         // Insertion sort using LGT; tests array subscript as lvalue, LGT predicate
@@ -173,8 +173,8 @@ BS2     K = K - 1   GT(K, I)                              :F(BS_RO)
 BS_RO   A<I> = V                                          :(BS1)
 BSORT_END
         A = ARRAY(5)
-        A<1> = 'banana'  A<2> = 'apple'  A<3> = 'cherry'
-        A<4> = 'date'    A<5> = 'avocado'
+        A<1> = 'banana'; A<2> = 'apple'; A<3> = 'cherry'
+        A<4> = 'date';   A<5> = 'avocado'
         BSORT(A, 1, 5)
         OUTPUT = A<1>
         OUTPUT = A<2>
@@ -186,7 +186,7 @@ END";
     }
 
     [TestMethod]
-    [Ignore("D-NET-186: LGT(A,B) V on RHS of assignment → error 212")]
+    [Ignore("D-NET-186: bsort produces wrong order — same root cause as bsort_strings; SPITBOL oracle gives ant/ape/bat/cat correctly")]
     public void TEST_Gimpel_bsort_integers_as_strings()
     {
         // LGT is lexical — "10" < "9" lexically; tests LGT vs GT distinction
@@ -202,7 +202,7 @@ BS2     K = K - 1   GT(K, I)                              :F(BS_RO)
 BS_RO   A<I> = V                                          :(BS1)
 BSORT_END
         A = ARRAY(4)
-        A<1> = 'cat'  A<2> = 'ant'  A<3> = 'bat'  A<4> = 'ape'
+        A<1> = 'cat'; A<2> = 'ant'; A<3> = 'bat'; A<4> = 'ape'
         BSORT(A, 1, 4)
         OUTPUT = A<1>
         OUTPUT = A<2>

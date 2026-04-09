@@ -29,7 +29,7 @@ SHIFT_END
         OUTPUT = SHIFT('abcde', 1)
         OUTPUT = SHIFT('ABCDE', 0)
 END";
-        Assert.AreEqual("lloh e\nbcdea\nABCDE".Replace(" ", ""), SetupTests.RunWithInput(s));
+        Assert.AreEqual("llohe\nbcdea\nABCDE", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -192,3 +192,4 @@ END";
         Assert.AreEqual("MCMXCIX\nMMXXIV", SetupTests.RunWithInput(s));
     }
 }
+
