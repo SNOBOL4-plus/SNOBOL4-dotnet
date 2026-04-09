@@ -182,6 +182,18 @@ public partial class Executive
 
         // ── General path (reuses pre-allocated list) ──────────────────────────
         _reusableArgList.Clear();
+        // BUG-4: drain arithmetic/concat operands and propagate failure when
+        // Failure is already set (e.g. preceding NE/GT predicate failed).
+        // Only applies to non-predicate operators — predicates (Negation,
+        // Interrogation, Tilde, Question) must run to flip the Failure flag.
+        if (Failure && argumentCount > 0 && op is
+            OpCode.OpAdd or OpCode.OpSubtract or OpCode.OpMultiply or
+            OpCode.OpDivide or OpCode.OpPower or OpCode.OpConcat)
+        {
+            for (var i = 0; i < argumentCount; ++i) SystemStack.Pop();
+            SystemStack.Push(new StringVar(false) { Succeeded = false });
+            return;
+        }
         if (SystemStack.ExtractArguments(argumentCount, _reusableArgList, this))
             return;
         InputArguments(_reusableArgList);
