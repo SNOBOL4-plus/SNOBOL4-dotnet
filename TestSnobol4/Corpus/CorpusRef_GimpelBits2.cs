@@ -82,7 +82,7 @@ RANDOM_END
 ";
 
     [TestMethod]
-    [Ignore("D-NET-188: NE(N,0) CONVERT(...) — NE should return first arg on success; expression fails instead")]
+    [Ignore("D-NET-190: NE(N,0) CONVERT(R*N,'INTEGER') + 1 — when N=0, NE fails but error 1 thrown. Parse tree: NE(N,0) concat (CONVERT(...)+1). ExtractArguments for concat should abort on StringVar(false) but error 1 fires. Suspect OpConcat fast-path not checking Succeeded before evaluating right operand, or concat result incorrectly propagating Succeeded=true to +.")]
     public void TEST_Gimpel2_random_fraction()
     {
         // RANDOM(0) returns real in (0,1)

@@ -166,4 +166,116 @@ END";
             "star ok\nworld\n5\nval\nnull ok\ndone";
         Assert.AreEqual(expected, SetupTests.RunWithInput(s));
     }
+
+    // ── New coverage tests added D-190 ──────────────────────────────────────
+
+    [TestMethod]
+    public void TEST_Misc_dupl()
+    {
+        var s = @"
+        OUTPUT = DUPL('ab', 3)
+        OUTPUT = DUPL('x', 1)
+        OUTPUT = DUPL('y', 0)
+        OUTPUT = SIZE(DUPL('abc', 4))
+END";
+        Assert.AreEqual("ababab\nx\n\n12", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Misc_replace()
+    {
+        var s = @"
+        OUTPUT = REPLACE('hello', 'helo', 'HELO')
+        OUTPUT = REPLACE('aabbcc', 'abc', 'xyz')
+END";
+        Assert.AreEqual("HELLO\nxxyyzz", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Misc_trim()
+    {
+        var s = @"
+        OUTPUT = TRIM('hello   ')
+        OUTPUT = TRIM('  no trim leading  ')
+        OUTPUT = SIZE(TRIM('abc'))
+END";
+        Assert.AreEqual("hello\n  no trim leading\n3", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Misc_breakx()
+    {
+        // BREAKX scans past the break, allowing match on rest
+        var s = @"
+        S = 'aaa:bbb:ccc'
+        S BREAKX(':') . PART ':' 'bbb'
+        OUTPUT = PART
+END";
+        Assert.AreEqual("aaa", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Misc_fence_abort()
+    {
+        // FENCE cuts backtracking; ABORT forces immediate pattern failure
+        var s = @"
+        S = 'hello'
+        S ('hx' | FENCE 'hell') 'o'            :F(FAIL)
+        OUTPUT = 'fence-ok'                    :(END)
+FAIL    OUTPUT = 'FAIL'
+END";
+        Assert.AreEqual("fence-ok", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Misc_succeed_fail_builtins()
+    {
+        var s = @"
+        'anything' SUCCEED                     :F(SFAIL)
+        OUTPUT = 'succeed-ok'                  :(END)
+SFAIL   OUTPUT = 'FAIL'
+END";
+        Assert.AreEqual("succeed-ok", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Misc_keyword_trim_fullscan()
+    {
+        // &TRIM strips trailing blanks from INPUT; &FULLSCAN enables pattern scanning modes
+        var s = @"
+        &TRIM = 1
+        S = 'hello   '
+        S RPOS(0)                              :S(TRIMMED)
+        OUTPUT = 'FAIL'                        :(END)
+TRIMMED OUTPUT = 'trim-ok'
+END";
+        Assert.AreEqual("trim-ok", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Misc_array_multidim()
+    {
+        var s = @"
+        A = ARRAY('3,3')
+        A<1,1> = 'a11'
+        A<2,3> = 'a23'
+        A<3,2> = 'a32'
+        OUTPUT = A<1,1>
+        OUTPUT = A<2,3>
+        OUTPUT = A<3,2>
+END";
+        Assert.AreEqual("a11\na23\na32", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Misc_lpad_rpad()
+    {
+        var s = @"
+        OUTPUT = LPAD('hi', 5)
+        OUTPUT = RPAD('hi', 5)
+        OUTPUT = LPAD('hi', 5, '*')
+        OUTPUT = RPAD('hi', 5, '-')
+END";
+        Assert.AreEqual("   hi\nhi   \n***hi\nhi---", SetupTests.RunWithInput(s));
+    }
 }
