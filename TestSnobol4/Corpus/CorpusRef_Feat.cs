@@ -217,18 +217,20 @@ END";
     }
 
     [TestMethod]
-    [Ignore("D-NET-188: numeric predicates GT/LT/GE/LE/EQ/NE do not return first arg on success")]
     public void TEST_Feat_numeric_predicates_return_value()
     {
-        // Per SPITBOL spec: GT(A,B) returns A on success
+        // Per SPITBOL spec: numeric predicates return null string on success (not first arg).
+        // SPITBOL manual p.32: "If they succeed, they produce the null string as their value."
+        // Classic idiom: predicate_null CONCAT value — null || value == value.
         var s = @"
-        OUTPUT = GT(5, 3)
-        OUTPUT = LT(3, 5)
-        OUTPUT = GE(5, 5)
-        OUTPUT = LE(3, 3)
-        OUTPUT = EQ(4, 4)
+        OUTPUT = GT(5, 3) 'gt_ok'
+        OUTPUT = LT(3, 5) 'lt_ok'
+        OUTPUT = GE(5, 5) 'ge_ok'
+        OUTPUT = LE(3, 3) 'le_ok'
+        OUTPUT = EQ(4, 4) 'eq_ok'
+        OUTPUT = NE(1, 2) 'ne_ok'
 END";
-        Assert.AreEqual("5\n3\n5\n3\n4", SetupTests.RunWithInput(s));
+        Assert.AreEqual("gt_ok\nlt_ok\nge_ok\nle_ok\neq_ok\nne_ok", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -311,7 +313,6 @@ END";
     }
 
     [TestMethod]
-    [Ignore("D-NET-189: INTEGER(real) succeeds in dotnet — should fail for non-integer real")]
     public void TEST_Feat_f19_real_numbers()
     {
         // REAL datatype, GT on reals
@@ -327,7 +328,6 @@ END";
     }
 
     [TestMethod]
-    [Ignore("D-NET-189: CHOP(3.9) does not return 3.0 — investigate CHOP semantics")]
     public void TEST_Feat_f19_chop()
     {
         // CHOP truncates real toward zero — returns real not integer
