@@ -31,7 +31,7 @@ public class SystemStack : Stack<Var>
         if (arguments.All(arg => arg.Succeeded))
             return false;
 
-        base.Push(new StringVar(false));
+        base.Push(new StringVar(false) { Succeeded = false });
         return true;
     }
 
@@ -49,7 +49,7 @@ public class SystemStack : Stack<Var>
         for (var i = 0; i < count; ++i)
             if (!buf[i].Succeeded)
             {
-                base.Push(new StringVar(false));
+                base.Push(new StringVar(false) { Succeeded = false });
                 return true;
             }
 

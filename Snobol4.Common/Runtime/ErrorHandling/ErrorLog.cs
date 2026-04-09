@@ -35,7 +35,7 @@ public partial class Executive
     public StringVar NonExceptionFailure()
     {
         Failure = true;
-        var nullVar = new StringVar(false);
+        var nullVar = new StringVar(false) { Succeeded = false };
         SystemStack.Push(nullVar);
         return nullVar;
     }

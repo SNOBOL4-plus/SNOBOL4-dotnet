@@ -9,6 +9,8 @@ public partial class Executive
         // Don't execute function if there was already a failure in this statement
         if (Failure)
         {
+            for (var i = 0; i < argumentCount + 1; ++i) SystemStack.Pop();
+            SystemStack.Push(new StringVar(false) { Succeeded = false });
             return;
         }
 
@@ -58,7 +60,11 @@ public partial class Executive
     public void FunctionIndirect(int argumentCount)
     {
         if (Failure)
+        {
+            for (var i = 0; i < argumentCount + 1; ++i) SystemStack.Pop();
+            SystemStack.Push(new StringVar(false) { Succeeded = false });
             return;
+        }
 
         var arguments = _reusableArgList;
         arguments.Clear();
