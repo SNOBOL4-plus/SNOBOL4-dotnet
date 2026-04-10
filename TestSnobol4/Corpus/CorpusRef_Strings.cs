@@ -172,4 +172,110 @@ END";
         var input = "it's a well-known fact that the quick brown fox\njumped over the lazy dog";
         Assert.AreEqual("14 words", SetupTests.RunWithInput(s, input));
     }
+
+    [TestMethod]
+    public void TEST_Corpus_065_builtin_size()
+    {
+        var s = @"
+        OUTPUT = SIZE('hello')
+END";
+        Assert.AreEqual("5", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_066_builtin_substr()
+    {
+        var s = @"
+        OUTPUT = SUBSTR('hello world', 7, 5)
+END";
+        Assert.AreEqual("world", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_067_builtin_replace()
+    {
+        var s = @"
+        OUTPUT = REPLACE('hello', 'aeiou', 'AEIOU')
+END";
+        Assert.AreEqual("hEllO", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_068_builtin_trim()
+    {
+        var s = @"
+        OUTPUT = SIZE(TRIM('hello   '))
+END";
+        Assert.AreEqual("5", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_069_builtin_dupl()
+    {
+        var s = @"
+        OUTPUT = DUPL('ab', 3)
+END";
+        Assert.AreEqual("ababab", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_070_builtin_reverse()
+    {
+        var s = @"
+        OUTPUT = REVERSE('hello')
+END";
+        Assert.AreEqual("olleh", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_071_builtin_ucase_keyword()
+    {
+        var s = @"
+        OUTPUT = &UCASE
+END";
+        Assert.AreEqual("ABCDEFGHIJKLMNOPQRSTUVWXYZ", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_072_builtin_lcase_keyword()
+    {
+        var s = @"
+        OUTPUT = &LCASE
+END";
+        Assert.AreEqual("abcdefghijklmnopqrstuvwxyz", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_073_builtin_lpad()
+    {
+        var s = @"
+        OUTPUT = LPAD('hi', 6)
+END";
+        Assert.AreEqual("    hi", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_074_builtin_rpad()
+    {
+        var s = @"
+        OUTPUT = SIZE(RPAD('hi', 6))
+END";
+        Assert.AreEqual("6", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_075_builtin_integer_test()
+    {
+        var s = @"
+        INTEGER('42')                                               :S(YES)F(NO)
+YES     OUTPUT = 'numeric'
+        :(NEXT)
+NO      OUTPUT = 'not numeric'
+NEXT    INTEGER('abc')                                              :S(YES2)F(NO2)
+YES2    OUTPUT = 'numeric'
+        :(END)
+NO2     OUTPUT = 'not numeric'
+END";
+        Assert.AreEqual("numeric\nnot numeric", SetupTests.RunWithInput(s));
+    }
 }
