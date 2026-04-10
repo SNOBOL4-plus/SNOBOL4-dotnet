@@ -117,18 +117,26 @@ public partial class Executive
         switch (leftVar.Collection)
         {
             case ArrayVar arrayVar:
-                rightVar.Key = leftVar.Key;
-                rightVar.Collection = leftVar.Collection;
-                arrayVar.Data[(int)(long)leftVar.Key!] = rightVar;
-                SystemStack.Push(rightVar);
+            {
+                // Clone rightVar before mutating Key/Collection so the source variable's
+                // VarSlotArray slot (if rightVar came from PushVar) is not contaminated.
+                var arrVal = rightVar is ArrayVar or TableVar ? rightVar : rightVar.Clone();
+                arrVal.Key        = leftVar.Key;
+                arrVal.Collection = leftVar.Collection;
+                arrayVar.Data[(int)(long)leftVar.Key!] = arrVal;
+                SystemStack.Push(arrVal);
                 break;
+            }
 
             case TableVar tableVar:
-                rightVar.Key = leftVar.Key;
-                rightVar.Collection = leftVar.Collection;
-                tableVar.Data[leftVar.Key!] = rightVar;
-                SystemStack.Push(rightVar);
+            {
+                var tblVal = rightVar is ArrayVar or TableVar ? rightVar : rightVar.Clone();
+                tblVal.Key        = leftVar.Key;
+                tblVal.Collection = leftVar.Collection;
+                tableVar.Data[leftVar.Key!] = tblVal;
+                SystemStack.Push(tblVal);
                 break;
+            }
 
             default:
                 // If the lvalue is a NameVar (e.g. returned via NRETURN), assign through
