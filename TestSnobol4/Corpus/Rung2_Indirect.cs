@@ -92,4 +92,36 @@ end";
         Assert.IsTrue(lines.Count > 0);
         Assert.IsTrue(lines[^1].StartsWith("PASS"), $"Expected PASS, got: {lines[^1]}");
     }
+
+    [TestMethod]
+    public void TEST_Corpus_213_indirect_name()
+    {
+        var s = @"
+        A = 42
+        X = 'A'
+        differ($X, 42)                             :F(e001)
+        OUTPUT = 'FAIL 213/001: dollar-X indirect'    :(END)
+e001
+        NM = .A
+        differ($NM, 42)                            :F(e002)
+        OUTPUT = 'FAIL 213/002: dollar-NM DT_N deref' :(END)
+e002
+        $X = 99
+        differ(A, 99)                              :F(e003)
+        OUTPUT = 'FAIL 213/003: dollar-X lvalue assign' :(END)
+e003
+        A = 77
+        differ($.A, 77)                            :F(e004)
+        OUTPUT = 'FAIL 213/004: dollar-dot literal'   :(END)
+e004
+        define('ref_b()')                          :(ref_b_end)
+ref_b   ref_b = .A                                 :(NRETURN)
+ref_b_end
+        differ(ref_b(), 77)                        :F(e005)
+        OUTPUT = 'FAIL 213/005: NRETURN read value'   :(END)
+e005
+        OUTPUT = 'PASS 213_indirect_name (5/5)'
+END";
+        Assert.AreEqual("PASS 213_indirect_name (5/5)", SetupTests.RunWithInput(s));
+    }
 }
