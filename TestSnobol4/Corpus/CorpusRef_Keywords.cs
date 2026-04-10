@@ -303,4 +303,45 @@ ok2     &MAXLNGTH = OLD
 END";
         Assert.AreEqual("PASS", SetupTests.RunWithInput(s));
     }
+
+    [TestMethod]
+    public void TEST_Corpus_kw_date_nocrash()
+    {
+        // DATE() returns a string — just verify it's non-empty and no crash
+        var s = @"
+        D = DATE()
+        GT(SIZE(D), 0)                              :S(ok)
+        OUTPUT = 'FAIL: DATE() empty'               :(END)
+ok      OUTPUT = 'PASS'
+END";
+        Assert.AreEqual("PASS", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_kw_time_nocrash()
+    {
+        // TIME() returns integer milliseconds — verify INTEGER type
+        var s = @"
+        T = TIME()
+        INTEGER(T)                                  :S(ok)
+        OUTPUT = 'FAIL: TIME() not integer'         :(END)
+ok      OUTPUT = 'PASS'
+END";
+        Assert.AreEqual("PASS", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_kw_lastno()
+    {
+        // &LASTNO — statement number increments as statements execute
+        var s = @"
+        X = 1
+        X = X + 1
+        X = X + 1
+        GT(&LASTNO, 0)                              :S(ok)
+        OUTPUT = 'FAIL: &LASTNO not positive'       :(END)
+ok      OUTPUT = 'PASS'
+END";
+        Assert.AreEqual("PASS", SetupTests.RunWithInput(s));
+    }
 }
