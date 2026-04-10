@@ -228,4 +228,79 @@ D       OUTPUT = 'cat != dog'
 END";
         Assert.AreEqual("b > a\na < b\ncat = cat\ncat != dog", SetupTests.RunWithInput(s));
     }
+
+    [TestMethod]
+    public void TEST_Corpus_kw_fnclevel()
+    {
+        // &FNCLEVEL = 0 at top level; increments inside function calls
+        var s = @"
+        DIFFER(&FNCLEVEL, 0)                        :F(ok1)
+        OUTPUT = 'FAIL: &FNCLEVEL at top level'     :(END)
+ok1
+        DEFINE('chk()')                             :(chk_end)
+chk     DIFFER(&FNCLEVEL, 1)                        :F(ok2)
+        OUTPUT = 'FAIL: &FNCLEVEL inside call'      :(RETURN)
+ok2                                                 :(RETURN)
+chk_end
+        chk()
+        OUTPUT = 'PASS'
+END";
+        Assert.AreEqual("PASS", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_kw_rtntype()
+    {
+        // &RTNTYPE: 'RETURN' after normal return, 'FRETURN' after failure return
+        var s = @"
+        DEFINE('ok_fn()')                           :(ok_fn_end)
+ok_fn                                               :(RETURN)
+ok_fn_end
+        DEFINE('fail_fn()')                         :(fail_fn_end)
+fail_fn                                             :(FRETURN)
+fail_fn_end
+        ok_fn()
+        DIFFER(&RTNTYPE, 'RETURN')                  :F(ok1)
+        OUTPUT = 'FAIL: &RTNTYPE after RETURN'      :(END)
+ok1     fail_fn()                                   :F(ok2)
+        OUTPUT = 'wrong branch'                     :(END)
+ok2     DIFFER(&RTNTYPE, 'FRETURN')                 :F(ok3)
+        OUTPUT = 'FAIL: &RTNTYPE after FRETURN'     :(END)
+ok3     OUTPUT = 'PASS'
+END";
+        Assert.AreEqual("PASS", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_kw_fullscan()
+    {
+        // &FULLSCAN = 1 enables full scan (no heuristic shortcut)
+        var s = @"
+        &FULLSCAN = 1
+        DIFFER(&FULLSCAN, 1)                        :F(ok)
+        OUTPUT = 'FAIL: &FULLSCAN not set'          :(END)
+ok      &FULLSCAN = 0
+        DIFFER(&FULLSCAN, 0)                        :F(ok2)
+        OUTPUT = 'FAIL: &FULLSCAN not cleared'      :(END)
+ok2     OUTPUT = 'PASS'
+END";
+        Assert.AreEqual("PASS", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_kw_maxlngth()
+    {
+        // &MAXLNGTH — max string length; default is positive; can be read and set
+        var s = @"
+        GT(&MAXLNGTH, 0)                            :S(ok1)
+        OUTPUT = 'FAIL: &MAXLNGTH not positive'     :(END)
+ok1     OLD = &MAXLNGTH
+        &MAXLNGTH = 1000
+        DIFFER(&MAXLNGTH, 1000)                     :F(ok2)
+        OUTPUT = 'FAIL: &MAXLNGTH not set'          :(END)
+ok2     &MAXLNGTH = OLD
+        OUTPUT = 'PASS'
+END";
+        Assert.AreEqual("PASS", SetupTests.RunWithInput(s));
+    }
 }
