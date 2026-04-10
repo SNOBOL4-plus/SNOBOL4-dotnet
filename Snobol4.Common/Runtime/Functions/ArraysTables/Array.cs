@@ -97,9 +97,13 @@ public partial class Executive
         }
 
         var arrayKey = arrayVar.Index(indices);
-        var v = arrayVar.Data[(int)arrayKey];
-        v.Key = arrayKey;
+        // Push a fresh clone carrying Collection/Key for the lvalue path (Assign
+        // checks leftVar.Collection to route array writes).  We clone the data
+        // element so that the object stored in Data[] is never aliased to what's
+        // on the stack or in a scalar variable slot.
+        var v = arrayVar.Data[(int)arrayKey].Clone();
+        v.Key        = arrayKey;
         v.Collection = arrayVar;
-        SystemStack.Push(arrayVar.Data[(int)arrayKey]);
+        SystemStack.Push(v);
     }
 }

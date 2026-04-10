@@ -157,7 +157,6 @@ END";
     // ── BSORT (Gimpel BSORT.sno) — array sort using LGT ────────────────────
 
     [TestMethod]
-    [Ignore("D-NET-186: bsort produces wrong order — LGT(A<K>,V) A<K> assignment shifts incorrectly; SPITBOL oracle gives apple/avocado/banana/cherry/date correctly")]
     public void TEST_Gimpel_bsort_strings()
     {
         // Insertion sort using LGT; tests array subscript as lvalue, LGT predicate
@@ -186,7 +185,6 @@ END";
     }
 
     [TestMethod]
-    [Ignore("D-NET-186: bsort produces wrong order — same root cause as bsort_strings; SPITBOL oracle gives ant/ape/bat/cat correctly")]
     public void TEST_Gimpel_bsort_integers_as_strings()
     {
         // LGT is lexical — "10" < "9" lexically; tests LGT vs GT distinction

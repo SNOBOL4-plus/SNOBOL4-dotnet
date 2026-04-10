@@ -7,17 +7,20 @@ public partial class Executive
 {
     public void CreateConcatenatePattern(List<Var> arguments)
     {
-        // If left argument is null, return the right argument unchanged
+        // If left argument is null, return the right argument unchanged.
+        // Clone to prevent aliasing: the caller (e.g. a shift assignment A<K+1>=A<K>)
+        // stores the result directly into an array slot, so returning the original
+        // Var object would make two array slots point to the same object.
         if (arguments[0] is StringVar { Data: "" })
         {
-            SystemStack.Push(arguments[1]);
+            SystemStack.Push(arguments[1].Clone());
             return;
         }
 
-        // If right argument is null, return the left argument unchanged
+        // If right argument is null, return the left argument unchanged (cloned).
         if (arguments[1] is StringVar { Data: "" })
         {
-            SystemStack.Push(arguments[0]);
+            SystemStack.Push(arguments[0].Clone());
             return;
         }
 

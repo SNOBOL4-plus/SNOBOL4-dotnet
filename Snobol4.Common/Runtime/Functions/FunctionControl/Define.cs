@@ -152,8 +152,21 @@ public partial class Executive
             // LHS of an assignment like "R = INC(R)").  Mutating .Symbol in-place
             // would corrupt that stack reference, causing the outer assignment to
             // write to the wrong identifier.
-            var paramVar = arguments[i].Clone();
-            paramVar.Symbol = symbol;
+            // Exception: ArrayVar and TableVar are reference types in SNOBOL4 —
+            // they must be passed by reference so mutations inside the function
+            // are visible to the caller.  We rebind the same object under the
+            // parameter name without cloning.
+            Var paramVar;
+            if (arguments[i] is ArrayVar or TableVar)
+            {
+                paramVar = arguments[i];
+                paramVar.Symbol = symbol;
+            }
+            else
+            {
+                paramVar = arguments[i].Clone();
+                paramVar.Symbol = symbol;
+            }
             IdentifierTable[symbol] = paramVar;
         }
 

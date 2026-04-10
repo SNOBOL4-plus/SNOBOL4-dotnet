@@ -21,7 +21,8 @@ public partial class Executive
         }
 
         var key = varIndices[0].GetTableKey();
-        var value = tableVar.Data.TryGetValue(key, out var value1) ? value1 : tableVar.Fill;
+        var stored = tableVar.Data.TryGetValue(key, out var value1) ? value1 : tableVar.Fill;
+        var value = stored.Clone();
         value.Key = varIndices[0].GetTableKey();
         value.Collection = tableVar;
         SystemStack.Push(value);

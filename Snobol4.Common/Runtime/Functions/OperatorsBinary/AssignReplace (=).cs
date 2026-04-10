@@ -136,6 +136,18 @@ public partial class Executive
                 var targetSymbol = leftVar is NameVar nameVar ? nameVar.Pointer : leftVar.Symbol;
                 var newVar = rightVar is ArrayVar or TableVar ? rightVar : rightVar.Clone();
                 newVar.Symbol = targetSymbol;
+                // Strip array/table bookkeeping from the stored scalar value.
+                // A value read from A<K> carries .Collection=arrayVar and .Key=k so
+                // that Assign can write back through it when used as an lvalue.
+                // When stored into a plain scalar variable (not a NameVar, which needs
+                // its own Key/Collection to track its referent), those fields must be
+                // cleared — otherwise a later use of the scalar as an lvalue routes
+                // into the array write branch instead of the scalar IdentifierTable path.
+                if (newVar is not NameVar && newVar is not ArrayVar && newVar is not TableVar)
+                {
+                    newVar.Key        = null;
+                    newVar.Collection = null;
+                }
                 newVar.OutputChannel = leftVar.OutputChannel;
                 newVar.InputChannel = leftVar.InputChannel;
                 IdentifierTable[newVar.Symbol] = newVar;
