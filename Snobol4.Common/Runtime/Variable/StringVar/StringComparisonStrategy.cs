@@ -11,7 +11,10 @@ public class StringComparisonStrategy : IComparisonStrategy
 
         if (other is StringVar stringOther)
         {
-            return string.Compare(stringSelf.Data, stringOther.Data, false, CultureInfo.CurrentCulture);
+            // SPITBOL uses byte-order (ordinal) comparison for strings.
+            // Normalize to -1/0/1 for consistent comparison results.
+            var cmp = string.CompareOrdinal(stringSelf.Data, stringOther.Data);
+            return cmp < 0 ? -1 : cmp > 0 ? 1 : 0;
         }
 
         // Strings sort after other types by type name comparison

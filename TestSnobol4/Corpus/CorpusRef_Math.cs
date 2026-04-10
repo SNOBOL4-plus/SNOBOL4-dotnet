@@ -131,10 +131,8 @@ END";
     [TestMethod]
     public void TEST_Math_sort_array_ascending()
     {
-        // BUG-NET-SORT: SORT on 1D arrays is a no-op in this implementation.
-        // The matrix construction puts all elements in one row, so nothing is sorted.
-        // 2D SORT works (see Function/ArraysTables/Sort.cs TEST_Sort001-004).
-        // Marked Inconclusive to track without failing — fix requires spec clarification.
+        // SORT(array, col) returns a new sorted array — assign back.
+        // SPITBOL oracle: alpha, bravo, charlie
         var s = @"
         A = ARRAY(3)
         A[1] = 'charlie'
@@ -149,14 +147,14 @@ ok2     DIFFER(A[3], 'charlie')                     :F(ok3)
         OUTPUT = 'FAIL: A[3] != charlie'            :(END)
 ok3     OUTPUT = 'PASS'
 END";
-        var actual = SetupTests.RunWithInput(s);
-        Assert.Inconclusive($"BUG-NET-SORT: 1D SORT is no-op — got: [{actual}]");
+        Assert.AreEqual("PASS", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
     public void TEST_Math_rsort_array_descending()
     {
-        // BUG-NET-SORT: same limitation as SORT for 1D arrays.
+        // RSORT(array, col) returns new reverse-sorted array — assign back.
+        // SPITBOL oracle: charlie, bravo, alpha
         var s = @"
         A = ARRAY(3)
         A[1] = 'alpha'
@@ -171,8 +169,7 @@ ok2     DIFFER(A[3], 'alpha')                       :F(ok3)
         OUTPUT = 'FAIL: A[3] != alpha'              :(END)
 ok3     OUTPUT = 'PASS'
 END";
-        var actual = SetupTests.RunWithInput(s);
-        Assert.Inconclusive($"BUG-NET-SORT: 1D RSORT is no-op — got: [{actual}]");
+        Assert.AreEqual("PASS", SetupTests.RunWithInput(s));
     }
 
     // ── LGE / LLE ───────────────────────────────────────────────────────────

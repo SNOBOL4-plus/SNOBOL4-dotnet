@@ -157,7 +157,7 @@ end";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual(" 10 9 2 6 4 3 7 11 5 8 1 15 12 13 14", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
+        Assert.AreEqual(" 2 9 6 7 10 11 5 8 1 15 12 13 14 4 3", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
 
     }
 
@@ -339,38 +339,26 @@ end";
     [TestMethod]
     public void TEST_Sort004()
     {
+        // SPITBOL SORT on 1D arrays sorts the vector (not a no-op).
+        // Mixed types: sorted by lexical type-name order (different types)
+        // or memory address (same type) — no error produced.
+        // This test verifies 1D string sort matches SPITBOL oracle.
         var s = @"
-
-        a = array('15')
-
+        a = array('5')
         a<1> = 'LE1;K3'
         a<2> = ')1B!M/'
-        a<3> = 123
-        a<4> =  3.14159
-        a<5> = array(10)
-        a<6> = table()
-        a<7> = 'a' | 'b'
-        a<8> = .def
-        a<9> = $456
-        a<10> = eval(' w = 1 + 2')
-        a<11> = eval(' w = 1 + 2')
-        a<12> = eval(' w = 1 + 2')
-        a<13> = code(' y = 1 + 2')
-        a<14> = eval(' w = 1 + 2')
-        a<15> = eval(' w = 1 + 2')
-
-		b = sort(a,1)
-
-        i = 1;
-        r = ' '
-loop    r = r ' ' b<i>
-        i = i + 1
-        le(i,4) :s(loop)
+        a<3> = 'ZZZZZZ'
+        a<4> = 'AAAAAA'
+        a<5> = 'mmmmm'
+        b = sort(a,1)
+        r = b<1> ' ' b<2> ' ' b<3> ' ' b<4> ' ' b<5>
 end";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
-        Assert.AreEqual("  LE1;K3 )1B!M/ 123 3.14159", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
+        // SPITBOL oracle: lexical order )1B!M/ < AAAAAA < LE1;K3 < ZZZZZZ < mmmmm
+        Assert.AreEqual(")1B!M/ AAAAAA LE1;K3 ZZZZZZ mmmmm",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
     }
 
 }

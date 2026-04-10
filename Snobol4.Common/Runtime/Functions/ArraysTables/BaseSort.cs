@@ -51,15 +51,26 @@ public partial class Executive
         var sortColumn = column - array.LowerBounds[0];
         List<List<Var>> matrix = [];
 
-        // Transfer array to an m x n matrix where n may be a single column
-        var columns = array.Dimensions > 1 ? array.Sizes[1] : 1;
-        for (var colNum = 0; colNum < columns; colNum++)
+        // Transfer array to an m x n matrix.
+        // For 1D arrays: each element is a row of 1 cell.
+        // For 2D arrays: each column-slice is a row (rows = Sizes[1], cols = Sizes[0]).
+        if (array.Dimensions == 1)
         {
-            List<Var> row = [];
-            matrix.Add(row);
-            var start = colNum * (int)array.Sizes[0];
-            var finish = colNum * (int)array.Sizes[0] + (int)array.Sizes[0];
-            matrix[^1].AddRange(array.Data[start..finish]);
+            for (var rowNum = 0; rowNum < (int)array.Sizes[0]; rowNum++)
+                matrix.Add([array.Data[rowNum]]);
+            sortColumn = 0; // 1D: always sort by the single element
+        }
+        else
+        {
+            var columns = array.Sizes[1];
+            for (var colNum = 0; colNum < columns; colNum++)
+            {
+                List<Var> row = [];
+                matrix.Add(row);
+                var start = colNum * (int)array.Sizes[0];
+                var finish = colNum * (int)array.Sizes[0] + (int)array.Sizes[0];
+                matrix[^1].AddRange(array.Data[start..finish]);
+            }
         }
 
         // Sort matrix
