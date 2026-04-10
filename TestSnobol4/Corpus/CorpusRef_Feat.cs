@@ -483,4 +483,16 @@ FAIL    OUTPUT = 'FAIL'
 END";
         Assert.AreEqual("PASS", SetupTests.RunWithInput(s));
     }
+
+    [TestMethod]
+    public void TEST_Feat_f20_alphabet_size_256()
+    {
+        // &ALPHABET is 256-char extended ASCII
+        var s = @"
+        IDENT(SIZE(&ALPHABET), 256)             :F(FAIL)
+        OUTPUT = 'PASS'                         :(END)
+FAIL    OUTPUT = 'FAIL'
+END";
+        Assert.AreEqual("PASS", SetupTests.RunWithInput(s));
+    }
 }
