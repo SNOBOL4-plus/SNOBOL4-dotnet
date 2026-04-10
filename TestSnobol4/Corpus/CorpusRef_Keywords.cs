@@ -143,4 +143,89 @@ roman_end
 END";
         Assert.AreEqual("I\nIV\nIX\nXLII\nMCMXCIX\nMMXXIV", SetupTests.RunWithInput(s));
     }
+
+    [TestMethod]
+    public void TEST_Corpus_077_builtin_differ()
+    {
+        var s = @"
+        DIFFER('abc', 'xyz')                                        :S(YES)F(NO)
+YES     OUTPUT = 'different'
+        :(END)
+NO      OUTPUT = 'same'
+END";
+        Assert.AreEqual("different", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_078_builtin_gt()
+    {
+        var s = @"
+        GT(5, 3)                                                    :S(YES)F(NO)
+YES     OUTPUT = '5 > 3'
+        :(NEXT)
+NO      OUTPUT = 'wrong'
+NEXT    GT(3, 5)                                                    :S(YES2)F(NO2)
+YES2    OUTPUT = 'wrong'
+        :(END)
+NO2     OUTPUT = '3 not > 5'
+END";
+        Assert.AreEqual("5 > 3\n3 not > 5", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_079_builtin_lt_le_ge()
+    {
+        var s = @"
+        LT(3, 5)                                                    :S(A)F(END)
+A       OUTPUT = '3 < 5'
+        LE(5, 5)                                                    :S(B)F(END)
+B       OUTPUT = '5 <= 5'
+        GE(7, 5)                                                    :S(C)F(END)
+C       OUTPUT = '7 >= 5'
+END";
+        Assert.AreEqual("3 < 5\n5 <= 5\n7 >= 5", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_080_builtin_eq_ne()
+    {
+        var s = @"
+        EQ(42, 42)                                                  :S(YES)F(NO)
+YES     OUTPUT = '42 = 42'
+        :(NEXT)
+NO      OUTPUT = 'wrong'
+NEXT    NE(42, 99)                                                  :S(YES2)F(NO2)
+YES2    OUTPUT = '42 != 99'
+        :(END)
+NO2     OUTPUT = 'wrong'
+END";
+        Assert.AreEqual("42 = 42\n42 != 99", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_081_builtin_datatype()
+    {
+        var s = @"
+        OUTPUT = REPLACE(DATATYPE('hello'), &LCASE, &UCASE)
+        OUTPUT = REPLACE(DATATYPE(42),      &LCASE, &UCASE)
+        OUTPUT = REPLACE(DATATYPE(3.14),    &LCASE, &UCASE)
+END";
+        Assert.AreEqual("STRING\nINTEGER\nREAL", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_099_lexical_compare()
+    {
+        var s = @"
+        LGT('b', 'a')                                               :S(A)F(END)
+A       OUTPUT = 'b > a'
+        LLT('a', 'b')                                               :S(B)F(END)
+B       OUTPUT = 'a < b'
+        LEQ('cat', 'cat')                                           :S(C)F(END)
+C       OUTPUT = 'cat = cat'
+        LNE('cat', 'dog')                                           :S(D)F(END)
+D       OUTPUT = 'cat != dog'
+END";
+        Assert.AreEqual("b > a\na < b\ncat = cat\ncat != dog", SetupTests.RunWithInput(s));
+    }
 }
