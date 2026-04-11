@@ -83,5 +83,37 @@ end";
         Assert.AreEqual("HELPME", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("p")]).Data);
         Assert.AreEqual("success", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
     }
+    [TestMethod]
+    public void TEST_Concat_005_three_parts()
+    {
+        // Three-way concatenation matches all three in sequence
+        var s = @"
+        subject = 'abc123xyz'
+        subject (len(3) . a) (len(3) . b) (len(3) . c)   :f(bad)
+        result = a ' ' b ' ' c   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("abc 123 xyz",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
 
+    [TestMethod]
+    public void TEST_Concat_006_order_matters()
+    {
+        // Concatenation is ordered: 'ab' 'cd' matches 'abcd' not 'cdab'
+        var s = @"
+        subject = 'abcd'
+        subject 'ab' 'cd'   :s(ok)f(bad)
+ok      result = 'ok'   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
 }

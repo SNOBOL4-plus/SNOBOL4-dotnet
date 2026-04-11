@@ -124,4 +124,30 @@ e005
 END";
         Assert.AreEqual("PASS 213_indirect_name (5/5)", SetupTests.RunWithInput(s));
     }
+    [TestMethod]
+    public void TEST_Corpus_214_indirect_chain()
+    {
+        var s = @"
+        A = 'B'
+        B = 'C'
+        C = 'final'
+        r1 = $A
+        r2 = $$A
+        OUTPUT = 'PASS 214_indirect_chain'
+END";
+        Assert.AreEqual("PASS 214_indirect_chain", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_215_indirect_pattern_match()
+    {
+        var s = @"
+        varname = 'subject'
+        subject = 'hello world'
+        $varname 'world'   :f(fail)
+        OUTPUT = 'PASS 215_indirect_pattern_match'   :(END)
+fail    OUTPUT = 'FAIL 215'
+END";
+        Assert.AreEqual("PASS 215_indirect_pattern_match", SetupTests.RunWithInput(s));
+    }
 }

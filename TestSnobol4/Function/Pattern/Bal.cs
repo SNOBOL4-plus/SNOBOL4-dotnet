@@ -92,4 +92,38 @@ end";
         Assert.AreNotEqual("bad",
             ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
     }
+    [TestMethod]
+    public void TEST_Bal_004_simple_char()
+    {
+        // BAL matches a single non-paren char
+        var s = @"
+        subject = 'x'
+        subject bal . cap   :f(bad)
+        result = cap   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("x",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Bal_005_in_expr()
+    {
+        // BAL used to parse a balanced expression token
+        var s = @"
+        subject = 'a+b'
+        subject bal . tok   :f(bad)
+        differ(tok, '')   :f(bad)
+        result = 'ok'   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
 }

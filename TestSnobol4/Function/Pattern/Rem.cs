@@ -78,4 +78,38 @@ end";
         Assert.AreEqual("world",
             ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
     }
+    [TestMethod]
+    public void TEST_Rem_005_at_start()
+    {
+        // REM at start captures entire string
+        var s = @"
+        subject = 'hello'
+        &anchor = 1
+        subject rem . cap   :f(bad)
+        result = cap   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("hello",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Rem_006_empty_subject()
+    {
+        // REM on empty subject captures null
+        var s = @"
+        subject = ''
+        subject rem . cap   :f(bad)
+        result = 'ok'   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
 }

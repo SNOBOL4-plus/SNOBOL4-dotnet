@@ -93,4 +93,41 @@ end";
         Assert.IsTrue(lines.Count > 0);
         Assert.IsTrue(lines[^1].StartsWith("PASS"), $"Expected PASS, got: {lines[^1]}");
     }
+    [TestMethod]
+    public void TEST_Corpus_313_concat_mixed_types()
+    {
+        var s = @"
+        differ(1 ' ' 2.5, '1 2.5')                   :f(e001)
+        output = 'FAIL 313/001: int-space-real concat'   :(end)
+e001
+        differ('' '' '', '')                   :f(e002)
+        output = 'FAIL 313/002: triple null concat'      :(end)
+e002
+        output = 'PASS 313_concat_mixed (2/2)'
+end";
+        var lines = RunGetOutput(s);
+        Assert.IsTrue(lines.Count > 0);
+        Assert.IsTrue(lines[^1].StartsWith("PASS"), $"Expected PASS, got: {lines[^1]}");
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_314_concat_long()
+    {
+        var s = @"
+        a = 'hello'
+        b = ' '
+        c = 'world'
+        r = a b c
+        differ(r, 'hello world')                   :f(e001)
+        output = 'FAIL 314/001: 3-part concat via vars'   :(end)
+e001
+        differ(size(r), 11)                   :f(e002)
+        output = 'FAIL 314/002: size of concat result'    :(end)
+e002
+        output = 'PASS 314_concat_long (2/2)'
+end";
+        var lines = RunGetOutput(s);
+        Assert.IsTrue(lines.Count > 0);
+        Assert.IsTrue(lines[^1].StartsWith("PASS"), $"Expected PASS, got: {lines[^1]}");
+    }
 }
