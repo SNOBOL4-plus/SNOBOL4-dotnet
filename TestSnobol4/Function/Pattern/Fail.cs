@@ -108,4 +108,22 @@ end";
         Assert.AreEqual("ok",
             ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
     }
+
+    [TestMethod]
+    public void TEST_Fail_008_fail_all_positions()
+    {
+        // FAIL exhausts all positions — the match statement FAILs
+        var s = @"
+        &anchor = 0
+        subject = 'aaa'
+        subject (len(1) fail)   :s(bad)f(ok)
+bad     result = 'bad'   :(end)
+ok      result = 'ok'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
+
 }

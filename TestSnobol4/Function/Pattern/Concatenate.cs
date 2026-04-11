@@ -116,4 +116,39 @@ end";
         Assert.AreEqual("ok",
             ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
     }
+
+    [TestMethod]
+    public void TEST_Concatenate_007_three_literals()
+    {
+        // Three-way concatenation: 'a' 'b' 'c' — the . capture after 'c' captures only 'c'
+        // SPITBOL confirmed: 'a' 'b' 'c' . cap captures 'c' (last element only)
+        var s = @"
+        subject = 'abcXYZ'
+        subject 'a' 'b' 'c' . cap   :f(bad)
+        result = cap   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("c", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Concatenate_008_with_span()
+    {
+        // Concatenation of literal and SPAN — . capture after SPAN captures only SPAN's match
+        // SPITBOL confirmed: 'x' span('0123456789') . digits captures '123' not 'x123'
+        var s = @"
+        subject = 'x123y'
+        subject 'x' span('0123456789') . digits   :f(bad)
+        result = digits   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("123", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
+
 }

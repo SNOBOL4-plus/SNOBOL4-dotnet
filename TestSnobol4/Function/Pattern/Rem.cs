@@ -112,4 +112,37 @@ end";
         Assert.AreEqual("ok",
             ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
     }
+
+    [TestMethod]
+    public void TEST_Rem_007_rem_in_table_split()
+    {
+        // Classic REM use: skip prefix, capture rest
+        var s = @"
+        line = 'key: value here'
+        line 'key: ' rem . val   :f(bad)
+        result = val   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("value here", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Rem_008_rem_always_succeeds()
+    {
+        // REM always succeeds (even mid-string with nothing left)
+        var s = @"
+        subject = 'ab'
+        subject 'ab' rem . cap   :s(ok)f(bad)
+ok      result = 'ok:' cap   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok:", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
+
 }

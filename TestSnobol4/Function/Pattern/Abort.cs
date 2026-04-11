@@ -113,4 +113,40 @@ end";
         Assert.AreEqual("matched",
             ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
     }
+
+    [TestMethod]
+    public void TEST_Abort_007_in_arbno()
+    {
+        // ARBNO matches zero or more — with anchor=0 it succeeds matching zero 'a'/'b' chars
+        // before hitting 'X'. ABORT is never triggered because ARBNO succeeds at zero length.
+        var s = @"
+        &anchor = 0
+        subject = 'aXb'
+        subject arbno(any('ab') | abort)   :s(ok)f(bad)
+ok      result = 'ok'   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Abort_008_after_capture()
+    {
+        // ABORT after a successful capture — the capture is rolled back
+        var s = @"
+        &anchor = 0
+        subject = 'abc'
+        subject ('ab' . cap abort)   :s(bad)f(ok)
+bad     result = 'bad'   :(end)
+ok      result = 'ok'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
+
 }

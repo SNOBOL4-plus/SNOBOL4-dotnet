@@ -112,4 +112,39 @@ end";
         Assert.AreEqual("ok",
             ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
     }
+
+    [TestMethod]
+    public void TEST_ArbNo_007_zero_reps()
+    {
+        // ARBNO matches zero repetitions (succeeds immediately on empty)
+        var s = @"
+        &anchor = 1
+        subject = 'xyz'
+        subject arbno('a') 'xyz'   :s(ok)f(bad)
+ok      result = 'ok'   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_ArbNo_008_multiple_reps()
+    {
+        // ARBNO matches multiple reps — captures each via . inside
+        var s = @"
+        &anchor = 1
+        subject = 'aaab'
+        subject arbno('a') 'b'   :s(ok)f(bad)
+ok      result = 'ok'   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
+
 }
