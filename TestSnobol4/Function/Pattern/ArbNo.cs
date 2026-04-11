@@ -1,4 +1,4 @@
-﻿using Snobol4.Common;
+using Snobol4.Common;
 using Test.TestLexer;
 
 namespace Test.Pattern;
@@ -79,5 +79,37 @@ end";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual("fail", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
     }
+    [TestMethod]
+    public void TEST_ArbNo_005_one_rep()
+    {
+        // ARBNO matches exactly one repetition
+        var s = @"
+        subject = 'aab'
+        subject arbno('a') . cap 'b'   :f(bad)
+        result = cap   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("aa",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
 
+    [TestMethod]
+    public void TEST_ArbNo_006_zero_reps_ok()
+    {
+        // ARBNO always succeeds (zero repetitions allowed) even when inner fails
+        var s = @"
+        subject = 'xyz'
+        subject arbno('a') 'xyz'   :s(ok)f(bad)
+ok      result = 'ok'   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
 }

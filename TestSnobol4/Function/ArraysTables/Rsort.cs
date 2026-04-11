@@ -269,5 +269,39 @@ end";
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
         Assert.AreEqual(" 9 15 4 5 11 2 10 13 12 8 3 1 7 6 14", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
     }
+    [TestMethod]
+    public void TEST_ReverseSort004()
+    {
+        // RSORT on 1-row table: result is same table
+        var s = @"
+        b = array('1,2')
+        b<1,1> = 'z'
+        b<1,2> = 99
+        rsort(b, 1)
+        result = b<1,1>
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("z", build.Execute!.IdentifierTable[build.FoldCase("result")].ToString());
+    }
 
+    [TestMethod]
+    public void TEST_ReverseSort005()
+    {
+        // RSORT descending: larger value comes first
+        var s = @"
+        b = array('2,1')
+        b<1,1> = 'apple'
+        b<2,1> = 'zebra'
+        rsort(b, 1)
+        r1 = b<1,1>
+        r2 = b<2,1>
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("apple", build.Execute!.IdentifierTable[build.FoldCase("r1")].ToString());
+        Assert.AreEqual("zebra", build.Execute!.IdentifierTable[build.FoldCase("r2")].ToString());
+    }
 }

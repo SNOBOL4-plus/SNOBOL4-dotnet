@@ -80,5 +80,37 @@ end";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual("fail", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
     }
+    [TestMethod]
+    public void TEST_Abort_005_abort_vs_fail()
+    {
+        // ABORT differs from FAIL: ABORT stops all backtracking, FAIL just this branch
+        var s = @"
+        subject = 'abc'
+        subject ('a' abort | 'abc')   :s(matched)f(notmatched)
+matched result = 'matched'   :(end)
+notmatched result = 'notmatched'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("notmatched",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
 
+    [TestMethod]
+    public void TEST_Abort_006_no_abort_matches()
+    {
+        // Without ABORT, alternation succeeds on second branch
+        var s = @"
+        subject = 'abc'
+        subject ('xyz' | 'abc')   :s(matched)f(notmatched)
+matched result = 'matched'   :(end)
+notmatched result = 'notmatched'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("matched",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
 }

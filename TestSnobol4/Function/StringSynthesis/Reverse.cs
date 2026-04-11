@@ -64,5 +64,34 @@ end
         Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
         Assert.AreEqual(177, build.ErrorCodeHistory[0]);
     }
+    [TestMethod]
+    public void TEST_Reverse_003_single_char()
+    {
+        var s = @"
+        r = reverse('x')
+        differ(r, 'x')   :s(bad)
+        result = 'ok'    :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok", build.Execute!.IdentifierTable[build.FoldCase("result")].ToString());
+    }
 
+    [TestMethod]
+    public void TEST_Reverse_004_twice_identity()
+    {
+        var s = @"
+        s = 'abcde'
+        r = reverse(reverse(s))
+        differ(r, s)   :s(bad)
+        result = 'ok'  :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok", build.Execute!.IdentifierTable[build.FoldCase("result")].ToString());
+    }
 }
