@@ -38,4 +38,31 @@ end
         Assert.AreEqual("2F9", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r2")]).Data);
         Assert.AreEqual("1011111001", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r3")]).Data);
     }
+    [TestMethod]
+    public void BASEB1()
+    {
+        var s = @"
+	    DEFINE('BASEB(N,B)R,C')
+	    BASEB_ALPHA  =  '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+					    :(BASEB_END)
+BASEB	EQ(N,0)					:S(RETURN)
+	    R  =  REMDR(N,B)
+	    BASEB_ALPHA  TAB(*R)   LEN(1) . C	:F(ERROR)
+        BASEB  =  C BASEB
+	    N  =  N / B					:(BASEB)
+BASEB_END
+        R1 = BASEB(10,10)
+        R2 = BASEB(8,2)
+        R3 = BASEB(255,16)
+        R4 = BASEB(36,36)
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("10",   ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("R1")]).Data);
+        Assert.AreEqual("1000", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("R2")]).Data);
+        Assert.AreEqual("FF",   ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("R3")]).Data);
+        Assert.AreEqual("10",   ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("R4")]).Data);
+    }
 }

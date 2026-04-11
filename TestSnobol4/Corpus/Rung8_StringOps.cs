@@ -191,4 +191,62 @@ end";
         Assert.IsTrue(lines.Count > 0);
         Assert.IsTrue(lines[^1].StartsWith("PASS"), $"Expected PASS, got: {lines[^1]}");
     }
+
+    [TestMethod]
+    public void TEST_Corpus_817_substr()
+    {
+        var s = @"
+        differ(substr('hello', 2, 3), 'ell')                   :f(e001)
+        output = 'FAIL 817/001: substr middle 3 chars'     :(end)
+e001
+        differ(substr('hello', 1, 5), 'hello')                   :f(e002)
+        output = 'FAIL 817/002: substr full string'         :(end)
+e002
+        differ(substr('hello', 3, 0), 'llo')                   :f(e003)
+        output = 'FAIL 817/003: substr length=0 means to end' :(end)
+e003
+        differ(substr('hello', 1, 1), 'h')                   :f(e004)
+        output = 'FAIL 817/004: substr first char only'    :(end)
+e004
+        differ(substr('hello', 5, 1), 'o')                   :f(e005)
+        output = 'FAIL 817/005: substr last char only'     :(end)
+e005
+        differ(substr('abcde', 2, 4), 'bcde')                   :f(e006)
+        output = 'FAIL 817/006: substr 4 chars from pos 2'  :(end)
+e006
+        output = 'PASS 817_substr (6/6)'
+end";
+        var lines = RunGetOutput(s);
+        Assert.IsTrue(lines.Count > 0);
+        Assert.IsTrue(lines[^1].StartsWith("PASS"), $"Expected PASS, got: {lines[^1]}");
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_818_char()
+    {
+        var s = @"
+        differ(char(65), 'A')                   :f(e001)
+        output = 'FAIL 818/001: char(65) = A'              :(end)
+e001
+        differ(char(97), 'a')                   :f(e002)
+        output = 'FAIL 818/002: char(97) = a'              :(end)
+e002
+        differ(char(48), '0')                   :f(e003)
+        output = 'FAIL 818/003: char(48) = 0'              :(end)
+e003
+        differ(char(90), 'Z')                   :f(e004)
+        output = 'FAIL 818/004: char(90) = Z'              :(end)
+e004
+        differ(size(char(32)), 1)                   :f(e005)
+        output = 'FAIL 818/005: char returns 1-char string' :(end)
+e005
+        differ(char(65) char(66), 'AB')                   :f(e006)
+        output = 'FAIL 818/006: concat two chars'          :(end)
+e006
+        output = 'PASS 818_char (6/6)'
+end";
+        var lines = RunGetOutput(s);
+        Assert.IsTrue(lines.Count > 0);
+        Assert.IsTrue(lines[^1].StartsWith("PASS"), $"Expected PASS, got: {lines[^1]}");
+    }
 }
