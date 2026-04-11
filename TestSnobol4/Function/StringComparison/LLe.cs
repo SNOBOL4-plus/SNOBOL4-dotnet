@@ -118,4 +118,21 @@ end
         Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
         Assert.AreEqual(129, build.ErrorCodeHistory[0]);
     }
+
+    [TestMethod]
+    public void TEST_LLe_008_null_le_nonempty()
+    {
+        // lle('','z') must SUCCEED — null < any nonempty
+        var s = @"
+        r = 'success'
+        lle('', 'z') :s(end)
+        r = 'failure'
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("success", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
+    }
+
 }

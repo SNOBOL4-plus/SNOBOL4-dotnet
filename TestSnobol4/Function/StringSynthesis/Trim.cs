@@ -98,5 +98,41 @@ end
         Assert.AreEqual(247, build.ErrorCodeHistory[0]);
     }
 
+    [TestMethod]
+    public void TEST_Trim_007_all_spaces()
+    {
+        var s = @"
+        b = trim('     ')
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("b")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Trim_008_multiple_trailing_spaces()
+    {
+        // TRIM removes all trailing spaces
+        var s = @"
+        b = trim('hello      ')
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("hello", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("b")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Trim_009_empty_string()
+    {
+        var s = @"
+        b = trim('')
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("b")]).Data);
+    }
 
 }

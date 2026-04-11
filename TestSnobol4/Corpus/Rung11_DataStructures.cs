@@ -268,4 +268,28 @@ end";
         Assert.IsTrue(lines.Count > 0);
         Assert.IsTrue(lines[^1].StartsWith("PASS"), $"Expected PASS, got: {lines[^1]}");
     }
+
+    [TestMethod]
+    public void TEST_Corpus_1117_copy_array()
+    {
+        var s = @"
+        a = array(3)
+        a<1> = 'x'
+        a<2> = 'y'
+        a<3> = 'z'
+        b = copy(a)
+        b<1> = 'changed'
+        differ(a<1>, 'x')                   :f(e001)
+        output = 'FAIL 1117/001: copy is independent of original' :(end)
+e001
+        differ(b<1>, 'changed')                   :f(e002)
+        output = 'FAIL 1117/002: copy reflects own mutation' :(end)
+e002
+        output = 'PASS 1117_copy_array (2/2)'
+end";
+        var lines = RunGetOutput(s);
+        Assert.IsTrue(lines.Count > 0);
+        Assert.IsTrue(lines[^1].StartsWith("PASS"), $"Expected PASS, got: {lines[^1]}");
+    }
+
 }

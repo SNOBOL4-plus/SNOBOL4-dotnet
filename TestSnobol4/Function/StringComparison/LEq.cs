@@ -119,4 +119,21 @@ end
         Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
         Assert.AreEqual(123, build.ErrorCodeHistory[0]);
     }
+
+    [TestMethod]
+    public void TEST_LEq_008_null_null()
+    {
+        // leq('','') must SUCCEED — null == null
+        var s = @"
+        r = 'success'
+        leq('', '') :s(end)
+        r = 'failure'
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("success", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
+    }
+
 }

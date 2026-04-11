@@ -120,4 +120,22 @@ end
         Assert.AreNotEqual(0, build.ErrorCodeHistory.Count);
         Assert.AreEqual(133, build.ErrorCodeHistory[0]);
     }
+
+    [TestMethod]
+    public void TEST_LNe_008_same_fails()
+    {
+        // lne('abc','abc') must FAIL — they are equal
+        var s = @"
+        r = 'success'
+        lne('abc', 'abc') :s(bad)
+        r = 'ok'          :(end)
+bad     r = 'bad'
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
+    }
+
 }

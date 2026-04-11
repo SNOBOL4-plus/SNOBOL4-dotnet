@@ -94,4 +94,45 @@ end";
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
         Assert.AreEqual("ok", build.Execute!.IdentifierTable[build.FoldCase("result")].ToString());
     }
+
+    [TestMethod]
+    public void TEST_Reverse_005_palindrome()
+    {
+        var s = @"
+        s = 'racecar'
+        r = reverse(s)
+        differ(r, s)   :s(bad)
+        result = 'ok'  :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok", build.Execute!.IdentifierTable[build.FoldCase("result")].ToString());
+    }
+
+    [TestMethod]
+    public void TEST_Reverse_006_numeric_string()
+    {
+        var s = @"
+        b = reverse('12345')
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("54321", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("b")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Reverse_007_spaces()
+    {
+        var s = @"
+        b = reverse('ab cd')
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("dc ba", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("b")]).Data);
+    }
+
 }

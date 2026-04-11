@@ -1,4 +1,4 @@
-﻿using Snobol4.Common;
+using Snobol4.Common;
 using Test.TestLexer;
 
 namespace Test.Miscellaneous;
@@ -97,4 +97,18 @@ end";
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
         Assert.AreEqual("翿", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("b")]).Data);
     }
+
+    [TestMethod]
+    public void TEST_Char_8_size_is_one()
+    {
+        // CHAR produces a one-character string for any valid code point
+        var s = @"
+        r = size(char(72))
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("1", build.Execute!.IdentifierTable[build.FoldCase("r")].ToString());
+    }
+
 }

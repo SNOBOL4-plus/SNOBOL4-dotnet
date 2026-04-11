@@ -150,4 +150,39 @@ fail    OUTPUT = 'FAIL 215'
 END";
         Assert.AreEqual("PASS 215_indirect_pattern_match", SetupTests.RunWithInput(s));
     }
+
+    [TestMethod]
+    public void TEST_Corpus_216_indirect_in_loop()
+    {
+        // Build V1, V2, V3 via indirect assignment in a loop
+        var s = @"
+        N = 1
+loop    ident(N, 4)           :s(done)
+        $('V' N) = N
+        N = N + 1             :(loop)
+done    ident(V1, 1)          :f(fail)
+        ident(V2, 2)          :f(fail)
+        ident(V3, 3)          :f(fail)
+        OUTPUT = 'PASS 216_indirect_in_loop'   :(END)
+fail    OUTPUT = 'FAIL 216'
+END";
+        Assert.AreEqual("PASS 216_indirect_in_loop", SetupTests.RunWithInput(s));
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_217_indirect_chain_assign()
+    {
+        // Double-indirect chain: A -> B -> C -> 'final', $$A reads 'final'
+        var s = @"
+        A = 'B'
+        B = 'C'
+        C = 'final'
+        r = $$A
+        ident(r, 'final')     :f(fail)
+        OUTPUT = 'PASS 217_indirect_chain_assign'   :(END)
+fail    OUTPUT = 'FAIL 217'
+END";
+        Assert.AreEqual("PASS 217_indirect_chain_assign", SetupTests.RunWithInput(s));
+    }
+
 }
