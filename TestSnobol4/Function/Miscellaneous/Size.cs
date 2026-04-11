@@ -36,6 +36,30 @@ end";
     }
 
     [TestMethod]
+    public void TEST_Size_004_empty_string()
+    {
+        var s = @"
+        r = size('')
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("0", build.Execute!.IdentifierTable[build.FoldCase("r")].ToString());
+    }
+
+    [TestMethod]
+    public void TEST_Size_005_single_char()
+    {
+        var s = @"
+        r = size('x')
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("1", build.Execute!.IdentifierTable[build.FoldCase("r")].ToString());
+    }
+
+    [TestMethod]
     public void TEST_Size_003()
     {
         var s = @"

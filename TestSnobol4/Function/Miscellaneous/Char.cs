@@ -46,6 +46,46 @@ end";
     }
 
     [TestMethod]
+    public void TEST_Char_5_ascii_space()
+    {
+        // CHAR(32) = space
+        var s = @"
+        b = char(32)
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual(" ", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("b")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Char_6_ascii_A()
+    {
+        // CHAR(65) = 'A'
+        var s = @"
+        b = char(65)
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("A", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("b")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Char_7_zero()
+    {
+        // CHAR(0) = null character — size is 1
+        var s = @"
+        b = char(0)
+        r = size(b)
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("1", build.Execute!.IdentifierTable[build.FoldCase("r")].ToString());
+    }
+
+    [TestMethod]
     public void TEST_Char_4()
     {
         var s = @"
