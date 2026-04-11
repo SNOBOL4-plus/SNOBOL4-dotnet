@@ -68,5 +68,49 @@ end";
         Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("temp3")]).Data);
         Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("temp4")]).Data);
     }
+    [TestMethod]
+    public void TEST_ConditionalVariableAssociation_004()
+    {
+        // .var capture inside ARB — gets the matched span
+        var s = @"
+        subject = 'hello world'
+        subject arb . captured 'world'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("hello ", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("captured")]).Data);
+    }
 
+    [TestMethod]
+    public void TEST_ConditionalVariableAssociation_005()
+    {
+        // .var with LEN: captures exact span
+        var s = @"
+        subject = 'abcdef'
+        subject len(3) . first len(3) . second
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("abc", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("first")]).Data);
+        Assert.AreEqual("def", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("second")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_ConditionalVariableAssociation_006()
+    {
+        // .var not assigned on match failure (variable stays empty)
+        var s = @"
+        subject = 'xyz'
+        subject 'abc' . captured   :s(matched)
+        result = 'no-match'        :(end)
+matched result = 'matched'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("no-match", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("captured")]).Data);
+    }
 }
