@@ -73,6 +73,38 @@ end
     }
 
     [TestMethod]
+    public void TEST_LLe_006_ordinal_upper_le_lower()
+    {
+        // Ordinal: 'A'=65 <= 'a'=97 — lle('A','a') must SUCCEED
+        var s = @"
+        r = 'success'
+        lle('A', 'a') :s(end)
+        r = 'failure'
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("success", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_LLe_007_null_le_null()
+    {
+        // lle('','') must SUCCEED — null <= null
+        var s = @"
+        r = 'success'
+        lle('', '') :s(end)
+        r = 'failure'
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("success", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
+    }
+
+    [TestMethod]
     public void TEST_LLe_005()
     {
         var s = @"

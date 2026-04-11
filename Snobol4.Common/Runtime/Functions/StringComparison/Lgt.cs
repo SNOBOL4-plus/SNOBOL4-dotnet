@@ -22,7 +22,7 @@ public partial class Executive
             return;
         }
 
-        if (string.Compare((string)left, (string)right, StringComparison.CurrentCulture) <= 0)
+        if (string.CompareOrdinal((string)left, (string)right) <= 0)
         {
             NonExceptionFailure();
             return;

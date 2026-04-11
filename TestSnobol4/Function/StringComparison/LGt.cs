@@ -73,6 +73,54 @@ end
     }
 
     [TestMethod]
+    public void TEST_LGt_006_ordinal_upper_vs_lower()
+    {
+        // Ordinal: 'a'=97 > 'A'=65 — lgt('a','A') must SUCCEED
+        var s = @"
+        r = 'success'
+        lgt('a', 'A') :s(end)
+        r = 'failure'
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("success", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_LGt_007_ordinal_lower_vs_upper_fails()
+    {
+        // Ordinal: 'A'=65 < 'a'=97 — lgt('A','a') must FAIL
+        var s = @"
+        r = 'success'
+        lgt('A', 'a') :s(end)
+        r = 'failure'
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("failure", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_LGt_008_nonempty_gt_null()
+    {
+        // Any non-empty string > null (empty)
+        var s = @"
+        r = 'success'
+        lgt('a', '') :s(end)
+        r = 'failure'
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("success", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
+    }
+
+    [TestMethod]
     public void TEST_LGt_005()
     {
         var s = @"

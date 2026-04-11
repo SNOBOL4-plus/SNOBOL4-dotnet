@@ -75,6 +75,38 @@ end
     }
 
     [TestMethod]
+    public void TEST_LNe_006_ordinal_upper_ne_lower()
+    {
+        // Ordinal: 'A'(65) != 'a'(97) — lne('A','a') must SUCCEED
+        var s = @"
+        r = 'success'
+        lne('A', 'a') :s(end)
+        r = 'failure'
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("success", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_LNe_007_null_equals_null_fails()
+    {
+        // lne('','') must FAIL — null equals null
+        var s = @"
+        r = 'success'
+        lne('', '') :s(end)
+        r = 'failure'
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("failure", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
+    }
+
+    [TestMethod]
     public void TEST_LNe_005()
     {
         var s = @"

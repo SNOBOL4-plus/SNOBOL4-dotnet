@@ -75,6 +75,37 @@ end
     }
 
     [TestMethod]
+    public void TEST_LEq_006_ordinal_upper_ne_lower()
+    {
+        // Ordinal: 'A'(65) != 'a'(97) — leq('A','a') must FAIL
+        var s = @"
+        r = 'success'
+        leq('A', 'a') :s(end)
+        r = 'failure'
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("failure", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_LEq_007_null_equals_null()
+    {
+        var s = @"
+        r = 'success'
+        leq('', '') :s(end)
+        r = 'failure'
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("success", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
+    }
+
+    [TestMethod]
     public void TEST_LEq_005()
     {
         var s = @"

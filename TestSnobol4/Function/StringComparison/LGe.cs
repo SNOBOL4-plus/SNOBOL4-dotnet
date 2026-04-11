@@ -74,6 +74,38 @@ end
     }
 
     [TestMethod]
+    public void TEST_LGe_006_ordinal_lower_ge_upper()
+    {
+        // Ordinal: 'a'=97 >= 'A'=65 — lge('a','A') must SUCCEED
+        var s = @"
+        r = 'success'
+        lge('a', 'A') :s(end)
+        r = 'failure'
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("success", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_LGe_007_null_ge_null()
+    {
+        // lge('','') must SUCCEED — null >= null
+        var s = @"
+        r = 'success'
+        lge('', '') :s(end)
+        r = 'failure'
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("success", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
+    }
+
+    [TestMethod]
     public void TEST_LGe_005()
     {
         var s = @"

@@ -18,6 +18,32 @@ end";
     }
 
     [TestMethod]
+    public void TEST_Dupl_003_zero_count()
+    {
+        // DUPL with count 0 → empty string
+        var s = @"
+        R = DUPL('abc', 0)
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("", build.Execute!.IdentifierTable[build.FoldCase("R")].ToString());
+    }
+
+    [TestMethod]
+    public void TEST_Dupl_004_single()
+    {
+        // DUPL with count 1 → original string
+        var s = @"
+        R = DUPL('hello', 1)
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("hello", build.Execute!.IdentifierTable[build.FoldCase("R")].ToString());
+    }
+
+    [TestMethod]
     public void TEST_Dupl_002()
     {
         var s = @"

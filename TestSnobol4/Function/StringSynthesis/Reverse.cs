@@ -24,6 +24,33 @@ end
     }
 
     [TestMethod]
+    public void TEST_Reverse_003_empty()
+    {
+        var s = @"
+        a = ''
+        b = reverse(a)
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("b")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Reverse_004_single_char()
+    {
+        var s = @"
+        b = reverse('x')
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("x", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("b")]).Data);
+    }
+
+    [TestMethod]
     public void TEST_Reverse_002()
     {
         var s = @"

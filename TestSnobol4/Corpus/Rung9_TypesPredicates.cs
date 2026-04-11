@@ -160,6 +160,145 @@ end";
     }
 
     [TestMethod]
+    public void TEST_Corpus_915_llt()
+    {
+        var s = @"
+        llt('abc', 'xyz')          :s(e001)
+        output = 'FAIL 915/001: llt(abc,xyz) should succeed' :(end)
+e001
+        llt('abc', 'abc')          :f(e002)
+        output = 'FAIL 915/002: llt(abc,abc) should fail'   :(end)
+e002
+        llt('xyz', 'abc')          :f(e003)
+        output = 'FAIL 915/003: llt(xyz,abc) should fail'   :(end)
+e003
+        llt('', 'abc')             :s(e004)
+        output = 'FAIL 915/004: llt(null,abc) should succeed' :(end)
+e004
+        llt('abc', '')             :f(e005)
+        output = 'FAIL 915/005: llt(abc,null) should fail'  :(end)
+e005
+        llt('A', 'a')              :s(e006)
+        output = 'FAIL 915/006: llt(A,a) should succeed (ordinal)' :(end)
+e006
+        output = 'PASS 915_llt (6/6)'
+end";
+        var lines = RunGetOutput(s);
+        Assert.IsTrue(lines.Count > 0);
+        Assert.IsTrue(lines[^1].StartsWith("PASS"), $"Expected PASS, got: {lines[^1]}");
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_916_leq()
+    {
+        var s = @"
+        leq('abc', 'abc')          :s(e001)
+        output = 'FAIL 916/001: leq(abc,abc) should succeed' :(end)
+e001
+        leq('abc', 'xyz')          :f(e002)
+        output = 'FAIL 916/002: leq(abc,xyz) should fail'   :(end)
+e002
+        leq('', '')                :s(e003)
+        output = 'FAIL 916/003: leq(null,null) should succeed' :(end)
+e003
+        leq('', 'a')               :f(e004)
+        output = 'FAIL 916/004: leq(null,a) should fail'    :(end)
+e004
+        leq('A', 'a')              :f(e005)
+        output = 'FAIL 916/005: leq(A,a) should fail (ordinal)' :(end)
+e005
+        output = 'PASS 916_leq (5/5)'
+end";
+        var lines = RunGetOutput(s);
+        Assert.IsTrue(lines.Count > 0);
+        Assert.IsTrue(lines[^1].StartsWith("PASS"), $"Expected PASS, got: {lines[^1]}");
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_917_lne()
+    {
+        var s = @"
+        lne('abc', 'xyz')          :s(e001)
+        output = 'FAIL 917/001: lne(abc,xyz) should succeed' :(end)
+e001
+        lne('abc', 'abc')          :f(e002)
+        output = 'FAIL 917/002: lne(abc,abc) should fail'   :(end)
+e002
+        lne('', 'a')               :s(e003)
+        output = 'FAIL 917/003: lne(null,a) should succeed' :(end)
+e003
+        lne('', '')                :f(e004)
+        output = 'FAIL 917/004: lne(null,null) should fail' :(end)
+e004
+        lne('A', 'a')              :s(e005)
+        output = 'FAIL 917/005: lne(A,a) should succeed (ordinal)' :(end)
+e005
+        output = 'PASS 917_lne (5/5)'
+end";
+        var lines = RunGetOutput(s);
+        Assert.IsTrue(lines.Count > 0);
+        Assert.IsTrue(lines[^1].StartsWith("PASS"), $"Expected PASS, got: {lines[^1]}");
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_918_lge()
+    {
+        var s = @"
+        lge('abc', 'abc')          :s(e001)
+        output = 'FAIL 918/001: lge(abc,abc) should succeed' :(end)
+e001
+        lge('xyz', 'abc')          :s(e002)
+        output = 'FAIL 918/002: lge(xyz,abc) should succeed' :(end)
+e002
+        lge('abc', 'xyz')          :f(e003)
+        output = 'FAIL 918/003: lge(abc,xyz) should fail'   :(end)
+e003
+        lge('abc', '')             :s(e004)
+        output = 'FAIL 918/004: lge(abc,null) should succeed' :(end)
+e004
+        lge('', '')                :s(e005)
+        output = 'FAIL 918/005: lge(null,null) should succeed' :(end)
+e005
+        lge('a', 'A')              :s(e006)
+        output = 'FAIL 918/006: lge(a,A) should succeed (ordinal)' :(end)
+e006
+        output = 'PASS 918_lge (6/6)'
+end";
+        var lines = RunGetOutput(s);
+        Assert.IsTrue(lines.Count > 0);
+        Assert.IsTrue(lines[^1].StartsWith("PASS"), $"Expected PASS, got: {lines[^1]}");
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_919_lle()
+    {
+        var s = @"
+        lle('abc', 'abc')          :s(e001)
+        output = 'FAIL 919/001: lle(abc,abc) should succeed' :(end)
+e001
+        lle('abc', 'xyz')          :s(e002)
+        output = 'FAIL 919/002: lle(abc,xyz) should succeed' :(end)
+e002
+        lle('xyz', 'abc')          :f(e003)
+        output = 'FAIL 919/003: lle(xyz,abc) should fail'   :(end)
+e003
+        lle('', 'abc')             :s(e004)
+        output = 'FAIL 919/004: lle(null,abc) should succeed' :(end)
+e004
+        lle('', '')                :s(e005)
+        output = 'FAIL 919/005: lle(null,null) should succeed' :(end)
+e005
+        lle('A', 'a')              :s(e006)
+        output = 'FAIL 919/006: lle(A,a) should succeed (ordinal)' :(end)
+e006
+        output = 'PASS 919_lle (6/6)'
+end";
+        var lines = RunGetOutput(s);
+        Assert.IsTrue(lines.Count > 0);
+        Assert.IsTrue(lines[^1].StartsWith("PASS"), $"Expected PASS, got: {lines[^1]}");
+    }
+
+    [TestMethod]
     public void TEST_Corpus_914_lgt()
     {
         var s = @"
