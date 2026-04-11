@@ -1,4 +1,4 @@
-﻿using Snobol4.Common;
+using Snobol4.Common;
 using Test.TestLexer;
 
 namespace Test.Memory;
@@ -50,5 +50,39 @@ end";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+    }
+    [TestMethod]
+    public void TEST_Collect_004_twice()
+    {
+        // COLLECT can be called multiple times without error
+        var s = @"
+        collect()
+        collect()
+        result = 'ok'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Collect_005_returns_nonneg()
+    {
+        // COLLECT() result is always >= 0
+        var s = @"
+        c1 = collect()
+        c2 = collect()
+        ge(c1, 0)   :f(bad)
+        ge(c2, 0)   :f(bad)
+        result = 'ok'   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
     }
 }

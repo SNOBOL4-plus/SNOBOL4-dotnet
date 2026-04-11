@@ -1,4 +1,4 @@
-﻿using Test.TestLexer;
+using Test.TestLexer;
 
 namespace Test.Memory;
 
@@ -57,5 +57,36 @@ end";
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+    }
+    [TestMethod]
+    public void TEST_Dump_004_zero()
+    {
+        // DUMP(0) is a no-op / suppressed dump
+        var s = @"
+        I = 99
+        DUMP(0)
+        result = 'ok'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok", build.Execute!.IdentifierTable[build.FoldCase("result")].ToString());
+    }
+
+    [TestMethod]
+    public void TEST_Dump_005_with_array()
+    {
+        // DUMP works when arrays are in scope
+        var s = @"
+        A = ARRAY(5)
+        A[1] = 'first'
+        A[5] = 'last'
+        DUMP(1)
+        result = 'ok'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok", build.Execute!.IdentifierTable[build.FoldCase("result")].ToString());
     }
 }
