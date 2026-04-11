@@ -130,4 +130,55 @@ end";
         Assert.IsTrue(lines.Count > 0);
         Assert.IsTrue(lines[^1].StartsWith("PASS"), $"Expected PASS, got: {lines[^1]}");
     }
+
+    [TestMethod]
+    public void TEST_Corpus_315_concat_in_pattern()
+    {
+        // Concatenation used to build a pattern from parts
+        var s = @"
+        a = 'hel'
+        b = 'lo'
+        pat = a b
+        'hello world' pat   :f(fail)
+        output = 'PASS 315_concat_in_pattern'   :(end)
+fail    output = 'FAIL 315'
+end";
+        var lines = RunGetOutput(s);
+        Assert.IsTrue(lines.Count > 0);
+        Assert.IsTrue(lines[^1].StartsWith("PASS"), $"Expected PASS, got: {lines[^1]}");
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_316_concat_with_integer()
+    {
+        // Concatenating integer to string coerces int to string
+        var s = @"
+        n = 42
+        r = 'answer=' n
+        ident(r, 'answer=42')   :s(ok)f(fail)
+ok      output = 'PASS 316_concat_with_integer'   :(end)
+fail    output = 'FAIL 316: r=' r
+end";
+        var lines = RunGetOutput(s);
+        Assert.IsTrue(lines.Count > 0);
+        Assert.IsTrue(lines[^1].StartsWith("PASS"), $"Expected PASS, got: {lines[^1]}");
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_317_concat_in_loop()
+    {
+        // Accumulate string by concatenation in a loop
+        var s = @"
+        n = 0
+loop    n = n + 1
+        acc = acc 'x'
+        differ(n, 5)   :f(loop)
+        differ(acc, 'xxxxx')   :f(fail)
+        output = 'PASS 317_concat_in_loop'   :(end)
+fail    output = 'FAIL 317'
+end";
+        var lines = RunGetOutput(s);
+        Assert.IsTrue(lines.Count > 0);
+        Assert.IsTrue(lines[^1].StartsWith("PASS"), $"Expected PASS, got: {lines[^1]}");
+    }
 }

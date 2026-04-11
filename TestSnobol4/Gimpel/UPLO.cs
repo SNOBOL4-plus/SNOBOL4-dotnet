@@ -77,4 +77,45 @@ end
         Assert.AreEqual("tHE qUICK bROWN fOX", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("R1")]).Data);
         Assert.AreEqual("Snobol4",             ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("R2")]).Data);
     }
+
+    [TestMethod]
+    public void UPLO3()
+    {
+        // UPLO applied twice is identity
+        var s = @"
+	    DEFINE('UPLO(S)')
+	    UP_LO  =  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+	    LO_UP  =  'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+				:(UPLO_END)
+UPLO	UPLO   =  REPLACE(S, UP_LO, LO_UP)	:(RETURN)
+UPLO_END
+        orig = 'Hello World'
+        R = UPLO(UPLO(orig))
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("Hello World", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("R")]).Data);
+    }
+
+    [TestMethod]
+    public void UPLO4()
+    {
+        // UPLO with digits and symbols — all unchanged
+        var s = @"
+	    DEFINE('UPLO(S)')
+	    UP_LO  =  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+	    LO_UP  =  'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+				:(UPLO_END)
+UPLO	UPLO   =  REPLACE(S, UP_LO, LO_UP)	:(RETURN)
+UPLO_END
+        R = UPLO('0123456789!@#$%')
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("0123456789!@#$%", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("R")]).Data);
+    }
 }

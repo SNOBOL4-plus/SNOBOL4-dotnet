@@ -92,4 +92,47 @@ end";
         Assert.AreEqual("success", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r2")]).Data);
     }
 
+    [TestMethod]
+    public void TEST_Apply_006_replace()
+    {
+        // APPLY dispatches to REPLACE built-in with 3 args
+        var s = @"
+        fn = 'replace'
+        r = apply(fn, 'abc', 'abc', 'xyz')
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("xyz", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Apply_007_size()
+    {
+        // APPLY dispatches to SIZE built-in
+        var s = @"
+        fn = 'size'
+        r = apply(fn, 'hello')
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual(5L, ((IntegerVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Apply_008_ident()
+    {
+        // APPLY dispatches to IDENT — succeeds when args equal
+        var s = @"
+        fn = 'ident'
+        apply(fn, 'x', 'x')   :s(ok)f(bad)
+ok      r = 'ok'   :(end)
+bad     r = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("r")]).Data);
+    }
 }

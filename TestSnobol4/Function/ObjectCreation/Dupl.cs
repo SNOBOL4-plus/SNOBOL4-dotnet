@@ -1,4 +1,5 @@
-﻿using Test.TestLexer;
+﻿using Snobol4.Common;
+using Test.TestLexer;
 
 namespace Test.ObjectCreation;
 
@@ -62,4 +63,44 @@ end";
         Assert.AreEqual("AAAAA", build.Execute!.IdentifierTable[build.FoldCase("R3")].ToString());
     }
 
+    [TestMethod]
+    public void TEST_Dupl_005_large()
+    {
+        // DUPL with large count
+        var s = @"
+        R = DUPL('ab', 5)
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ababababab", build.Execute!.IdentifierTable[build.FoldCase("R")].ToString());
+    }
+
+    [TestMethod]
+    public void TEST_Dupl_006_size()
+    {
+        // DUPL result length = len(str) * count
+        var s = @"
+        R = DUPL('xyz', 4)
+        S = SIZE(R)
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("xyzxyzxyzxyz", build.Execute!.IdentifierTable[build.FoldCase("R")].ToString());
+        Assert.AreEqual(12L, ((IntegerVar)build.Execute!.IdentifierTable[build.FoldCase("S")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Dupl_007_single_char()
+    {
+        // DUPL of single char is a repeat string
+        var s = @"
+        R = DUPL('*', 6)
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("******", build.Execute!.IdentifierTable[build.FoldCase("R")].ToString());
+    }
 }

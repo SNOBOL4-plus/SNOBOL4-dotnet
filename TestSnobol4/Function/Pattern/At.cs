@@ -86,4 +86,56 @@ end";
         Assert.AreEqual(0, build.ErrorCodeHistory.Count);
         Assert.AreEqual(0L, ((IntegerVar)build.Execute!.IdentifierTable[build.FoldCase("pos")]).Data);
     }
+
+    [TestMethod]
+    public void TEST_At_006()
+    {
+        // @var captures position after each character in a scan loop
+        var s = @"
+        subject = 'abcd'
+        &anchor = 1
+        subject len(3) @pos   :f(bad)
+        result = pos   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual(3L, ((IntegerVar)build.Execute!.IdentifierTable[build.FoldCase("pos")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_At_007()
+    {
+        // @var between two fixed strings captures the boundary position
+        var s = @"
+        subject = 'helloworld'
+        &anchor = 1
+        subject 'hello' @mid 'world'   :f(bad)
+        result = mid   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual(5L, ((IntegerVar)build.Execute!.IdentifierTable[build.FoldCase("mid")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_At_008()
+    {
+        // two @captures in one pattern, non-anchor mode
+        var s = @"
+        &anchor = 0
+        'xyzABCdef' 'A' @p1 'BC' @p2   :f(bad)
+        result = 'ok'   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+        Assert.AreEqual(4L, ((IntegerVar)build.Execute!.IdentifierTable[build.FoldCase("p1")]).Data);
+        Assert.AreEqual(6L, ((IntegerVar)build.Execute!.IdentifierTable[build.FoldCase("p2")]).Data);
+    }
 }

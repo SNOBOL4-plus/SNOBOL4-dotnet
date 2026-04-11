@@ -126,4 +126,54 @@ end";
         Assert.AreEqual("ok",
             ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
     }
+
+    [TestMethod]
+    public void TEST_Bal_006_empty_parens()
+    {
+        // BAL matches '()' as a balanced unit
+        var s = @"
+        subject = '()'
+        subject bal . cap   :f(bad)
+        result = cap   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("()", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("cap")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Bal_007_unbalanced_fails()
+    {
+        // BAL does NOT match unbalanced open paren by itself
+        var s = @"
+        &anchor = 1
+        subject = '(abc'
+        subject bal rpos(0)   :s(bad)
+        result = 'ok'   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Bal_008_preceded_by_lit()
+    {
+        // BAL after a literal — confirms position context
+        var s = @"
+        &anchor = 0
+        subject = 'x(a+b)y'
+        subject '(' bal . inner ')'   :f(bad)
+        result = inner   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("a+b", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("inner")]).Data);
+    }
 }
