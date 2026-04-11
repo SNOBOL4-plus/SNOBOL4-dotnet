@@ -153,4 +153,43 @@ end";
         Assert.IsTrue(lines.Count > 0);
         Assert.IsTrue(lines[^1].StartsWith("PASS"), $"Expected PASS, got: {lines[^1]}");
     }
+    [TestMethod]
+    public void TEST_Corpus_415_arith_expon()
+    {
+        var s = @"
+        differ(2 ^ 10, 1024)                   :f(e001)
+        output = 'FAIL 415/001: 2^10=1024'             :(end)
+e001
+        differ(3 ^ 3, 27)                   :f(e002)
+        output = 'FAIL 415/002: 3^3=27'               :(end)
+e002
+        differ(2 ^ 0, 1)                   :f(e003)
+        output = 'FAIL 415/003: 2^0=1'                :(end)
+e003
+        output = 'PASS 415_arith_expon (3/3)'
+end";
+        var lines = RunGetOutput(s);
+        Assert.IsTrue(lines.Count > 0);
+        Assert.IsTrue(lines[^1].StartsWith("PASS"), $"Expected PASS, got: {lines[^1]}");
+    }
+
+    [TestMethod]
+    public void TEST_Corpus_416_arith_coerce()
+    {
+        var s = @"
+        differ('5' + '3', 8)                   :f(e001)
+        output = 'FAIL 416/001: string coerce add'      :(end)
+e001
+        differ('10' - '4', 6)                   :f(e002)
+        output = 'FAIL 416/002: string coerce sub'      :(end)
+e002
+        differ('3' * '4', 12)                   :f(e003)
+        output = 'FAIL 416/003: string coerce mul'      :(end)
+e003
+        output = 'PASS 416_arith_coerce (3/3)'
+end";
+        var lines = RunGetOutput(s);
+        Assert.IsTrue(lines.Count > 0);
+        Assert.IsTrue(lines[^1].StartsWith("PASS"), $"Expected PASS, got: {lines[^1]}");
+    }
 }

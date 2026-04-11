@@ -65,4 +65,54 @@ end
         Assert.AreEqual("FF",   ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("R3")]).Data);
         Assert.AreEqual("10",   ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("R4")]).Data);
     }
+    [TestMethod]
+    public void BASEB2()
+    {
+        var s = @"
+	    DEFINE('BASEB(N,B)R,C')
+	    BASEB_ALPHA  =  '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+					    :(BASEB_END)
+BASEB	EQ(N,0)					:S(RETURN)
+	    R  =  REMDR(N,B)
+	    BASEB_ALPHA  TAB(*R)   LEN(1) . C	:F(ERROR)
+        BASEB  =  C BASEB
+	    N  =  N / B					:(BASEB)
+BASEB_END
+        R1 = BASEB(1, 2)
+        R2 = BASEB(7, 2)
+        R3 = BASEB(16, 16)
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("1",    ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("R1")]).Data);
+        Assert.AreEqual("111",  ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("R2")]).Data);
+        Assert.AreEqual("10",   ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("R3")]).Data);
+    }
+
+    [TestMethod]
+    public void BASEB3()
+    {
+        // base 8 — octal
+        var s = @"
+	    DEFINE('BASEB(N,B)R,C')
+	    BASEB_ALPHA  =  '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+					    :(BASEB_END)
+BASEB	EQ(N,0)					:S(RETURN)
+	    R  =  REMDR(N,B)
+	    BASEB_ALPHA  TAB(*R)   LEN(1) . C	:F(ERROR)
+        BASEB  =  C BASEB
+	    N  =  N / B					:(BASEB)
+BASEB_END
+        R1 = BASEB(64, 8)
+        R2 = BASEB(511, 8)
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("100",  ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("R1")]).Data);
+        Assert.AreEqual("777",  ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("R2")]).Data);
+    }
 }

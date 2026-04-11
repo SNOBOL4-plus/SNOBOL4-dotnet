@@ -56,4 +56,25 @@ end
         Assert.AreEqual("123!@#", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("R4")]).Data);
         Assert.AreEqual("AaBbCc", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("R5")]).Data);
     }
+    [TestMethod]
+    public void UPLO2()
+    {
+        // Swap case of a sentence with punctuation
+        var s = @"
+	    DEFINE('UPLO(S)')
+	    UP_LO  =  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+	    LO_UP  =  'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+					:(UPLO_END)
+UPLO	UPLO   =  REPLACE(S, UP_LO, LO_UP)	:(RETURN)
+UPLO_END
+        R1 = UPLO('The Quick Brown Fox')
+        R2 = UPLO('sNOBOL4')
+end
+";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("tHE qUICK bROWN fOX", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("R1")]).Data);
+        Assert.AreEqual("Snobol4",             ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("R2")]).Data);
+    }
 }

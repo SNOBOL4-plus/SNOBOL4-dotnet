@@ -73,4 +73,25 @@ END";
         var expected = "\n\nHello World!\n0\n1\n-1\n1.\n1\n1\n1.0\nI'm here\n\"Quote of the day\"\n0\n1\n1\n\nZ\nA\nAZ\n3\n7\n9\n7";
         Assert.AreEqual(expected, SetupTests.RunWithInput(s));
     }
+    [TestMethod]
+    public void TEST_Hello_005_concat_in_output()
+    {
+        var s = @"
+      OUTPUT = 'Hello' ', ' 'World'
+END";
+        Assert.AreEqual("Hello, World", SetupTests.RunWithInput(s).Trim());
+    }
+
+    [TestMethod]
+    public void TEST_Hello_006_arithmetic_precedence()
+    {
+        var s = @"
+      OUTPUT = 2 + 3 * 4
+      OUTPUT = (2 + 3) * 4
+END";
+        var result = SetupTests.RunWithInput(s).Trim();
+        var lines = result.Split('\n');
+        Assert.AreEqual("14", lines[0].Trim());
+        Assert.AreEqual("20", lines[1].Trim());
+    }
 }

@@ -74,4 +74,38 @@ end";
         Assert.AreEqual("hello",
             ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
     }
+    [TestMethod]
+    public void TEST_Fail_006_nested_arbno()
+    {
+        // FAIL inside ARBNO forces exhaustion without error
+        var s = @"
+        &anchor = 0
+        subject = 'aaa'
+        count = 0
+        subject arbno(len(1) . c)   :f(bad)
+        result = 'ok'   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Fail_007_standalone()
+    {
+        // FAIL as the sole pattern always fails
+        var s = @"
+        'anything' fail   :s(bad)f(ok)
+bad     result = 'bad'   :(end)
+ok      result = 'ok'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("ok",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
 }
