@@ -75,4 +75,21 @@ public class Bal
             File.Delete(testFile2);
         }
     }
+    [TestMethod]
+    public void TEST_Bal_003_nested()
+    {
+        // BAL matches balanced nested parens
+        var s = @"
+        subject = '(a(b)c)rest'
+        subject bal . matched   :f(bad)
+        result = matched   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        // BAL matches at least 1 balanced char
+        Assert.AreNotEqual("bad",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
 }

@@ -62,5 +62,20 @@ end";
         Assert.AreEqual("success", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
         Assert.AreEqual("", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("test")]).Data);
     }
-
+    [TestMethod]
+    public void TEST_Rem_004_after_pattern()
+    {
+        // REM after a fixed prefix captures the rest
+        var s = @"
+        subject = 'hello world'
+        subject 'hello ' rem . rest   :f(bad)
+        result = rest   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("world",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
 }

@@ -58,5 +58,20 @@ end";
         Assert.AreEqual("done",
             ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
     }
-
+    [TestMethod]
+    public void TEST_Fail_005_in_alternation()
+    {
+        // FAIL in alternation with a real pattern — real pattern wins
+        var s = @"
+        subject = 'hello'
+        subject (fail | 'hello') . cap   :s(ok)f(bad)
+ok      result = cap   :(end)
+bad     result = 'bad'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("hello",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
 }
