@@ -8,20 +8,55 @@ public class Fail
 {
 
     [TestMethod]
-    public void TEST_Fail_001()
+    public void TEST_Fail_002_always_fails_goto()
     {
+        // FAIL always causes pattern to fail; :F branch taken, :S branch never taken
         var s = @"
-        &anchor = 0
-        subject = 'programmer'
-        pattern = fail
-        subject pattern      :s(y)f(n)
-y       result = 'success'   :(end)
-n       result = 'fail' 
+        subject = 'hello'
+        subject fail    :s(success)f(done)
+success result = 'wrong'   :(end)
+done    result = 'correct'
 end";
-
         var directives = "-b";
         var build = SetupTests.SetupScript(directives, s);
-        Assert.AreEqual("fail", ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("correct",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Fail_003_empty_subject()
+    {
+        // FAIL on empty subject also fails
+        var s = @"
+        subject = ''
+        subject fail    :s(success)f(done)
+success result = 'wrong'   :(end)
+done    result = 'correct'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("correct",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Fail_004_exhaust_via_fail()
+    {
+        // FAIL after capture forces exhaustive backtrack — collects all matches via OUTPUT
+        var s = @"
+        &anchor = 0
+        subject = 'abc'
+        n = 0
+        subject (len(1) . c fail) :f(done)
+done    result = 'done'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("done",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
     }
 
 }

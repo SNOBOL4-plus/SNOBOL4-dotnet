@@ -26,6 +26,44 @@ end";
     }
 
     [TestMethod]
+    public void TEST_Abort_003_abort_at_start()
+    {
+        // ABORT immediately kills entire match attempt — no backtracking
+        var s = @"
+        &anchor = 0
+        subject = 'hello world'
+        subject abort   :s(y)f(n)
+y       result = 'wrong'  :(end)
+n       result = 'correct'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("correct",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
+
+    [TestMethod]
+    public void TEST_Abort_004_abort_prevents_backtrack()
+    {
+        // Without ABORT, alternation backtracks and tries second branch.
+        // With ABORT, the entire match is killed — second branch never tried.
+        var s = @"
+        &anchor = 0
+        subject = 'xbx'
+        pattern = ('a' | abort) 'b'
+        subject pattern :s(y)f(n)
+y       result = 'wrong'  :(end)
+n       result = 'correct'
+end";
+        var directives = "-b";
+        var build = SetupTests.SetupScript(directives, s);
+        Assert.AreEqual(0, build.ErrorCodeHistory.Count);
+        Assert.AreEqual("correct",
+            ((StringVar)build.Execute!.IdentifierTable[build.FoldCase("result")]).Data);
+    }
+
+    [TestMethod]
     public void TEST_Abort_002()
     {
         var s = @"
