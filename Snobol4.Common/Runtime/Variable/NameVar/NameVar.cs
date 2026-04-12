@@ -67,6 +67,7 @@ public sealed class NameVar : Var
         {
             ArrayVar arrayVar => arrayVar.Data[(int)(long)Key!],
             TableVar tableVar => tableVar.GetOrDefault(Key!),
+            ProgramDefinedDataVar pdVar => pdVar.FieldValues.Data[(int)(long)Key!],
             _ => StringVar.Null()
         };
     }

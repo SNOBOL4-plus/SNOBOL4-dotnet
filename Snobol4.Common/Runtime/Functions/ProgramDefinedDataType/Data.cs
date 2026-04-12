@@ -166,7 +166,8 @@ public partial class Executive
     internal void GetProgramDefinedDataField(List<Var> arguments)
     {
         var fieldName = ((StringVar)arguments[1]).Data;
-        var programDefinedDataVar = (ProgramDefinedDataVar)arguments[0];
+        var arg0 = arguments[0] is NameVar nv ? nv.Dereference(this) : arguments[0];
+        var programDefinedDataVar = (ProgramDefinedDataVar)arg0;
         object index = (long)programDefinedDataVar.Definition.FieldNames.IndexOf(fieldName);
         var v = programDefinedDataVar.FieldValues.Data[(int)(long)index];
         v.Key = index;
