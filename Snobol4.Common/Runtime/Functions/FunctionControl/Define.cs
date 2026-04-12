@@ -126,7 +126,26 @@ public partial class Executive
         ProgramDefinedFunctionStack.Push(functionName);
         var entry = FunctionTable[functionName];
         List<Var> saveVars = [];
-        var definition = UserFunctionTable[entry?.Symbol!];
+
+        // Builtin called through user-function dispatch path (e.g. *LEQ in EVAL'd pattern).
+        // UserFunctionTable only holds user-DEFINE'd functions; builtins have no Symbol entry there.
+        // Guard entry?.Symbol before the lookup to avoid ArgumentNullException.
+        if (entry == null || entry.Symbol == null || !UserFunctionTable.ContainsKey(entry.Symbol))
+        {
+            ProgramDefinedFunctionStack.Pop();
+            if (entry != null)
+            {
+                var builtinArgs = arguments.Take(arguments.Count - 1).ToList();
+                entry.Handler(builtinArgs);
+            }
+            else
+            {
+                LogRuntimeException(22); // undefined function
+            }
+            return;
+        }
+
+        var definition = UserFunctionTable[entry.Symbol];
         // For OPSYN aliases, definition.FunctionName is the original (e.g. "fact"),
         // while functionName may be the alias (e.g. "facto").
         // The return variable is always named after the original function.
