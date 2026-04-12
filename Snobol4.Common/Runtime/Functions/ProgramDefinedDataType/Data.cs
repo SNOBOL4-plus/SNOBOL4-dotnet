@@ -157,7 +157,18 @@ public partial class Executive
 
         for (var i = 0; i < fieldsCount; i++)
         {
-            fieldValues[i] = arguments[i];
+            // Strip array/field lvalue bookkeeping (Key/Collection) before storing.
+            // AssignReplace stamps destination Key/Collection onto cloned values so
+            // they serve as lvalues; storing that into a DATA field causes an infinite
+            // dereference cycle in GetProgramDefinedDataField. NameVars are preserved.
+            var fv = arguments[i];
+            if (fv is not NameVar && fv.Collection != null)
+            {
+                fv = fv.Clone();
+                fv.Key        = null;
+                fv.Collection = null;
+            }
+            fieldValues[i] = fv;
         }
 
         SystemStack.Push(userDefinedDataVar);
@@ -166,7 +177,9 @@ public partial class Executive
     internal void GetProgramDefinedDataField(List<Var> arguments)
     {
         var fieldName = ((StringVar)arguments[1]).Data;
-        var arg0 = arguments[0] is NameVar nv ? nv.Dereference(this) : arguments[0];
+        // Dereference one level of NAME indirection (e.g. nd = Top() returns a NameVar
+        // pointing to a DATA field; resolve it before casting to ProgramDefinedDataVar).
+        Var arg0 = arguments[0] is NameVar nv0 ? nv0.Dereference(this) : arguments[0];
         var programDefinedDataVar = (ProgramDefinedDataVar)arg0;
         object index = (long)programDefinedDataVar.Definition.FieldNames.IndexOf(fieldName);
         var v = programDefinedDataVar.FieldValues.Data[(int)(long)index];
