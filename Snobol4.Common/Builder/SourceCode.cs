@@ -75,7 +75,7 @@ public class SourceCode
             foreach (var fileName in _parent.FilesToCompile.Select(AdjustFileExtension))
             {
                 var directoryName = Path.GetDirectoryName(fileName);
-                if (directoryName is not null)
+                if (!string.IsNullOrEmpty(directoryName))
                     Directory.SetCurrentDirectory(directoryName);
 
                 var fullPath = Path.GetFullPath(fileName);

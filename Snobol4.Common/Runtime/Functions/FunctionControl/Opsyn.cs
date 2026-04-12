@@ -57,9 +57,11 @@ public partial class Executive
         switch (operands)
         {
             case 0:
-                // If first argument is defined, it must not be a protected function
+                // If first argument is defined, it must not be a protected function.
+                // Exception: INPUT and OUTPUT may be aliased via OPSYN (io.sno wraps them).
                 var entry = FunctionTable[newFunction];
-                if(entry!=null && entry.IsProtected)
+                var opsynAllowedRedefs = new HashSet<string> { "INPUT", "OUTPUT" };
+                if (entry != null && entry.IsProtected && !opsynAllowedRedefs.Contains(newFunction))
                 {
                     LogRuntimeException(155);
                     return;

@@ -56,16 +56,14 @@ public sealed class ArrayVar : Var
 
             prototypeSpan = prototypeSpan[match.Length..];
 
-            if (!TryParseDimensionBounds(match, out var lower, out var upper, out var errorCode))
+            if (!TryParseDimensionBounds(match, out var lower, out var upper, out var errorCode, out var hasExplicitLower))
                 return errorCode;
 
-            // Validate bounds
-            if (lower > upper)
-                return 67; // Lower bound exceeds upper bound
-
             var dimensionSize = upper - lower + 1;
-            if (dimensionSize <= 0)
-                return 67; // Dimension size must be positive
+            // Zero-length allowed only with explicit lower:upper syntax (e.g. ARRAY('1:0')).
+            // Simple form ARRAY(0) or a bare-0 dimension must still fail with error 67.
+            if (dimensionSize < 0 || (dimensionSize == 0 && !hasExplicitLower))
+                return 67;
 
             LowerBounds.Insert(0, lower);
             UpperBounds.Insert(0, upper);
@@ -81,14 +79,16 @@ public sealed class ArrayVar : Var
     }
 
             
-    private static bool TryParseDimensionBounds(System.Text.RegularExpressions.Match match, out long lower, out long upper, out int errorCode)
+    private static bool TryParseDimensionBounds(System.Text.RegularExpressions.Match match, out long lower, out long upper, out int errorCode, out bool hasExplicitLower)
     {
         lower = 1;
         upper = 0;
         errorCode = 0;
+        hasExplicitLower = false;
 
         if (match.Groups[3].Success)
         {
+            hasExplicitLower = true;
             // Format: "lower:upper"
             if (!ToInteger(match.Groups[1].ValueSpan, out lower))
             {
