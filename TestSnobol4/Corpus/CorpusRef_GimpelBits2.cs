@@ -33,7 +33,7 @@ BASE10_END
         OUTPUT = BASE10('10', 16)
         OUTPUT = BASE10('A', 16)
 END";
-        Assert.AreEqual("255\n16\n10", SetupTests.RunWithInput(s));
+        Assert.AreEqual("255"+ Environment.NewLine + "16"+ Environment.NewLine + "10", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -44,7 +44,7 @@ END";
         OUTPUT = BASE10('77', 8)
         OUTPUT = BASE10('100', 8)
 END";
-        Assert.AreEqual("8\n63\n64", SetupTests.RunWithInput(s));
+        Assert.AreEqual("8"+ Environment.NewLine + "63"+ Environment.NewLine + "64", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -55,7 +55,7 @@ END";
         OUTPUT = BASE10('1111', 2)
         OUTPUT = BASE10('1', 2)
 END";
-        Assert.AreEqual("10\n15\n1", SetupTests.RunWithInput(s));
+        Assert.AreEqual("10"+ Environment.NewLine + "15"+ Environment.NewLine + "1", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -66,7 +66,7 @@ END";
         OUTPUT = BASE10('42', 10)
         OUTPUT = BASE10('0', 10)
 END";
-        Assert.AreEqual("42\n0", SetupTests.RunWithInput(s));
+        Assert.AreEqual("42"+ Environment.NewLine + "0", SetupTests.RunWithInput(s));
     }
 
     // ── RANDOM — deterministic LCG with fixed seed ───────────────────────────
@@ -143,7 +143,7 @@ PUSH_END
         OUTPUT = POP()
         OUTPUT = POP()
 END";
-        Assert.AreEqual("c\nb\na", SetupTests.RunWithInput(s));
+        Assert.AreEqual("c"+ Environment.NewLine + "b"+ Environment.NewLine + "a", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -188,7 +188,7 @@ FLOOR_END
         OUTPUT = FLOOR(3.0)
         OUTPUT = FLOOR(0.1)
 END";
-        Assert.AreEqual("3\n3\n0", SetupTests.RunWithInput(s));
+        Assert.AreEqual("3"+ Environment.NewLine + "3"+ Environment.NewLine + "0", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -199,7 +199,7 @@ END";
         OUTPUT = FLOOR(-2.0)
         OUTPUT = FLOOR(-0.1)
 END";
-        Assert.AreEqual("-3\n-2\n-1", SetupTests.RunWithInput(s));
+        Assert.AreEqual("-3"+ Environment.NewLine + "-2"+ Environment.NewLine + "-1", SetupTests.RunWithInput(s));
     }
 
     // ── MDY — day-of-year to M/D/Y ───────────────────────────────────────────
@@ -231,7 +231,7 @@ MDY_END
         OUTPUT = MDY(71, 1)
         OUTPUT = MDY(71, 365)
 END";
-        Assert.AreEqual("3/24/71\n1/1/71\n12/31/71", SetupTests.RunWithInput(s));
+        Assert.AreEqual("3/24/71"+ Environment.NewLine + "1/1/71"+ Environment.NewLine + "12/31/71", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -242,7 +242,7 @@ END";
         OUTPUT = MDY(72, 60)
         OUTPUT = MDY(72, 1)
 END";
-        Assert.AreEqual("2/29/72\n1/1/72", SetupTests.RunWithInput(s));
+        Assert.AreEqual("2/29/72"+ Environment.NewLine + "1/1/72", SetupTests.RunWithInput(s));
     }
 
     // ── REVERSE string (loop version, no REVERSE builtin dependency) ─────────
@@ -261,7 +261,7 @@ REV_END
         OUTPUT = REV('hello')
         OUTPUT = REV('abcde')
 END";
-        Assert.AreEqual("olleh\nedcba", SetupTests.RunWithInput(s));
+        Assert.AreEqual("olleh"+ Environment.NewLine + "edcba", SetupTests.RunWithInput(s));
     }
 
     // ── ROT13 via REPLACE ────────────────────────────────────────────────────
@@ -280,6 +280,6 @@ END";
         OUTPUT = REPLACE('Hello World', FROM, TO)
         OUTPUT = REPLACE(REPLACE('Hello World', FROM, TO), FROM, TO)
 END";
-        Assert.AreEqual("Uryyb Jbeyq\nHello World", SetupTests.RunWithInput(s));
+        Assert.AreEqual("Uryyb Jbeyq"+ Environment.NewLine + "Hello World", SetupTests.RunWithInput(s));
     }
 }

@@ -19,7 +19,7 @@ public class CorpusRef_Misc
         OUTPUT = 'alpha'
         OUTPUT = 'beta'
 END";
-        Assert.AreEqual("alpha\nbeta", SetupTests.RunWithInput(s));
+        Assert.AreEqual("alpha"+ Environment.NewLine + "beta", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -34,7 +34,7 @@ LOOP    X POS(N) 'a' . V                                           :F(DONE)
         :(LOOP)
 DONE
 END";
-        Assert.AreEqual("a\na\na", SetupTests.RunWithInput(s));
+        Assert.AreEqual("a"+ Environment.NewLine + "a"+ Environment.NewLine + "a", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -53,7 +53,7 @@ C       OUTPUT = 'wrong'
         :(END)
 D       OUTPUT = 'not positive'
 END";
-        Assert.AreEqual("positive\nnot positive", SetupTests.RunWithInput(s));
+        Assert.AreEqual("positive"+ Environment.NewLine + "not positive", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -69,7 +69,7 @@ YES2    OUTPUT = 'numeric'
         :(END)
 NO2     OUTPUT = 'not numeric'
 END";
-        Assert.AreEqual("numeric\nnot numeric", SetupTests.RunWithInput(s));
+        Assert.AreEqual("numeric"+ Environment.NewLine + "not numeric", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -161,9 +161,9 @@ NOTNULL OUTPUT = 'not null'
 DONULL
         OUTPUT = 'done'
 END";
-        var expected = "hello\n42\n1.5\nworld\n256\n7\n7\n12\n5\n-5\n256\n" +
-            "foobar\nhel\nworld\n3\nseq ok\nalt ok\narb ok\narbno ok\n" +
-            "star ok\nworld\n5\nval\nnull ok\ndone";
+        var expected = "hello"+ Environment.NewLine + "42"+ Environment.NewLine + "1.5"+ Environment.NewLine + "world"+ Environment.NewLine + "256"+ Environment.NewLine + "7"+ Environment.NewLine + "7"+ Environment.NewLine + "12"+ Environment.NewLine + "5"+ Environment.NewLine + "-5"+ Environment.NewLine + "256"+ Environment.NewLine + "" +
+            "foobar"+ Environment.NewLine + "hel"+ Environment.NewLine + "world"+ Environment.NewLine + "3"+ Environment.NewLine + "seq ok"+ Environment.NewLine + "alt ok"+ Environment.NewLine + "arb ok"+ Environment.NewLine + "arbno ok"+ Environment.NewLine + "" +
+            "star ok"+ Environment.NewLine + "world"+ Environment.NewLine + "5"+ Environment.NewLine + "val"+ Environment.NewLine + "null ok"+ Environment.NewLine + "done";
         Assert.AreEqual(expected, SetupTests.RunWithInput(s));
     }
 
@@ -178,7 +178,7 @@ END";
         OUTPUT = DUPL('y', 0)
         OUTPUT = SIZE(DUPL('abc', 4))
 END";
-        Assert.AreEqual("ababab\nx\n\n12", SetupTests.RunWithInput(s));
+        Assert.AreEqual("ababab"+ Environment.NewLine + "x"+ Environment.NewLine + ""+ Environment.NewLine + "12", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -188,7 +188,7 @@ END";
         OUTPUT = REPLACE('hello', 'helo', 'HELO')
         OUTPUT = REPLACE('aabbcc', 'abc', 'xyz')
 END";
-        Assert.AreEqual("HELLO\nxxyyzz", SetupTests.RunWithInput(s));
+        Assert.AreEqual("HELLO"+ Environment.NewLine + "xxyyzz", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -199,7 +199,7 @@ END";
         OUTPUT = TRIM('  no trim leading  ')
         OUTPUT = SIZE(TRIM('abc'))
 END";
-        Assert.AreEqual("hello\n  no trim leading\n3", SetupTests.RunWithInput(s));
+        Assert.AreEqual("hello"+ Environment.NewLine + "  no trim leading"+ Environment.NewLine + "3", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -264,7 +264,7 @@ END";
         OUTPUT = A<2,3>
         OUTPUT = A<3,2>
 END";
-        Assert.AreEqual("a11\na23\na32", SetupTests.RunWithInput(s));
+        Assert.AreEqual("a11"+ Environment.NewLine + "a23"+ Environment.NewLine + "a32", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -276,6 +276,6 @@ END";
         OUTPUT = LPAD('hi', 5, '*')
         OUTPUT = RPAD('hi', 5, '-')
 END";
-        Assert.AreEqual("   hi\nhi   \n***hi\nhi---", SetupTests.RunWithInput(s));
+        Assert.AreEqual("   hi"+ Environment.NewLine + "hi   "+ Environment.NewLine + "***hi"+ Environment.NewLine + "hi---", SetupTests.RunWithInput(s));
     }
 }

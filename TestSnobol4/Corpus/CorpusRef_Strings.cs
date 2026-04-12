@@ -101,10 +101,10 @@ END";
 LOOP  LINE     =  INPUT                            :F(END)
       LINE     ?  PAT                              :(LOOP)
 END";
-        var input = "She saw the cat of the hat sitting near the dog a bone.\n" +
-                    "Nothing interesting on this line.\n" +
+        var input = "She saw the cat of the hat sitting near the dog a bone." + Environment.NewLine +
+                    "Nothing interesting on this line." + Environment.NewLine +
                     "I know the house of cards and the tower a bridge.";
-        Assert.AreEqual("cat\nhouse", SetupTests.RunWithInput(s, input));
+        Assert.AreEqual("cat"+ Environment.NewLine + "house", SetupTests.RunWithInput(s, input));
     }
 
     [TestMethod]
@@ -119,14 +119,14 @@ LOOP  LINE     =  INPUT                            :F(END)
       LINE     ?  PAT                              :F(LOOP)
       OUTPUT   =  WHO ' invented the ' WHAT ' in ' WHEN  :(LOOP)
 END";
-        var input = "1769  Watt             : Steam Engine\n" +
-                    "1876  Bell             : Telephone\n" +
-                    "1903  Wright           : Airplane\n" +
+        var input = "1769  Watt             : Steam Engine" + Environment.NewLine +
+                    "1876  Bell             : Telephone" + Environment.NewLine +
+                    "1903  Wright           : Airplane" + Environment.NewLine +
                     "1928  Fleming          : Penicillin";
         Assert.AreEqual(
-            "Watt             invented the  Steam Engine in 1769\n" +
-            "Bell             invented the  Telephone in 1876\n" +
-            "Wright           invented the  Airplane in 1903\n" +
+            "Watt             invented the  Steam Engine in 1769" + Environment.NewLine +
+            "Bell             invented the  Telephone in 1876" + Environment.NewLine +
+            "Wright           invented the  Airplane in 1903" + Environment.NewLine +
             "Fleming          invented the  Penicillin in 1928",
             SetupTests.RunWithInput(s, input));
     }
@@ -143,14 +143,14 @@ LOOP  LINE     =  INPUT                            :F(END)
       LINE     ?  PAT                              :F(LOOP)
       OUTPUT   =  WHO ' invented the ' WHAT ' in ' WHEN  :(LOOP)
 END";
-        var input = "1769  Watt : Steam Engine\n" +
-                    "1876  Bell : Telephone\n" +
-                    "1903  Wright : Airplane\n" +
+        var input = "1769  Watt : Steam Engine" + Environment.NewLine +
+                    "1876  Bell : Telephone" + Environment.NewLine +
+                    "1903  Wright : Airplane" + Environment.NewLine +
                     "1928  Fleming : Penicillin";
         Assert.AreEqual(
-            "Watt invented the Steam Engine in 1769\n" +
-            "Bell invented the Telephone in 1876\n" +
-            "Wright invented the Airplane in 1903\n" +
+            "Watt invented the Steam Engine in 1769" + Environment.NewLine +
+            "Bell invented the Telephone in 1876" + Environment.NewLine +
+            "Wright invented the Airplane in 1903" + Environment.NewLine +
             "Fleming invented the Penicillin in 1928",
             SetupTests.RunWithInput(s, input));
     }
@@ -169,7 +169,7 @@ NEXTW LINE     ?  WPAT =                           :F(NEXTL)
       N        =  N + 1                            :(NEXTW)
 DONE  OUTPUT   =  +N ' words'
 END";
-        var input = "it's a well-known fact that the quick brown fox\njumped over the lazy dog";
+        var input = "it's a well-known fact that the quick brown fox"+ Environment.NewLine + "jumped over the lazy dog";
         Assert.AreEqual("14 words", SetupTests.RunWithInput(s, input));
     }
 
@@ -276,6 +276,6 @@ YES2    OUTPUT = 'numeric'
         :(END)
 NO2     OUTPUT = 'not numeric'
 END";
-        Assert.AreEqual("numeric\nnot numeric", SetupTests.RunWithInput(s));
+        Assert.AreEqual("numeric"+ Environment.NewLine + "not numeric", SetupTests.RunWithInput(s));
     }
 }

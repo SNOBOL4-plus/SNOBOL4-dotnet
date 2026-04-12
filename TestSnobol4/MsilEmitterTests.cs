@@ -36,7 +36,7 @@ public class MsilEmitterTests
     {
         // After compiling a non-trivial program the MSIL cache must be
         // non-empty — at minimum the assignment body was compiled.
-        var b = Compile("        N = 3 + 4\nend");
+        var b = Compile("        N = 3 + 4"+ Environment.NewLine + "end");
         Assert.IsTrue(b.MsilCache.Count > 0,
             "MsilCache should be non-empty after compilation");
     }
@@ -44,7 +44,7 @@ public class MsilEmitterTests
     [TestMethod]
     public void MsilCache_DelegateListMatchesCacheCount()
     {
-        var b = Compile("        N = 3 + 4\n        R = SIZE('hello')\nend");
+        var b = Compile("        N = 3 + 4"+ Environment.NewLine + "        R = SIZE('hello')"+ Environment.NewLine + "end");
         Assert.AreEqual(b.MsilCache.Count, b.MsilDelegates.Count,
             "MsilDelegates count must equal MsilCache count");
     }
@@ -54,7 +54,7 @@ public class MsilEmitterTests
     {
         // Calling EmitMsilForAllStatements twice must not change the cache
         // count or duplicate delegates.
-        var b = Compile("        N = 1\nend");
+        var b = Compile("        N = 1"+ Environment.NewLine + "end");
         var firstCount = b.MsilCache.Count;
         b.EmitMsilForAllStatements();
         Assert.AreEqual(firstCount, b.MsilCache.Count,
@@ -68,7 +68,7 @@ public class MsilEmitterTests
     {
         // After compilation the thread must contain at least one CallMsil
         // instruction (replacing the individual expression opcodes).
-        var b = Compile("        N = 3 + 4\nend");
+        var b = Compile("        N = 3 + 4"+ Environment.NewLine + "end");
         Assert.IsTrue(b.Execute!.Thread!.Any(i => i.Op == OpCode.CallMsil),
             "Thread should contain at least one CallMsil instruction");
     }
@@ -80,7 +80,7 @@ public class MsilEmitterTests
     [TestMethod]
     public void MsilCache_ArithmeticAddition()
     {
-        var b = Run("        N = 3 + 4\nend");
+        var b = Run("        N = 3 + 4"+ Environment.NewLine + "end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
         Assert.AreEqual(7L, Int("N", b));
     }
@@ -88,7 +88,7 @@ public class MsilEmitterTests
     [TestMethod]
     public void MsilCache_ArithmeticSubtraction()
     {
-        var b = Run("        N = 10 - 3\nend");
+        var b = Run("        N = 10 - 3"+ Environment.NewLine + "end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
         Assert.AreEqual(7L, Int("N", b));
     }
@@ -96,7 +96,7 @@ public class MsilEmitterTests
     [TestMethod]
     public void MsilCache_ArithmeticMultiplication()
     {
-        var b = Run("        N = 6 * 7\nend");
+        var b = Run("        N = 6 * 7"+ Environment.NewLine + "end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
         Assert.AreEqual(42L, Int("N", b));
     }
@@ -104,7 +104,7 @@ public class MsilEmitterTests
     [TestMethod]
     public void MsilCache_ArithmeticChained()
     {
-        var b = Run("        N = 2 + 3 * 4\nend");
+        var b = Run("        N = 2 + 3 * 4"+ Environment.NewLine + "end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
         // SNOBOL4 evaluates right-to-left: 3 * 4 = 12, then 2 + 12 = 14
         // (actually left-to-right in postfix; parser determines precedence)
@@ -119,7 +119,7 @@ public class MsilEmitterTests
     [TestMethod]
     public void MsilCache_FunctionCall_Size()
     {
-        var b = Run("        R = SIZE('hello')\nend");
+        var b = Run("        R = SIZE('hello')"+ Environment.NewLine + "end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
         Assert.AreEqual("5", Str("R", b));
     }
@@ -127,7 +127,7 @@ public class MsilEmitterTests
     [TestMethod]
     public void MsilCache_FunctionCall_Dupl()
     {
-        var b = Run("        R = DUPL('ab', 3)\nend");
+        var b = Run("        R = DUPL('ab', 3)"+ Environment.NewLine + "end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
         Assert.AreEqual("ababab", Str("R", b));
     }
@@ -136,7 +136,7 @@ public class MsilEmitterTests
     public void MsilCache_FunctionCall_Trim()
     {
         // SNOBOL4 TRIM removes trailing spaces only
-        var b = Run("        R = TRIM('hello   ')\nend");
+        var b = Run("        R = TRIM('hello   ')"+ Environment.NewLine + "end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
         Assert.AreEqual("hello", Str("R", b));
     }
@@ -151,7 +151,7 @@ public class MsilEmitterTests
         // *(expr) evaluates a deferred expression at runtime.
         // Use EVAL which goes through the BuildEval path and exercises
         // PushExprByIndex in the MSIL delegate.
-        var b = Run("        N = 5\n        R = EVAL('N + 1')\nend");
+        var b = Run("        N = 5"+ Environment.NewLine + "        R = EVAL('N + 1')"+ Environment.NewLine + "end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
         Assert.AreEqual("6", Str("R", b));
     }
@@ -164,7 +164,7 @@ public class MsilEmitterTests
     public void MsilCache_ChoiceOperator_FirstSucceeds()
     {
         // (A,B) — first alternative succeeds, result is A's value
-        var b = Run("        A = 'x'\n        C = (A, 'fallback')\nend");
+        var b = Run("        A = 'x'"+ Environment.NewLine + "        C = (A, 'fallback')"+ Environment.NewLine + "end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
         Assert.AreEqual("x", Str("C", b));
     }
@@ -244,7 +244,7 @@ end");
     [TestMethod]
     public void MsilCache_StringConcatenation()
     {
-        var b = Run("        R = 'Hello' ' ' 'World'\nend");
+        var b = Run("        R = 'Hello' ' ' 'World'"+ Environment.NewLine + "end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
         Assert.AreEqual("Hello World", Str("R", b));
     }
@@ -356,7 +356,7 @@ end");
     public void Step7_DelegateReturnsInt_HaltExitsCleanly()
     {
         // A program that reaches end/Halt exits with no errors.
-        var b = Run("        N = 42\nend");
+        var b = Run("        N = 42"+ Environment.NewLine + "end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
         Assert.AreEqual(42L, Int("N", b));
     }
@@ -609,7 +609,7 @@ end");
     public void Step11_IndirectUnconditionalGoto_CodeVar()
     {
         // :<VAR> (angle bracket, GotoIndirectCode path) absorbed into delegate.
-        var b = Run("        N = 0\n        dest = code(' N = 42 :(end)')\n        :<dest>\n        N = 99\nend");
+        var b = Run("        N = 0"+ Environment.NewLine + "        dest = code(' N = 42 :(end)')"+ Environment.NewLine + "        :<dest>"+ Environment.NewLine + "        N = 99"+ Environment.NewLine + "end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
         Assert.AreEqual(42L, Int("N", b));
     }
@@ -618,7 +618,7 @@ end");
     public void Step11_IndirectConditionalGoto_SuccessCodeVar()
     {
         // :S<VAR> (success, GotoIndirectCode) absorbed into delegate.
-        var b = Run("        N = 0\n        dest = code(' N = 42 :(end)')\n        eq(1, 1)  :s<dest>\n        N = 99\nend");
+        var b = Run("        N = 0"+ Environment.NewLine + "        dest = code(' N = 42 :(end)')"+ Environment.NewLine + "        eq(1, 1)  :s<dest>"+ Environment.NewLine + "        N = 99"+ Environment.NewLine + "end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
         Assert.AreEqual(42L, Int("N", b));
     }
@@ -627,7 +627,7 @@ end");
     public void Step11_IndirectConditionalGoto_FailureCodeVar()
     {
         // :F<VAR> (failure, GotoIndirectCode) absorbed into delegate.
-        var b = Run("        N = 0\n        dest = code(' N = 42 :(end)')\n        eq(1, 2)  :f<dest>\n        N = 99\nend");
+        var b = Run("        N = 0"+ Environment.NewLine + "        dest = code(' N = 42 :(end)')"+ Environment.NewLine + "        eq(1, 2)  :f<dest>"+ Environment.NewLine + "        N = 99"+ Environment.NewLine + "end");
         Assert.AreEqual(0, b.ErrorCodeHistory.Count);
         Assert.AreEqual(42L, Int("N", b));
     }

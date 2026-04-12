@@ -78,7 +78,7 @@ index_end
         OUTPUT = pad_left('hi', 6)
         OUTPUT = pad_left('toolong', 4, '*')
 END";
-        Assert.AreEqual("****hi\n    hi\ntoolong", SetupTests.RunWithInput(s));
+        Assert.AreEqual("****hi"+ Environment.NewLine + "    hi"+ Environment.NewLine + "toolong", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -89,7 +89,7 @@ END";
         OUTPUT = pad_right('hi', 6)
         OUTPUT = pad_right('toolong', 4, '*')
 END";
-        Assert.AreEqual("hi****\nhi    \ntoolong", SetupTests.RunWithInput(s));
+        Assert.AreEqual("hi****"+ Environment.NewLine + "hi    "+ Environment.NewLine + "toolong", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -99,7 +99,7 @@ END";
         OUTPUT = ltrim('   hello')
         OUTPUT = ltrim('hello')
 END";
-        Assert.AreEqual("hello\nhello", SetupTests.RunWithInput(s));
+        Assert.AreEqual("hello"+ Environment.NewLine + "hello", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -109,7 +109,7 @@ END";
         OUTPUT = rtrim('hello   ')
         OUTPUT = rtrim('hello')
 END";
-        Assert.AreEqual("hello\nhello", SetupTests.RunWithInput(s));
+        Assert.AreEqual("hello"+ Environment.NewLine + "hello", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -119,7 +119,7 @@ END";
         OUTPUT = trimws('  hello  ')
         OUTPUT = trimws('hello')
 END";
-        Assert.AreEqual("hello\nhello", SetupTests.RunWithInput(s));
+        Assert.AreEqual("hello"+ Environment.NewLine + "hello", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -130,7 +130,7 @@ END";
         OUTPUT = repeat('ab', 0)
         OUTPUT = SIZE(repeat('x', 5))
 END";
-        Assert.AreEqual("hihihi\n\n5", SetupTests.RunWithInput(s));
+        Assert.AreEqual("hihihi"+ Environment.NewLine + ""+ Environment.NewLine + "5", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -147,7 +147,7 @@ c1
         :(END)
 c2fail  OUTPUT = 'FAIL: should not contain'
 END";
-        Assert.AreEqual("contains ok\nnot found ok", SetupTests.RunWithInput(s));
+        Assert.AreEqual("contains ok"+ Environment.NewLine + "not found ok", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -170,7 +170,7 @@ ew1
 sw2fail OUTPUT = 'FAIL: startswith matched wrong'
 sw2
 END";
-        Assert.AreEqual("startswith ok\nendswith ok\nno startswith ok", SetupTests.RunWithInput(s));
+        Assert.AreEqual("startswith ok"+ Environment.NewLine + "endswith ok"+ Environment.NewLine + "no startswith ok", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -183,7 +183,7 @@ END";
 END";
         // Note: index uses BREAK(t) which is character-set based, not substring.
         // BREAK('oba') in 'foobar' stops at first char in {o,b,a} = 'o' at pos 2 → returns 2.
-        Assert.AreEqual("2\n0\n1", SetupTests.RunWithInput(s));
+        Assert.AreEqual("2"+ Environment.NewLine + "0"+ Environment.NewLine + "1", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -222,8 +222,8 @@ sw2
         OUTPUT = index('foobar', 'xyz')
 END";
         Assert.AreEqual(
-            "****hi\nhi****\nhello\nhello\nhello\nhihihi\n" +
-            "contains ok\nstartswith ok\nendswith ok\nno startswith ok\n2\n0",
+            "****hi"+ Environment.NewLine + "hi****"+ Environment.NewLine + "hello"+ Environment.NewLine + "hello"+ Environment.NewLine + "hello"+ Environment.NewLine + "hihihi"+ Environment.NewLine + "" +
+            "contains ok"+ Environment.NewLine + "startswith ok"+ Environment.NewLine + "endswith ok"+ Environment.NewLine + "no startswith ok"+ Environment.NewLine + "2"+ Environment.NewLine + "0",
             SetupTests.RunWithInput(s));
     }
 }

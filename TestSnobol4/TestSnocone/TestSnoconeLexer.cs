@@ -342,7 +342,7 @@ public class TestSnoconeLexer
     [TestMethod]
     public void Boundary_TwoStatements_TwoNewlines()
     {
-        var toks = Tokenize("x = 1\ny = 2");
+        var toks = Tokenize("x = 1"+ Environment.NewLine + "y = 2");
         Assert.AreEqual(2, toks.Count(t => t.Kind == ScKind.Newline));
     }
 
@@ -350,7 +350,7 @@ public class TestSnoconeLexer
     public void Boundary_ContinuationLine_JoinedIntoOneStatement()
     {
         // "x = 1 +" continues; "2" completes it → one Newline
-        var toks = Tokenize("x = 1 +\n2");
+        var toks = Tokenize("x = 1 +"+ Environment.NewLine + "2");
         Assert.AreEqual(1, toks.Count(t => t.Kind == ScKind.Newline));
         // Token stream: x = 1 + 2 Newline EOF
         var kinds = toks.Where(t => t.Kind != ScKind.Eof && t.Kind != ScKind.Newline)
@@ -363,7 +363,7 @@ public class TestSnoconeLexer
     [TestMethod]
     public void Boundary_ContinuationOnComma()
     {
-        var toks = Tokenize("f(a,\nb)");
+        var toks = Tokenize("f(a,"+ Environment.NewLine + "b)");
         Assert.AreEqual(1, toks.Count(t => t.Kind == ScKind.Newline));
     }
 
@@ -371,21 +371,21 @@ public class TestSnoconeLexer
     public void Boundary_CommentStripBeforeContinuationCheck()
     {
         // "x + # note" — after stripping comment → "x + ", last real char is '+'
-        var toks = Tokenize("x +  # note\n2");
+        var toks = Tokenize("x +  # note"+ Environment.NewLine + "2");
         Assert.AreEqual(1, toks.Count(t => t.Kind == ScKind.Newline));
     }
 
     [TestMethod]
     public void Boundary_BlankLineSkipped()
     {
-        var toks = Tokenize("x = 1\n\ny = 2");
+        var toks = Tokenize("x = 1"+ Environment.NewLine + ""+ Environment.NewLine + "y = 2");
         Assert.AreEqual(2, toks.Count(t => t.Kind == ScKind.Newline));
     }
 
     [TestMethod]
     public void Boundary_CommentOnlyLineSkipped()
     {
-        var toks = Tokenize("x = 1\n# comment\ny = 2");
+        var toks = Tokenize("x = 1"+ Environment.NewLine + "# comment"+ Environment.NewLine + "y = 2");
         Assert.AreEqual(2, toks.Count(t => t.Kind == ScKind.Newline));
     }
 
@@ -421,7 +421,7 @@ public class TestSnoconeLexer
     [TestMethod]
     public void LineNumbers_SecondStatementLine2()
     {
-        var toks = Tokenize("x = 1\ny = 2")
+        var toks = Tokenize("x = 1"+ Environment.NewLine + "y = 2")
             .Where(t => t.Kind != ScKind.Eof && t.Kind != ScKind.Newline)
             .ToList();
         var y = toks.First(t => t.Text == "y");
@@ -432,7 +432,7 @@ public class TestSnoconeLexer
     public void LineNumbers_ContinuedStatement_UsesFirstLine()
     {
         // Statement starts on line 1 (the +), tokens for "2" should use line 1
-        var toks = Tokenize("x = 1 +\n2")
+        var toks = Tokenize("x = 1 +"+ Environment.NewLine + "2")
             .Where(t => t.Kind != ScKind.Eof && t.Kind != ScKind.Newline)
             .ToList();
         Assert.IsTrue(toks.All(t => t.Line == 1));
@@ -608,7 +608,7 @@ public class TestSnoconeLexer
     [TestMethod]
     public void E2E_CommentOnlySource_OnlyEof()
     {
-        var toks = Tokenize("# nothing here\n# more nothing");
+        var toks = Tokenize("# nothing here"+ Environment.NewLine + "# more nothing");
         Assert.AreEqual(1, toks.Count);
         Assert.AreEqual(ScKind.Eof, toks[0].Kind);
     }

@@ -24,7 +24,7 @@ public class CorpusRef_Data
         OUTPUT = IDENT(A<1>) 'empty'
         OUTPUT = A<2>
 END";
-        Assert.AreEqual("empty\nset", SetupTests.RunWithInput(s));
+        Assert.AreEqual("empty"+ Environment.NewLine + "set", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -37,7 +37,7 @@ END";
         OUTPUT = IDENT(T<'missing'>) 'empty'
         OUTPUT = T<'x'>
 END";
-        Assert.AreEqual("empty\nfound", SetupTests.RunWithInput(s));
+        Assert.AreEqual("empty"+ Environment.NewLine + "found", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -53,7 +53,7 @@ END";
         OUTPUT = T<2>
         OUTPUT = T<3>
 END";
-        Assert.AreEqual("one\ntwo\nthree", SetupTests.RunWithInput(s));
+        Assert.AreEqual("one"+ Environment.NewLine + "two"+ Environment.NewLine + "three", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -70,7 +70,7 @@ END";
         OUTPUT = name(C)
         OUTPUT = name(D)
 END";
-        Assert.AreEqual("CAT\nDOG\nFelix\nRex", SetupTests.RunWithInput(s));
+        Assert.AreEqual("CAT"+ Environment.NewLine + "DOG"+ Environment.NewLine + "Felix"+ Environment.NewLine + "Rex", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -88,7 +88,7 @@ LOOP    IDENT(P)                                   :S(END)
         OUTPUT = val(P)
         P = nxt(P)                                 :(LOOP)
 END";
-        Assert.AreEqual("1\n2\n3", SetupTests.RunWithInput(s));
+        Assert.AreEqual("1"+ Environment.NewLine + "2"+ Environment.NewLine + "3", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -104,7 +104,7 @@ END";
         OUTPUT = A<2,2>
         OUTPUT = A<3,3>
 END";
-        Assert.AreEqual("a\nb\nc", SetupTests.RunWithInput(s));
+        Assert.AreEqual("a"+ Environment.NewLine + "b"+ Environment.NewLine + "c", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]

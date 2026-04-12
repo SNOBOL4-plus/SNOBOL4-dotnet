@@ -135,7 +135,7 @@ LOOP    OUTPUT = I
         I = I + 1
         LE(I, 3)                                   :S(LOOP)
 END";
-        Assert.AreEqual("1\n2\n3", SetupTests.RunWithInput(s));
+        Assert.AreEqual("1"+ Environment.NewLine + "2"+ Environment.NewLine + "3", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -164,7 +164,7 @@ END";
         OUTPUT = X
         OUTPUT = $VARNAME
 END";
-        Assert.AreEqual("hello\nhello", SetupTests.RunWithInput(s));
+        Assert.AreEqual("hello"+ Environment.NewLine + "hello", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -180,7 +180,7 @@ F_END
         OUTPUT = F('hi')
         OUTPUT = local1
 END";
-        Assert.AreEqual("hi inside\noutside", SetupTests.RunWithInput(s));
+        Assert.AreEqual("hi inside"+ Environment.NewLine + "outside", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -194,7 +194,7 @@ END";
         'She has a cat' P . ANIMAL
         OUTPUT = ANIMAL
 END";
-        Assert.AreEqual("dog\ncat", SetupTests.RunWithInput(s));
+        Assert.AreEqual("dog"+ Environment.NewLine + "cat", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -230,7 +230,7 @@ END";
         OUTPUT = EQ(4, 4) 'eq_ok'
         OUTPUT = NE(1, 2) 'ne_ok'
 END";
-        Assert.AreEqual("gt_ok\nlt_ok\nge_ok\nle_ok\neq_ok\nne_ok", SetupTests.RunWithInput(s));
+        Assert.AreEqual("gt_ok"+ Environment.NewLine + "lt_ok"+ Environment.NewLine + "ge_ok"+ Environment.NewLine + "le_ok"+ Environment.NewLine + "eq_ok"+ Environment.NewLine + "ne_ok", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -352,7 +352,7 @@ END";
         OUTPUT = REMDR(17, 5)
         OUTPUT = 2 ** 8
 END";
-        Assert.AreEqual("7\n7\n42\n5\n2\n256", SetupTests.RunWithInput(s));
+        Assert.AreEqual("7"+ Environment.NewLine + "7"+ Environment.NewLine + "42"+ Environment.NewLine + "5"+ Environment.NewLine + "2"+ Environment.NewLine + "256", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]

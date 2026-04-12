@@ -69,7 +69,7 @@ stack_depth_end
         OUTPUT = stack_pop()
         OUTPUT = stack_depth()
 END";
-        Assert.AreEqual("3\nc\nb\n1\na\n0", SetupTests.RunWithInput(s));
+        Assert.AreEqual("3"+ Environment.NewLine + "c"+ Environment.NewLine + "b"+ Environment.NewLine + "1"+ Environment.NewLine + "a"+ Environment.NewLine + "0", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -99,7 +99,7 @@ END";
         OUTPUT = stack_depth()
         OUTPUT = stack_pop()
 END";
-        Assert.AreEqual("x\n1\nx", SetupTests.RunWithInput(s));
+        Assert.AreEqual("x"+ Environment.NewLine + "1"+ Environment.NewLine + "x", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -133,7 +133,7 @@ END";
         :(END)
 bad     OUTPUT = 'FAIL: pattern match failed'
 END";
-        Assert.AreEqual("world\nhello", SetupTests.RunWithInput(s));
+        Assert.AreEqual("world"+ Environment.NewLine + "hello", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -192,7 +192,7 @@ s1
         :(END)
 bad_s2  OUTPUT = 'FAIL: pattern match failed'
 END";
-        Assert.AreEqual("3\nc\nb\n1\na\n0\nempty ok\nx\n1\nx\n99\nworld\nhello",
+        Assert.AreEqual("3"+ Environment.NewLine + "c"+ Environment.NewLine + "b"+ Environment.NewLine + "1"+ Environment.NewLine + "a"+ Environment.NewLine + "0"+ Environment.NewLine + "empty ok"+ Environment.NewLine + "x"+ Environment.NewLine + "1"+ Environment.NewLine + "x"+ Environment.NewLine + "99"+ Environment.NewLine + "world"+ Environment.NewLine + "hello",
             SetupTests.RunWithInput(s));
     }
 }

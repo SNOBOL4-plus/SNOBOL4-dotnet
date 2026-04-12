@@ -48,7 +48,7 @@ END";
         OUTPUT = FIRST
         OUTPUT = REST
 END";
-        Assert.AreEqual("abc\ndef", SetupTests.RunWithInput(s));
+        Assert.AreEqual("abc"+ Environment.NewLine + "def", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -61,7 +61,7 @@ END";
         OUTPUT = LEFT
         OUTPUT = RIGHT
 END";
-        Assert.AreEqual("hello\n world", SetupTests.RunWithInput(s));
+        Assert.AreEqual("hello"+ Environment.NewLine + " world", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]

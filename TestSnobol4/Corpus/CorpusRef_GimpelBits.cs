@@ -45,7 +45,7 @@ roman_end
         OUTPUT = roman(4)
         OUTPUT = roman(9)
 END";
-        Assert.AreEqual("I\nIV\nIX", SetupTests.RunWithInput(s));
+        Assert.AreEqual("I"+ Environment.NewLine + "IV"+ Environment.NewLine + "IX", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -77,7 +77,7 @@ roman_end
         OUTPUT = roman(1999)
         OUTPUT = roman(2024)
 END";
-        Assert.AreEqual("XLII\nMCMXCIX\nMMXXIV", SetupTests.RunWithInput(s));
+        Assert.AreEqual("XLII"+ Environment.NewLine + "MCMXCIX"+ Environment.NewLine + "MMXXIV", SetupTests.RunWithInput(s));
     }
 
     // ── SQRT via ** 0.5 (Gimpel SQRT.sno modern form) ───────────────────────
@@ -94,7 +94,7 @@ MYSQRT_END
         OUTPUT = CONVERT(MYSQRT(9.0), 'INTEGER')
         OUTPUT = CONVERT(MYSQRT(100.0), 'INTEGER')
 END";
-        Assert.AreEqual("2\n3\n10", SetupTests.RunWithInput(s));
+        Assert.AreEqual("2"+ Environment.NewLine + "3"+ Environment.NewLine + "10", SetupTests.RunWithInput(s));
     }
 
     // ── FLOOR/CEIL via CONVERT (Gimpel FLOOR.sno) ───────────────────────────
@@ -113,7 +113,7 @@ FLOOR_END
         OUTPUT = FLOOR(3.0)
         OUTPUT = FLOOR(0.1)
 END";
-        Assert.AreEqual("3\n3\n0", SetupTests.RunWithInput(s));
+        Assert.AreEqual("3"+ Environment.NewLine + "3"+ Environment.NewLine + "0", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -130,7 +130,7 @@ FLOOR_END
         OUTPUT = FLOOR(-2.0)
         OUTPUT = FLOOR(-0.1)
 END";
-        Assert.AreEqual("-3\n-2\n-1", SetupTests.RunWithInput(s));
+        Assert.AreEqual("-3"+ Environment.NewLine + "-2"+ Environment.NewLine + "-1", SetupTests.RunWithInput(s));
     }
 
     // ── SWAP via NRETURN / indirect (Gimpel SWAP.sno) ───────────────────────
@@ -151,7 +151,7 @@ SWAP_END
         OUTPUT = X
         OUTPUT = Y
 END";
-        Assert.AreEqual("world\nhello", SetupTests.RunWithInput(s));
+        Assert.AreEqual("world"+ Environment.NewLine + "hello", SetupTests.RunWithInput(s));
     }
 
     // ── BSORT (Gimpel BSORT.sno) — array sort using LGT ────────────────────
@@ -181,7 +181,7 @@ BSORT_END
         OUTPUT = A<4>
         OUTPUT = A<5>
 END";
-        Assert.AreEqual("apple\navocado\nbanana\ncherry\ndate", SetupTests.RunWithInput(s));
+        Assert.AreEqual("apple"+ Environment.NewLine + "avocado"+ Environment.NewLine + "banana"+ Environment.NewLine + "cherry"+ Environment.NewLine + "date", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -207,7 +207,7 @@ BSORT_END
         OUTPUT = A<3>
         OUTPUT = A<4>
 END";
-        Assert.AreEqual("ant\nape\nbat\ncat", SetupTests.RunWithInput(s));
+        Assert.AreEqual("ant"+ Environment.NewLine + "ape"+ Environment.NewLine + "bat"+ Environment.NewLine + "cat", SetupTests.RunWithInput(s));
     }
 
     // ── LPAD / RPAD patterns (Gimpel idiom, using built-in LPAD/RPAD) ───────
@@ -221,7 +221,7 @@ END";
         OUTPUT = RPAD('hi', 6)
         OUTPUT = LPAD('hi', 6, '0')
 END";
-        Assert.AreEqual("    hi\nhi    \n0000hi", SetupTests.RunWithInput(s));
+        Assert.AreEqual("    hi"+ Environment.NewLine + "hi    "+ Environment.NewLine + "0000hi", SetupTests.RunWithInput(s));
     }
 
     // ── SPAN/BREAK field-splitting (Gimpel scanning idiom) ──────────────────
@@ -237,7 +237,7 @@ LOOP    LINE BREAK(DELIM) . WORD SPAN(DELIM) =             :F(LAST)
         OUTPUT = WORD                                      :(LOOP)
 LAST    OUTPUT = LINE
 END";
-        Assert.AreEqual("one\ntwo\nthree\nfour", SetupTests.RunWithInput(s));
+        Assert.AreEqual("one"+ Environment.NewLine + "two"+ Environment.NewLine + "three"+ Environment.NewLine + "four", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -253,7 +253,7 @@ LOOP    LINE WORD_P =                                      :F(LAST)
 LAST    IDENT(LINE, '')                                    :S(END)
         OUTPUT = LINE
 END";
-        Assert.AreEqual("hello\nworld\nfoo\nbar", SetupTests.RunWithInput(s));
+        Assert.AreEqual("hello"+ Environment.NewLine + "world"+ Environment.NewLine + "foo"+ Environment.NewLine + "bar", SetupTests.RunWithInput(s));
     }
 
     // ── LEN / TAB / POS / RPOS fixed-column extraction ──────────────────────
@@ -269,7 +269,7 @@ END";
         OUTPUT = NAME
         OUTPUT = THING
 END";
-        Assert.AreEqual("1876\nBell\nTelephone", SetupTests.RunWithInput(s));
+        Assert.AreEqual("1876"+ Environment.NewLine + "Bell"+ Environment.NewLine + "Telephone", SetupTests.RunWithInput(s));
     }
 
     // ── ARBNO accumulator (Gimpel counting idiom) ───────────────────────────
@@ -305,7 +305,7 @@ END";
         OUTPUT = T<'dog'>
         OUTPUT = T<'bird'>
 END";
-        Assert.AreEqual("3\n1\n1", SetupTests.RunWithInput(s));
+        Assert.AreEqual("3"+ Environment.NewLine + "1"+ Environment.NewLine + "1", SetupTests.RunWithInput(s));
     }
 
     // ── DATA type field mutator (Gimpel DATA/LINK idiom) ─────────────────────
@@ -325,7 +325,7 @@ LOOP    IDENT(P)                                           :S(END)
         OUTPUT = VAL(P)
         P = NEXT(P)                                        :(LOOP)
 END";
-        Assert.AreEqual("1\n2\n3", SetupTests.RunWithInput(s));
+        Assert.AreEqual("1"+ Environment.NewLine + "2"+ Environment.NewLine + "3", SetupTests.RunWithInput(s));
     }
 
     // ── CONVERT type matrix (Gimpel number-conversion idiom) ────────────────
@@ -347,7 +347,7 @@ END";
         OUTPUT = CONVERT(7.9, 'INTEGER')
         OUTPUT = CONVERT(-3.2, 'INTEGER')
 END";
-        Assert.AreEqual("7\n-3", SetupTests.RunWithInput(s));
+        Assert.AreEqual("7"+ Environment.NewLine + "-3", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -358,7 +358,7 @@ END";
         OUTPUT = DATATYPE(N)
         OUTPUT = N
 END";
-        Assert.AreEqual("string\n255", SetupTests.RunWithInput(s));
+        Assert.AreEqual("string"+ Environment.NewLine + "255", SetupTests.RunWithInput(s));
     }
 
     // ── OPSYN alias (Gimpel REDEFINE.sno idiom) ─────────────────────────────
@@ -385,7 +385,7 @@ END";
         OUTPUT = DUPL('-', 10)
         OUTPUT = SIZE(DUPL('x', 0))
 END";
-        Assert.AreEqual("abababab\n----------\n0", SetupTests.RunWithInput(s));
+        Assert.AreEqual("abababab"+ Environment.NewLine + "----------"+ Environment.NewLine + "0", SetupTests.RunWithInput(s));
     }
 
     // ── Fibonacci (recursive, Gimpel-style) ─────────────────────────────────
@@ -405,7 +405,7 @@ FIB_END
         OUTPUT = FIB(7)
         OUTPUT = FIB(10)
 END";
-        Assert.AreEqual("0\n1\n13\n55", SetupTests.RunWithInput(s));
+        Assert.AreEqual("0"+ Environment.NewLine + "1"+ Environment.NewLine + "13"+ Environment.NewLine + "55", SetupTests.RunWithInput(s));
     }
 
     // ── Pattern variable (deferred evaluation *VAR) ──────────────────────────
@@ -423,7 +423,7 @@ END";
         LINE *P =
         OUTPUT = WORD
 END";
-        Assert.AreEqual("hello\nworld", SetupTests.RunWithInput(s));
+        Assert.AreEqual("hello"+ Environment.NewLine + "world", SetupTests.RunWithInput(s));
     }
 
     // ── TRIM builtin ─────────────────────────────────────────────────────────
@@ -436,7 +436,7 @@ END";
         OUTPUT = TRIM('no spaces')
         OUTPUT = SIZE(TRIM('   '))
 END";
-        Assert.AreEqual("  hello\nno spaces\n0", SetupTests.RunWithInput(s));
+        Assert.AreEqual("  hello"+ Environment.NewLine + "no spaces"+ Environment.NewLine + "0", SetupTests.RunWithInput(s));
     }
 
     // ── String reversal loop (Gimpel REVERSE.sno pattern) ───────────────────
@@ -456,7 +456,7 @@ REV_END
         OUTPUT = REV('abcde')
         OUTPUT = REV('x')
 END";
-        Assert.AreEqual("olleh\nedcba\nx", SetupTests.RunWithInput(s));
+        Assert.AreEqual("olleh"+ Environment.NewLine + "edcba"+ Environment.NewLine + "x", SetupTests.RunWithInput(s));
     }
 
     // ── REPLACE character translation ────────────────────────────────────────
@@ -471,7 +471,7 @@ END";
         OUTPUT = REPLACE('HELLO', UPPER, ROT13U)
         OUTPUT = REPLACE('URYYB', UPPER, ROT13U)
 END";
-        Assert.AreEqual("URYYB\nHELLO", SetupTests.RunWithInput(s));
+        Assert.AreEqual("URYYB"+ Environment.NewLine + "HELLO", SetupTests.RunWithInput(s));
     }
 
     // ── SIZE edge cases ───────────────────────────────────────────────────────
@@ -485,7 +485,7 @@ END";
         OUTPUT = SIZE('hello world')
         OUTPUT = SIZE(DUPL('x', 100))
 END";
-        Assert.AreEqual("0\n1\n11\n100", SetupTests.RunWithInput(s));
+        Assert.AreEqual("0"+ Environment.NewLine + "1"+ Environment.NewLine + "11"+ Environment.NewLine + "100", SetupTests.RunWithInput(s));
     }
 
     // ── SUBSTR extraction ─────────────────────────────────────────────────────
@@ -499,6 +499,6 @@ END";
         OUTPUT = SUBSTR(S, 7, 5)
         OUTPUT = SUBSTR(S, 7)
 END";
-        Assert.AreEqual("hello\nworld\nworld", SetupTests.RunWithInput(s));
+        Assert.AreEqual("hello"+ Environment.NewLine + "world"+ Environment.NewLine + "world", SetupTests.RunWithInput(s));
     }
 }

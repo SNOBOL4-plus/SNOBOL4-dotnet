@@ -24,7 +24,7 @@ NEXTL    CHARS    =  CHARS + SIZE(INPUT)                    :F(DONE)
          LINES    =  LINES + 1                              :(NEXTL)
 DONE     OUTPUT   =  CHARS ' characters, ' LINES ' lines read'
 END";
-        var input = "hello world\nfoo bar baz";
+        var input = "hello world"+ Environment.NewLine + "foo bar baz";
         Assert.AreEqual("22 characters, 2 lines read", SetupTests.RunWithInput(s, input));
     }
 
@@ -39,14 +39,14 @@ LOOP     S        =  INPUT                                  :F(END)
          N        =  REMDR(N + 1, 3)
          OUTPUT   =  EQ(N, 0)                               :(LOOP)
 END";
-        var input = "alpha\nbeta\ngamma\ndelta\nepsilon\nepsilon";
+        var input = "alpha"+ Environment.NewLine + "beta"+ Environment.NewLine + "gamma"+ Environment.NewLine + "delta"+ Environment.NewLine + "epsilon"+ Environment.NewLine + "epsilon";
         var expected =
-            "                                     alpha\n" +
-            "                                      beta\n" +
-            "                                     gamma\n" +
-            "\n" +
-            "                                     delta\n" +
-            "                                    epsilon\n" +
+            "                                     alpha"+ Environment.NewLine + "" +
+            "                                      beta"+ Environment.NewLine + "" +
+            "                                     gamma"+ Environment.NewLine + "" +
+            ""+ Environment.NewLine + "" +
+            "                                     delta"+ Environment.NewLine + "" +
+            "                                    epsilon"+ Environment.NewLine + "" +
             "                                    epsilon";
         Assert.AreEqual(expected, SetupTests.RunWithInput(s, input));
     }
@@ -105,8 +105,8 @@ loop     line     =  INPUT                         :F(END)
          OUTPUT   =  Pop()                         :(loop)
 error    OUTPUT   = 'Bad input, try again'         :(loop)
 END";
-        var input = "1+2*3\n(1+2)*3\n2.5e1+0.5\n-3+10\n4*5+6";
-        Assert.AreEqual("7\n9\n25.5\n7\n26", SetupTests.RunWithInput(s, input));
+        var input = "1+2*3"+ Environment.NewLine + "(1+2)*3"+ Environment.NewLine + "2.5e1+0.5"+ Environment.NewLine + "-3+10"+ Environment.NewLine + "4*5+6";
+        Assert.AreEqual("7"+ Environment.NewLine + "9"+ Environment.NewLine + "25.5"+ Environment.NewLine + "7"+ Environment.NewLine + "26", SetupTests.RunWithInput(s, input));
     }
 
     [TestMethod]
@@ -117,8 +117,8 @@ END";
 LOOP  LINE     =  INPUT                            :F(END)
       LINE     ?  PAT                              :(LOOP)
 END";
-        var input = "She saw the cat of the hat sitting near the dog a bone.\nNothing interesting on this line.\nI know the house of cards and the tower a bridge.";
-        Assert.AreEqual("cat\nhouse", SetupTests.RunWithInput(s, input));
+        var input = "She saw the cat of the hat sitting near the dog a bone."+ Environment.NewLine + "Nothing interesting on this line."+ Environment.NewLine + "I know the house of cards and the tower a bridge.";
+        Assert.AreEqual("cat"+ Environment.NewLine + "house", SetupTests.RunWithInput(s, input));
     }
 
     [TestMethod]
@@ -132,11 +132,11 @@ LOOP  LINE     =  INPUT                            :F(END)
       LINE     ?  PAT                              :F(LOOP)
       OUTPUT   =  WHO "" invented the "" WHAT "" in "" WHEN  :(LOOP)
 END";
-        var input = "1769  Watt             : Steam Engine\n1876  Bell             : Telephone\n1903  Wright           : Airplane\n1928  Fleming          : Penicillin";
+        var input = "1769  Watt             : Steam Engine"+ Environment.NewLine + "1876  Bell             : Telephone"+ Environment.NewLine + "1903  Wright           : Airplane"+ Environment.NewLine + "1928  Fleming          : Penicillin";
         var expected =
-            "Watt             invented the  Steam Engine in 1769\n" +
-            "Bell             invented the  Telephone in 1876\n" +
-            "Wright           invented the  Airplane in 1903\n" +
+            "Watt             invented the  Steam Engine in 1769"+ Environment.NewLine + "" +
+            "Bell             invented the  Telephone in 1876"+ Environment.NewLine + "" +
+            "Wright           invented the  Airplane in 1903"+ Environment.NewLine + "" +
             "Fleming          invented the  Penicillin in 1928";
         Assert.AreEqual(expected, SetupTests.RunWithInput(s, input));
     }
@@ -152,11 +152,11 @@ LOOP  LINE     =  INPUT                            :F(END)
       LINE     ?  PAT                              :F(LOOP)
       OUTPUT   =  WHO "" invented the "" WHAT "" in "" WHEN  :(LOOP)
 END";
-        var input = "1769  Watt : Steam Engine\n1876  Bell : Telephone\n1903  Wright : Airplane\n1928  Fleming : Penicillin";
+        var input = "1769  Watt : Steam Engine"+ Environment.NewLine + "1876  Bell : Telephone"+ Environment.NewLine + "1903  Wright : Airplane"+ Environment.NewLine + "1928  Fleming : Penicillin";
         var expected =
-            "Watt invented the Steam Engine in 1769\n" +
-            "Bell invented the Telephone in 1876\n" +
-            "Wright invented the Airplane in 1903\n" +
+            "Watt invented the Steam Engine in 1769"+ Environment.NewLine + "" +
+            "Bell invented the Telephone in 1876"+ Environment.NewLine + "" +
+            "Wright invented the Airplane in 1903"+ Environment.NewLine + "" +
             "Fleming invented the Penicillin in 1928";
         Assert.AreEqual(expected, SetupTests.RunWithInput(s, input));
     }
@@ -172,11 +172,11 @@ LOOP  LINE     =  INPUT                            :F(END)
       LINE     ?  PAT                              :F(LOOP)
       OUTPUT   =  WHO "" invented the "" WHAT "" in "" WHEN  :(LOOP)
 END";
-        var input = "1769  Watt : Steam Engine\n1876  Bell : Telephone\n1903  Wright : Airplane\n1928  Fleming : Penicillin";
+        var input = "1769  Watt : Steam Engine"+ Environment.NewLine + "1876  Bell : Telephone"+ Environment.NewLine + "1903  Wright : Airplane"+ Environment.NewLine + "1928  Fleming : Penicillin";
         var expected =
-            "Watt invented the Steam Engine in 1769\n" +
-            "Bell invented the Telephone in 1876\n" +
-            "Wright invented the Airplane in 1903\n" +
+            "Watt invented the Steam Engine in 1769"+ Environment.NewLine + "" +
+            "Bell invented the Telephone in 1876"+ Environment.NewLine + "" +
+            "Wright invented the Airplane in 1903"+ Environment.NewLine + "" +
             "Fleming invented the Penicillin in 1928";
         Assert.AreEqual(expected, SetupTests.RunWithInput(s, input));
     }
@@ -194,7 +194,7 @@ NEXTW LINE     ?  WPAT =                           :F(NEXTL)
       N        =  N + 1                            :(NEXTW)
 DONE  OUTPUT   =  +N ' words'
 END";
-        var input = "it's a well-known fact that the quick brown fox\njumped over the lazy dog";
+        var input = "it's a well-known fact that the quick brown fox"+ Environment.NewLine + "jumped over the lazy dog";
         Assert.AreEqual("14 words", SetupTests.RunWithInput(s, input));
     }
 
@@ -223,9 +223,9 @@ PRINT PRINTV   ?  LEN(1) . C =                     :F(NEXTV)
       OUTPUT   =  DIFFER(C, '#') DUPL(' ', NH) C   :S(PRINT)
       OUTPUT   =  H                                :(PRINT)
 END";
-        var input = "SNOBOL\nOBJECT";
+        var input = "SNOBOL"+ Environment.NewLine + "OBJECT";
         var expected =
-            "\nSNOBOL\n  B\n  J\n  E\n  C\n  T\n\n   O\nSNOBOL\n   J\n   E\n   C\n   T\n\nSNOBOL\n    B\n    J\n    E\n    C\n    T";
+            ""+ Environment.NewLine + "SNOBOL"+ Environment.NewLine + "  B"+ Environment.NewLine + "  J"+ Environment.NewLine + "  E"+ Environment.NewLine + "  C"+ Environment.NewLine + "  T"+ Environment.NewLine + ""+ Environment.NewLine + "   O"+ Environment.NewLine + "SNOBOL"+ Environment.NewLine + "   J"+ Environment.NewLine + "   E"+ Environment.NewLine + "   C"+ Environment.NewLine + "   T"+ Environment.NewLine + ""+ Environment.NewLine + "SNOBOL"+ Environment.NewLine + "    B"+ Environment.NewLine + "    J"+ Environment.NewLine + "    E"+ Environment.NewLine + "    C"+ Environment.NewLine + "    T";
         Assert.AreEqual(expected, SetupTests.RunWithInput(s, input));
     }
 }

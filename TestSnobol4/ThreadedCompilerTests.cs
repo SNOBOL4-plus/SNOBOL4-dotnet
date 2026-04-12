@@ -24,14 +24,14 @@ public class ThreadedCompilerTests
     [TestMethod]
     public void Thread_IsNonEmpty()
     {
-        var t = Compile("        N = 1\nend");
+        var t = Compile("        N = 1"+ Environment.NewLine + "end");
         Assert.IsTrue(t.Length > 0);
     }
 
     [TestMethod]
     public void Thread_StartsWithInit()
     {
-        var t = Compile("        N = 1\nend");
+        var t = Compile("        N = 1"+ Environment.NewLine + "end");
         // After Step 6, compiled statement bodies absorb Init into the delegate.
         // The first instruction is now CallMsil (body delegate) or Init (for
         // un-compiled statements). Either is valid.
@@ -42,14 +42,14 @@ public class ThreadedCompilerTests
     [TestMethod]
     public void Thread_EndsWithHalt()
     {
-        var t = Compile("        N = 1\nend");
+        var t = Compile("        N = 1"+ Environment.NewLine + "end");
         Assert.AreEqual(OpCode.Halt, t[^1].Op);
     }
 
     [TestMethod]
     public void Thread_ContainsFinalizeAfterBody()
     {
-        var t = Compile("        N = 1\nend");
+        var t = Compile("        N = 1"+ Environment.NewLine + "end");
         // After Step 6, Finalize is inlined into the CallMsil delegate for
         // compiled bodies; un-compiled statements still emit it. Either path
         // is valid — what matters is the program executes correctly.
@@ -66,7 +66,7 @@ public class ThreadedCompilerTests
     [TestMethod]
     public void Assignment_EmitsExpectedOpcodes()
     {
-        var t = Compile("        N = 1\nend");
+        var t = Compile("        N = 1"+ Environment.NewLine + "end");
         var ops = t.Select(i => i.Op).ToHashSet();
         // With MSIL compilation active the body is replaced by CallMsil;
         // without it (or for goto token lists) the individual opcodes appear.
@@ -80,7 +80,7 @@ public class ThreadedCompilerTests
     [TestMethod]
     public void Addition_EmitsOpAdd()
     {
-        var t = Compile("        N = N + 1\nend");
+        var t = Compile("        N = N + 1"+ Environment.NewLine + "end");
         // CallMsil subsumes OpAdd when MSIL compilation is active.
         Assert.IsTrue(t.Any(i => i.Op == OpCode.OpAdd || i.Op == OpCode.CallMsil));
     }
@@ -88,7 +88,7 @@ public class ThreadedCompilerTests
     [TestMethod]
     public void FunctionCall_EmitsCallFunc()
     {
-        var t = Compile("        N = LT(N, 10) N\nend");
+        var t = Compile("        N = LT(N, 10) N"+ Environment.NewLine + "end");
         // CallMsil subsumes CallFunc when MSIL compilation is active.
         Assert.IsTrue(t.Any(i => i.Op == OpCode.CallFunc || i.Op == OpCode.CallMsil));
     }
@@ -96,7 +96,7 @@ public class ThreadedCompilerTests
     [TestMethod]
     public void UnconditionalGoto_EmitsSaveRestoreAndDispatch()
     {
-        var t = Compile("LOOP    N = N + 1   :(LOOP)\nend");
+        var t = Compile("LOOP    N = N + 1   :(LOOP)"+ Environment.NewLine + "end");
         var ops = t.Select(i => i.Op).ToHashSet();
         // After Step 9, a single-identifier :(LABEL) goto is absorbed into the
         // body delegate — no SaveFailure/RestoreFailure/GotoIndirect in thread.
@@ -113,7 +113,7 @@ public class ThreadedCompilerTests
     [TestMethod]
     public void SuccessGoto_EmitsJumpOnFailureForFallThrough()
     {
-        var t = Compile("        LT(N,10)   :S(DONE)\nDONE\nend");
+        var t = Compile("        LT(N,10)   :S(DONE)"+ Environment.NewLine + "DONE"+ Environment.NewLine + "end");
         // After Step 10, single-identifier :S(LABEL) is absorbed into the body
         // delegate — the delegate branches on Failure internally, so no
         // JumpOnFailure appears in the thread for compiled statements.
@@ -126,7 +126,7 @@ public class ThreadedCompilerTests
     [TestMethod]
     public void FailureGoto_EmitsJumpOnSuccessForFallThrough()
     {
-        var t = Compile("        LT(N,10)   :F(DONE)\nDONE\nend");
+        var t = Compile("        LT(N,10)   :F(DONE)"+ Environment.NewLine + "DONE"+ Environment.NewLine + "end");
         bool hasMsil          = t.Any(i => i.Op == OpCode.CallMsil);
         bool hasJumpOnSuccess = t.Any(i => i.Op == OpCode.JumpOnSuccess);
         Assert.IsTrue(hasMsil || hasJumpOnSuccess,
@@ -182,7 +182,7 @@ end");
     [TestMethod]
     public void PushVar_SlotIndices_AreInBounds()
     {
-        var build = SetupTests.SetupScript("-b", "        R1 = ROMAN('1776')\nend");
+        var build = SetupTests.SetupScript("-b", "        R1 = ROMAN('1776')"+ Environment.NewLine + "end");
         var t = new ThreadedCodeCompiler(build).Compile();
         foreach (var instr in t.Where(i => i.Op == OpCode.PushVar))
             Assert.IsTrue(instr.IntOperand >= 0 && instr.IntOperand < build.VariableSlots.Count,
@@ -192,7 +192,7 @@ end");
     [TestMethod]
     public void PushConst_SlotIndices_AreInBounds()
     {
-        var build = SetupTests.SetupScript("-b", "        R1 = '1776'\nend");
+        var build = SetupTests.SetupScript("-b", "        R1 = '1776'"+ Environment.NewLine + "end");
         var t = new ThreadedCodeCompiler(build).Compile();
         foreach (var instr in t.Where(i => i.Op == OpCode.PushConst))
             Assert.IsTrue(instr.IntOperand >= 0 && instr.IntOperand < build.Constants.Count,

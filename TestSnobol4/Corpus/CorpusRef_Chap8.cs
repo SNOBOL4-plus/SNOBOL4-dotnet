@@ -29,7 +29,7 @@ SHIFT_END
         OUTPUT = SHIFT('abcde', 1)
         OUTPUT = SHIFT('ABCDE', 0)
 END";
-        Assert.AreEqual("llohe\nbcdea\nABCDE", SetupTests.RunWithInput(s));
+        Assert.AreEqual("llohe"+ Environment.NewLine + "bcdea"+ Environment.NewLine + "ABCDE", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -66,7 +66,7 @@ SWAP_END
         OUTPUT = A
         OUTPUT = B
 END";
-        Assert.AreEqual("beta\nalpha", SetupTests.RunWithInput(s));
+        Assert.AreEqual("beta"+ Environment.NewLine + "alpha", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -84,7 +84,7 @@ SWAP_END
         OUTPUT = P
         OUTPUT = Q
 END";
-        Assert.AreEqual("200\n100", SetupTests.RunWithInput(s));
+        Assert.AreEqual("200"+ Environment.NewLine + "100", SetupTests.RunWithInput(s));
     }
 
     // ── FACT — recursive factorial ────────────────────────────────────────────
@@ -102,7 +102,7 @@ FACT_END
         OUTPUT = FACT(5)
         OUTPUT = FACT(7)
 END";
-        Assert.AreEqual("1\n1\n120\n5040", SetupTests.RunWithInput(s));
+        Assert.AreEqual("1"+ Environment.NewLine + "1"+ Environment.NewLine + "120"+ Environment.NewLine + "5040", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -135,7 +135,7 @@ ASC_END
         OUTPUT = ASC(' ')
 END";
         // 'A' is at position 65 in ASCII (0-based in &ALPHABET)
-        Assert.AreEqual("65\n32", SetupTests.RunWithInput(s));
+        Assert.AreEqual("65"+ Environment.NewLine + "32", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -173,7 +173,7 @@ RomanEnd
         OUTPUT = Roman(14)
         OUTPUT = Roman(42)
 END";
-        Assert.AreEqual("IV\nIX\nXIV\nXLII", SetupTests.RunWithInput(s));
+        Assert.AreEqual("IV"+ Environment.NewLine + "IX"+ Environment.NewLine + "XIV"+ Environment.NewLine + "XLII", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -189,7 +189,7 @@ RomanEnd
         OUTPUT = Roman(1999)
         OUTPUT = Roman(2024)
 END";
-        Assert.AreEqual("MCMXCIX\nMMXXIV", SetupTests.RunWithInput(s));
+        Assert.AreEqual("MCMXCIX"+ Environment.NewLine + "MMXXIV", SetupTests.RunWithInput(s));
     }
 }
 

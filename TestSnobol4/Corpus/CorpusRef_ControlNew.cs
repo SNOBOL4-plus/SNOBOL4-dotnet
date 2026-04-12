@@ -97,6 +97,6 @@ A       OUTPUT = 'a'
         OUTPUT = 'skip'
 B       OUTPUT = 'b'
 END";
-        Assert.AreEqual("a\nb", SetupTests.RunWithInput(s));
+        Assert.AreEqual("a"+ Environment.NewLine + "b", SetupTests.RunWithInput(s));
     }
 }

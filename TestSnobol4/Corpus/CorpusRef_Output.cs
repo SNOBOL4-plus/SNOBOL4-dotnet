@@ -55,7 +55,7 @@ END";
         OUTPUT = 'line two'
         OUTPUT = 'line three'
 END";
-        Assert.AreEqual("line one\nline two\nline three", SetupTests.RunWithInput(s));
+        Assert.AreEqual("line one"+ Environment.NewLine + "line two"+ Environment.NewLine + "line three", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]

@@ -38,7 +38,7 @@ END";
         OUTPUT = 'LINE TWO'
         OUTPUT = 'LINE THREE'
 END";
-        Assert.AreEqual("LINE ONE\nLINE TWO\nLINE THREE", SetupTests.RunWithInput(s));
+        Assert.AreEqual("LINE ONE"+ Environment.NewLine + "LINE TWO"+ Environment.NewLine + "LINE THREE", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -70,7 +70,7 @@ START
       OUTPUT = (1 + 2) * 3
       OUTPUT = 1 + (2 * 3)
 END";
-        var expected = "\n\nHello World!\n0\n1\n-1\n1.\n1\n1\n1.0\nI'm here\n\"Quote of the day\"\n0\n1\n1\n\nZ\nA\nAZ\n3\n7\n9\n7";
+        var expected = ""+ Environment.NewLine + ""+ Environment.NewLine + "Hello World!"+ Environment.NewLine + "0"+ Environment.NewLine + "1"+ Environment.NewLine + "-1"+ Environment.NewLine + "1."+ Environment.NewLine + "1"+ Environment.NewLine + "1"+ Environment.NewLine + "1.0"+ Environment.NewLine + "I'm here"+ Environment.NewLine + "\"Quote of the day\""+ Environment.NewLine + "0"+ Environment.NewLine + "1"+ Environment.NewLine + "1"+ Environment.NewLine + ""+ Environment.NewLine + "Z"+ Environment.NewLine + "A"+ Environment.NewLine + "AZ"+ Environment.NewLine + "3"+ Environment.NewLine + "7"+ Environment.NewLine + "9"+ Environment.NewLine + "7";
         Assert.AreEqual(expected, SetupTests.RunWithInput(s));
     }
     [TestMethod]

@@ -52,7 +52,7 @@ lcm_end
         OUTPUT = max(7, 3)
         OUTPUT = max(5, 5)
 END";
-        Assert.AreEqual("7\n7\n5", SetupTests.RunWithInput(s));
+        Assert.AreEqual("7"+ Environment.NewLine + "7"+ Environment.NewLine + "5", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -63,7 +63,7 @@ END";
         OUTPUT = min(7, 3)
         OUTPUT = min(5, 5)
 END";
-        Assert.AreEqual("3\n3\n5", SetupTests.RunWithInput(s));
+        Assert.AreEqual("3"+ Environment.NewLine + "3"+ Environment.NewLine + "5", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -73,7 +73,7 @@ END";
         OUTPUT = max(3.5, 2.1)
         OUTPUT = min(3.5, 2.1)
 END";
-        Assert.AreEqual("3.5\n2.1", SetupTests.RunWithInput(s));
+        Assert.AreEqual("3.5"+ Environment.NewLine + "2.1", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -84,7 +84,7 @@ END";
         OUTPUT = abs(42)
         OUTPUT = abs(0)
 END";
-        Assert.AreEqual("42\n42\n0", SetupTests.RunWithInput(s));
+        Assert.AreEqual("42"+ Environment.NewLine + "42"+ Environment.NewLine + "0", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -95,7 +95,7 @@ END";
         OUTPUT = sign(5)
         OUTPUT = sign(-3)
 END";
-        Assert.AreEqual("0\n1\n-1", SetupTests.RunWithInput(s));
+        Assert.AreEqual("0"+ Environment.NewLine + "1"+ Environment.NewLine + "-1", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -106,7 +106,7 @@ END";
         OUTPUT = gcd(100, 75)
         OUTPUT = gcd(7, 13)
 END";
-        Assert.AreEqual("4\n25\n1", SetupTests.RunWithInput(s));
+        Assert.AreEqual("4"+ Environment.NewLine + "25"+ Environment.NewLine + "1", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -117,7 +117,7 @@ END";
         OUTPUT = lcm(3, 5)
         OUTPUT = lcm(6, 6)
 END";
-        Assert.AreEqual("12\n15\n6", SetupTests.RunWithInput(s));
+        Assert.AreEqual("12"+ Environment.NewLine + "15"+ Environment.NewLine + "6", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -138,6 +138,6 @@ END";
         OUTPUT = gcd(100, 75)
         OUTPUT = lcm(4, 6)
 END";
-        Assert.AreEqual("7\n3\n3.5\n2.1\n42\n0\n1\n-1\n4\n25\n12", SetupTests.RunWithInput(s));
+        Assert.AreEqual("7"+ Environment.NewLine + "3"+ Environment.NewLine + "3.5"+ Environment.NewLine + "2.1"+ Environment.NewLine + "42"+ Environment.NewLine + "0"+ Environment.NewLine + "1"+ Environment.NewLine + "-1"+ Environment.NewLine + "4"+ Environment.NewLine + "25"+ Environment.NewLine + "12", SetupTests.RunWithInput(s));
     }
 }

@@ -250,7 +250,7 @@ t003    subject = 'AB'
 e003    OUTPUT = 'FAIL W06/003: LEN(5) on short string should fail'
 END";
         Assert.AreEqual(
-            "PASS W06/001: LEN(3) then DE matched\nPASS W06/002: LEN(0) then full string matched\nPASS W06/003: LEN(5) on 2-char string correctly fails",
+            "PASS W06/001: LEN(3) then DE matched"+ Environment.NewLine + "PASS W06/002: LEN(0) then full string matched"+ Environment.NewLine + "PASS W06/003: LEN(5) on 2-char string correctly fails",
             SetupTests.RunWithInput(s));
     }
 
@@ -272,7 +272,7 @@ t003    subject = 'HELLO'
 e003    OUTPUT = 'FAIL W06/003: POS(2) H should fail'
 END";
         Assert.AreEqual(
-            "PASS W06/001: POS(0) matched\nPASS W06/002: POS(3) after EL matched\nPASS W06/003: POS(2) H correctly fails",
+            "PASS W06/001: POS(0) matched"+ Environment.NewLine + "PASS W06/002: POS(3) after EL matched"+ Environment.NewLine + "PASS W06/003: POS(2) H correctly fails",
             SetupTests.RunWithInput(s));
     }
 
@@ -294,7 +294,7 @@ t003    subject = 'HELLO'
 e003    OUTPUT = 'FAIL W06/003: RPOS(1) LO should fail'
 END";
         Assert.AreEqual(
-            "PASS W06/001: RPOS(0) at end matched\nPASS W06/002: RPOS(2) after HEL matched\nPASS W06/003: RPOS(1) LO correctly fails",
+            "PASS W06/001: RPOS(0) at end matched"+ Environment.NewLine + "PASS W06/002: RPOS(2) after HEL matched"+ Environment.NewLine + "PASS W06/003: RPOS(1) LO correctly fails",
             SetupTests.RunWithInput(s));
     }
 
@@ -316,7 +316,7 @@ t003    subject = 'ABCDE'
 e003    OUTPUT = 'FAIL W06/003: TAB(1) behind cursor should fail'
 END";
         Assert.AreEqual(
-            "PASS W06/001: TAB(3) then DE matched\nPASS W06/002: AB TAB(2) CDE matched\nPASS W06/003: TAB(1) behind cursor correctly fails",
+            "PASS W06/001: TAB(3) then DE matched"+ Environment.NewLine + "PASS W06/002: AB TAB(2) CDE matched"+ Environment.NewLine + "PASS W06/003: TAB(1) behind cursor correctly fails",
             SetupTests.RunWithInput(s));
     }
 
@@ -335,7 +335,7 @@ t002    subject = 'FOOBAR'
         OUTPUT = 'PASS W07/002: imm cap BAR=' cap2   :(END)
 e002    OUTPUT = 'FAIL W07/002: BAR capture should match'
 END";
-        Assert.AreEqual("PASS W07/001: imm cap=FOO\nPASS W07/002: imm cap BAR=BAR", SetupTests.RunWithInput(s));
+        Assert.AreEqual("PASS W07/001: imm cap=FOO"+ Environment.NewLine + "PASS W07/002: imm cap BAR=BAR", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -351,7 +351,7 @@ t002    subject = 'ABC'
         OUTPUT = 'PASS W07/002: cond cap correctly fails'  :(END)
 e002    OUTPUT = 'FAIL W07/002: failed match should not succeed'
 END";
-        Assert.AreEqual("PASS W07/001: cond cap=HELLO\nPASS W07/002: cond cap correctly fails", SetupTests.RunWithInput(s));
+        Assert.AreEqual("PASS W07/001: cond cap=HELLO"+ Environment.NewLine + "PASS W07/002: cond cap correctly fails", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -393,6 +393,6 @@ t002    subject = 'ABCDE'
         OUTPUT = 'PASS W07/002: cursor after match=' pos2   :(END)
 e002    OUTPUT = 'FAIL W07/002: cursor after match should match'
 END";
-        Assert.AreEqual("PASS W07/001: cursor pos=3\nPASS W07/002: cursor after match=5", SetupTests.RunWithInput(s));
+        Assert.AreEqual("PASS W07/001: cursor pos=3"+ Environment.NewLine + "PASS W07/002: cursor after match=5", SetupTests.RunWithInput(s));
     }
 }

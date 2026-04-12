@@ -92,6 +92,6 @@ END";
         OUTPUT = 'alpha'
         OUTPUT = 'beta'
 END";
-        Assert.AreEqual("alpha\nbeta", SetupTests.RunWithInput(s));
+        Assert.AreEqual("alpha"+ Environment.NewLine + "beta", SetupTests.RunWithInput(s));
     }
 }

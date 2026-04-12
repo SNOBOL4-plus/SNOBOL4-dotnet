@@ -25,7 +25,7 @@ YES2    OUTPUT = 'equal'
         :(END)
 NO2     OUTPUT = 'not equal'
 END";
-        Assert.AreEqual("equal\nnot equal", SetupTests.RunWithInput(s));
+        Assert.AreEqual("equal"+ Environment.NewLine + "not equal", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -57,7 +57,7 @@ NO      OUTPUT = 'wrong'
         :(END)
 NO2     OUTPUT = 'anchor prevented mid-string match'
 END";
-        Assert.AreEqual("anchored match ok\nanchor prevented mid-string match", SetupTests.RunWithInput(s));
+        Assert.AreEqual("anchored match ok"+ Environment.NewLine + "anchor prevented mid-string match", SetupTests.RunWithInput(s));
     }
 
     [TestMethod, Ignore("M-NET-PAT-PRIMITIVES: &ANCHOR='0' string coercion (ASGNIC) throws error 208 — fix pending")]
@@ -141,7 +141,7 @@ roman_end
         OUTPUT = roman(1999)
         OUTPUT = roman(2024)
 END";
-        Assert.AreEqual("I\nIV\nIX\nXLII\nMCMXCIX\nMMXXIV", SetupTests.RunWithInput(s));
+        Assert.AreEqual("I"+ Environment.NewLine + "IV"+ Environment.NewLine + "IX"+ Environment.NewLine + "XLII"+ Environment.NewLine + "MCMXCIX"+ Environment.NewLine + "MMXXIV", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -169,7 +169,7 @@ YES2    OUTPUT = 'wrong'
         :(END)
 NO2     OUTPUT = '3 not > 5'
 END";
-        Assert.AreEqual("5 > 3\n3 not > 5", SetupTests.RunWithInput(s));
+        Assert.AreEqual("5 > 3"+ Environment.NewLine + "3 not > 5", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -183,7 +183,7 @@ B       OUTPUT = '5 <= 5'
         GE(7, 5)                                                    :S(C)F(END)
 C       OUTPUT = '7 >= 5'
 END";
-        Assert.AreEqual("3 < 5\n5 <= 5\n7 >= 5", SetupTests.RunWithInput(s));
+        Assert.AreEqual("3 < 5"+ Environment.NewLine + "5 <= 5"+ Environment.NewLine + "7 >= 5", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -199,7 +199,7 @@ YES2    OUTPUT = '42 != 99'
         :(END)
 NO2     OUTPUT = 'wrong'
 END";
-        Assert.AreEqual("42 = 42\n42 != 99", SetupTests.RunWithInput(s));
+        Assert.AreEqual("42 = 42"+ Environment.NewLine + "42 != 99", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -210,7 +210,7 @@ END";
         OUTPUT = REPLACE(DATATYPE(42),      &LCASE, &UCASE)
         OUTPUT = REPLACE(DATATYPE(3.14),    &LCASE, &UCASE)
 END";
-        Assert.AreEqual("STRING\nINTEGER\nREAL", SetupTests.RunWithInput(s));
+        Assert.AreEqual("STRING"+ Environment.NewLine + "INTEGER"+ Environment.NewLine + "REAL", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -226,7 +226,7 @@ C       OUTPUT = 'cat = cat'
         LNE('cat', 'dog')                                           :S(D)F(END)
 D       OUTPUT = 'cat != dog'
 END";
-        Assert.AreEqual("b > a\na < b\ncat = cat\ncat != dog", SetupTests.RunWithInput(s));
+        Assert.AreEqual("b > a"+ Environment.NewLine + "a < b"+ Environment.NewLine + "cat = cat"+ Environment.NewLine + "cat != dog", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]

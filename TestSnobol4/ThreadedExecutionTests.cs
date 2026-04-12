@@ -17,21 +17,21 @@ public class ThreadedExecutionTests
     [TestMethod]
     public void Threaded_SimpleAssignment()
     {
-        var b = Run("        N = 42\nend");
+        var b = Run("        N = 42"+ Environment.NewLine + "end");
         Assert.AreEqual("42", b.Execute!.IdentifierTable["N"].ToString());
     }
 
     [TestMethod]
     public void Threaded_Addition()
     {
-        var b = Run("        N = 3 + 4\nend");
+        var b = Run("        N = 3 + 4"+ Environment.NewLine + "end");
         Assert.AreEqual("7", b.Execute!.IdentifierTable["N"].ToString());
     }
 
     [TestMethod]
     public void Threaded_StringConcat()
     {
-        var b = Run("        S = 'Hello' ' ' 'World'\nend");
+        var b = Run("        S = 'Hello' ' ' 'World'"+ Environment.NewLine + "end");
         Assert.AreEqual("Hello World", b.Execute!.IdentifierTable["S"].ToString());
     }
 

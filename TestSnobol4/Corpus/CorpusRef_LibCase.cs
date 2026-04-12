@@ -126,8 +126,8 @@ bad_ic3
         OUTPUT = 'no match ok'          :(END)
 bad_ic4 OUTPUT = 'FAIL: icase matched wrong string'
 END";
-        var expected = "hello world\nHELLO WORLD\nHello world\n" +
-                       "ok: icase hello\nok: icase HELLO\nok: icase HeLLo\nno match ok";
+        var expected = "hello world"+ Environment.NewLine + "HELLO WORLD"+ Environment.NewLine + "Hello world"+ Environment.NewLine + "" +
+                       "ok: icase hello"+ Environment.NewLine + "ok: icase HELLO"+ Environment.NewLine + "ok: icase HeLLo"+ Environment.NewLine + "no match ok";
         Assert.AreEqual(expected, SetupTests.RunWithInput(s));
     }
 }

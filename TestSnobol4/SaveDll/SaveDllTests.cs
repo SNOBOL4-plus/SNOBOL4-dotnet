@@ -112,7 +112,7 @@ public class SaveDllTests
     [TestMethod]
     public void WriteDll_HelloWorld_DllExists()
     {
-        var script = "  OUTPUT = 'hello world'\n  END\n";
+        var script = "  OUTPUT = 'hello world'"+ Environment.NewLine + "  END"+ Environment.NewLine + "";
         var dllPath = SaveScriptAsDll(script, "hello_world");
 
         Assert.IsTrue(File.Exists(dllPath),
@@ -145,7 +145,7 @@ public class SaveDllTests
     [TestMethod]
     public void WriteDll_HelloWorld_RunProducesOutput()
     {
-        var script  = "  OUTPUT = 'hello world'\n  END\n";
+        var script  = "  OUTPUT = 'hello world'"+ Environment.NewLine + "  END"+ Environment.NewLine + "";
         var dllPath = SaveScriptAsDll(script, "hello_world_run");
 
         Assert.IsTrue(File.Exists(dllPath), $"DLL not found: {dllPath}");
@@ -163,7 +163,7 @@ public class SaveDllTests
     public void WriteDll_OutputMatchesDirect()
     {
         // Script uses variables and arithmetic — exercises the full compile path
-        var script = string.Join("\n",
+        var script = string.Join(""+ Environment.NewLine + "",
             "  N = 6",
             "  RESULT = N * 7",
             "  OUTPUT = 'answer=' RESULT",
