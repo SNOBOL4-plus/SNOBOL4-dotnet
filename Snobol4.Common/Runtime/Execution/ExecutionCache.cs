@@ -197,7 +197,22 @@ public partial class Executive
         if (SystemStack.ExtractArguments(argumentCount, _reusableArgList, this))
             return;
         InputArguments(_reusableArgList);
-        OperatorHandlers![(int)op]!(_reusableArgList);
+        var handler = OperatorHandlers![(int)op]!;
+        // ExecuteProgramDefinedFunction expects arguments[^1] to be a function-name StringVar
+        // (appended by Function() in the normal call path). OperatorFast bypasses Function()
+        // so we must append the name when the handler is a user-defined function dispatcher.
+        if (handler == ExecuteProgramDefinedFunction)
+        {
+            // Find the operator name by reverse-lookup, then append it as the function name arg.
+            var opName = _operatorNameToOpCode
+                .FirstOrDefault(kvp => kvp.Value == op).Key ?? string.Empty;
+            // If UserFunctionTable has an entry for this operator name, use that function's name;
+            // otherwise fall back to the operator name (e.g. "__~").
+            var fnName = UserFunctionTable.TryGetValue(opName, out var ufte)
+                ? ufte.FunctionName : opName;
+            _reusableArgList.Add(new StringVar(fnName));
+        }
+        handler(_reusableArgList);
     }
 
     /// <summary>

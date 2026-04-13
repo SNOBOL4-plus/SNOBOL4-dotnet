@@ -116,6 +116,17 @@ public partial class Executive
                 FunctionTable.Remove(newFunction);
                 var unusedBinaryOperator = FunctionTable[existingFunction];
                 FunctionTable.Add(newFunction, new FunctionTableEntry(this, newFunction, unusedBinaryOperator!.Handler, unusedBinaryOperator.ArgumentCount, false));
+                // Mirror case 0: copy UserFunctionTableEntry under the operator name so
+                // that ExecuteProgramDefinedFunction can find the definition when the
+                // OPSYN'd binary operator is dispatched via OperatorFast (which bypasses
+                // the normal Function() call and looks up by operator name, not by the
+                // original function name).
+                if (UserFunctionTable.TryGetValue(existingFunction, out var existingBinaryUserEntry))
+                    UserFunctionTable[newFunction] = new UserFunctionTableEntry(
+                        existingBinaryUserEntry.FunctionName,
+                        existingBinaryUserEntry.Prototype,
+                        existingBinaryUserEntry.Parameters, existingBinaryUserEntry.Locals,
+                        existingBinaryUserEntry.EntryLabel);
                 InvalidateOperatorHandler(newFunction);
                 break;
         }
