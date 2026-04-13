@@ -76,6 +76,14 @@ public partial class Executive
         var existingDataType = FunctionTable[dataName];
         if (existingDataType is not null && !existingDataType.IsProtected)
         {
+            // SPITBOL silently no-ops when DATA re-defines an already-registered DATA type
+            // (same constructor name). This happens when EVAL re-executes include-level
+            // initialization code (e.g. counter.sno DATA call from inside TX/EVAL chain).
+            if (existingDataType.Handler == CreateProgramDefinedDataInstance)
+            {
+                PredicateSuccess();
+                return;
+            }
             LogRuntimeException(248);
             return;
         }
