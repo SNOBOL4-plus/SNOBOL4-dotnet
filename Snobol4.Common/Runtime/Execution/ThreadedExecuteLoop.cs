@@ -9,9 +9,9 @@ namespace Snobol4.Common;
 /// </summary>
 public partial class Executive
 {
-    internal int ThreadedExecuteLoop(int startAt = 0, bool useFastPath = true)
+    internal int ThreadedExecuteLoop(int startAt = 0, bool useFastPath = true, Instruction[]? overrideThread = null)
     {
-        var thread    = Thread!;
+        var thread    = overrideThread ?? Thread!;
         var varSlots  = Parent.VariableSlots;
         var constPool = Parent.Constants.Pool;
         var funcSlots = Parent.FunctionSlots;
@@ -22,9 +22,13 @@ public partial class Executive
         var savedErrorJump  = OnErrorGoto;
         OnErrorGoto = 0;
 
-        // Set the instruction pointer for this call
+        // Set the instruction pointer for this call.
+        // When running a star sub-expression (overrideThread != null) the entry-label
+        // override must be suppressed: the sub-thread starts at index 0 of its own
+        // Instruction[], and redirecting IP into StatementInstructionStarts would run
+        // the wrong instructions and recurse infinitely via ExecuteProgramDefinedFunction.
         InstructionPointer = startAt;
-        if (startAt == 0)
+        if (startAt == 0 && overrideThread == null)
         {
             var entryKey = Parent.FoldCase(Parent.EntryLabel);
             if (!string.IsNullOrEmpty(entryKey))

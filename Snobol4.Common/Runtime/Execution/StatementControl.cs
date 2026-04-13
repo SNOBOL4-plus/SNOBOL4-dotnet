@@ -68,17 +68,34 @@ public partial class Executive
 
     /// <summary>
     /// Executes a standalone threaded sub-program (compiled star function).
+    ///
+    /// Root cause of the star-function side-effect bug (S-9 / S-8B):
+    ///   Setting Thread = subThread before calling ThreadedExecuteLoop caused
+    ///   ExecuteProgramDefinedFunction → ExecuteLoop → ThreadedExecuteLoop to
+    ///   capture Thread = subThread and run the tiny sub-expression Instruction[]
+    ///   from a statement-index IP that is valid only in the main program thread,
+    ///   re-entering the main program from its beginning and never executing the
+    ///   user-defined function body.
+    ///
+    /// Fix: leave Thread pointing at the main program thread throughout.
+    ///   Pass subThread as overrideThread to ThreadedExecuteLoop so it uses the
+    ///   sub-expression instructions for its own loop — while any nested
+    ///   ExecuteLoop / ThreadedExecuteLoop calls (for user-defined functions) still
+    ///   see Thread = main thread and execute correctly via StatementInstructionStarts.
+    ///
+    ///   The entry-label override (which would redirect IP=0 into the main program)
+    ///   is suppressed when overrideThread != null inside ThreadedExecuteLoop.
+    ///
+    ///   Failure is cleared on entry so Function() does not bail out when the outer
+    ///   pattern-match context has Failure=true.
     /// </summary>
     internal void RunExpressionThread(Instruction[] subThread)
     {
-        var savedIP        = InstructionPointer;
-        var savedThread    = Thread;
-        Thread             = subThread;
-        InstructionPointer = 0;
-        InitExecutionCache();   // no-op after first call
-        ThreadedExecuteLoop(0, useFastPath: false);
-        var exprFailure    = LastExpressionFailure;
-        Thread             = savedThread;
+        var savedIP    = InstructionPointer;
+        Failure        = false;   // sub-expression always starts clean
+        InitExecutionCache();     // no-op after first call
+        ThreadedExecuteLoop(0, useFastPath: false, overrideThread: subThread);
+        var exprFailure = LastExpressionFailure;
         InstructionPointer = savedIP;
         Failure            = exprFailure;
     }
