@@ -14,14 +14,24 @@ public class MatchResult
         
                 FAILURE, 
         
-                ABORT 
+                ABORT,
+
+                // GOTO: the pattern has grafted new nodes into the scanner's AST.
+                // The scanner should jump to GotoNode to continue matching.
+                GOTO
     }
 
-                public bool IsSuccess => Outcome == Status.SUCCESS;
+    // Valid when Outcome == GOTO: the node index in the scanner's (now-extended) AST
+    // at which matching should continue.
+    internal int GotoNode { get; private set; } = -1;
+
+    public bool IsSuccess => Outcome == Status.SUCCESS;
     
                 public bool IsFailure => Outcome == Status.FAILURE;
     
                 public bool IsAbort => Outcome == Status.ABORT;
+
+    public bool IsGoto => Outcome == Status.GOTO;
 
                                 public int MatchLength => PostCursor - PreCursor;
 
@@ -38,6 +48,9 @@ public class MatchResult
 
                         internal static MatchResult Abort(ScannerState state)
         => new(state.CursorPosition, state.CursorPosition, Status.ABORT);
+
+    internal static MatchResult Goto(Scanner scan, int gotoNode)
+        => new(scan.CursorPosition, scan.CursorPosition, Status.GOTO) { GotoNode = gotoNode };
 
                         internal static MatchResult Success(Scanner scan)
         => new(scan.PreviousCursorPosition, scan.CursorPosition, Status.SUCCESS);
