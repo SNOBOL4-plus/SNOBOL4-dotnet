@@ -63,8 +63,11 @@ internal class UnevaluatedPattern : TerminalPattern
         var mr = scanner.PatternMatch(scan.Subject[scan.CursorPosition..], pattern, 0, true);
         scan.CursorPosition += mr.PostCursor;
 
-        // If rescan is enabled and match succeeded, save alternate for backtracking
-        if (_reScan && mr.Outcome == MatchResult.Status.SUCCESS)
+        // If rescan is enabled and match consumed non-zero chars, save alternate for
+        // backtracking. Guard against zero-length matches to prevent infinite retry:
+        // a deferred pattern that always matches empty (e.g. *Label on exhausted input)
+        // would otherwise SaveAlternate → re-evaluate → same match → SaveAlternate → loop.
+        if (_reScan && mr.Outcome == MatchResult.Status.SUCCESS && mr.PostCursor > 0)
             scan.SaveAlternate(node);
 
         return mr;
