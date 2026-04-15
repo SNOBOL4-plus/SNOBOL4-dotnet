@@ -141,10 +141,13 @@ public partial class Executive
         //   - p matches: SealPattern wipes p's saved alternates and pushes abort sentinel;
         //     any later backtrack through FENCE hits ABORT.
         //   - p fails: backtrack fires AbortPattern → ABORT immediately.
-        SystemStack.Push(new PatternVar(
-            new AlternatePattern(
-                new ConcatenatePattern((Pattern)p, new SealPattern()),
-                new AbortPattern())));
+        // FENCE(P) structure: ConcatenatePattern(p, SealPattern())
+        // SealPattern.Scan calls SealAlternates() which clears P's saved alternates
+        // and pushes sentinel -2. On backtrack through the seal, Match returns FAILURE
+        // outward (not ABORT) — outer pattern can still retry positions.
+        // P failure: p simply fails, no alternates saved, Match fails normally —
+        // outer alternates (e.g. FENCE('A') | 'B') still fire correctly.
+        SystemStack.Push(new PatternVar(new ConcatenatePattern((Pattern)p, new SealPattern())));
     }
 
     #endregion

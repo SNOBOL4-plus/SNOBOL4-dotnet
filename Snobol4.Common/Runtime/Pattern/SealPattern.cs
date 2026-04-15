@@ -3,16 +3,14 @@ using System.Diagnostics;
 namespace Snobol4.Common;
 
 /// <summary>
-/// SealPattern — always succeeds, but first discards all saved alternates and pushes
-/// an abort sentinel. Any subsequent backtrack through this point returns ABORT.
-/// Used by FENCE(p): structure is ConcatenatePattern(p, SealPattern()) so that once
-/// p matches, its interior alternates are sealed and cannot be re-entered.
+/// SealPattern — always succeeds, but first clears P's saved alternates and pushes
+/// sentinel -2. On subsequent backtrack through this point, Match returns FAILURE
+/// (not ABORT) outward — matching SIL FNCD which propagates FAIL, not ABORT.
+/// Used by FENCE(p): structure is ConcatenatePattern(p, SealPattern()).
 /// </summary>
 [DebuggerDisplay("{DebugPattern()}")]
 internal class SealPattern : TerminalPattern
 {
-    #region Methods
-
     internal override Pattern Clone() => new SealPattern();
 
     internal override MatchResult Scan(int node, Scanner scan)
@@ -22,11 +20,5 @@ internal class SealPattern : TerminalPattern
         return MatchResult.Success(scan);
     }
 
-    #endregion
-
-    #region Debugging
-
     public override string DebugPattern() => "seal";
-
-    #endregion
 }

@@ -61,6 +61,7 @@ public class Scanner
         _state?.SealAlternates();
     }
 
+
     private MatchResult Match(AbstractSyntaxTreeNode node)
     {
         _state!.ClearAlternates();
@@ -88,7 +89,7 @@ public class Scanner
                         return mr;
                     var (alternateIndex, _) = _state.RestoreAlternate();
                     if (alternateIndex == -2)
-                        return MatchResult.Abort(_state);
+                        return MatchResult.Failure(_state);   // FNCD: seal hit, FAIL outward
                     node = _ast![alternateIndex];
                     break;
 
