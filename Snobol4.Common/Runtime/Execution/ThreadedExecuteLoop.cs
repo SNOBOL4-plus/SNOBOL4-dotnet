@@ -133,6 +133,14 @@ public partial class Executive
                     // Function name StringVar was pushed before the args by PushConst.
                     // Function() pops args then the name.
                     Function(instr.IntOperand2);
+                    // FRETURN propagation: if function set Failure=true, skip the rest
+                    // of the statement body by jumping forward to the Finalize opcode.
+                    if (Failure)
+                    {
+                        while (InstructionPointer < thread.Length &&
+                               thread[InstructionPointer].Op != OpCode.Finalize)
+                            InstructionPointer++;
+                    }
                     break;
 
                 case OpCode.CallFuncIndirect:
@@ -142,6 +150,13 @@ public partial class Executive
                     // FunctionIndirect() pops args, then pops the name value and
                     // converts it to string for lookup.
                     FunctionIndirect(instr.IntOperand2);
+                    // FRETURN propagation: same as CallFunc.
+                    if (Failure)
+                    {
+                        while (InstructionPointer < thread.Length &&
+                               thread[InstructionPointer].Op != OpCode.Finalize)
+                            InstructionPointer++;
+                    }
                     break;
 
                 case OpCode.OpAdd:       OperatorFast(OpCode.OpAdd,       2); break;
