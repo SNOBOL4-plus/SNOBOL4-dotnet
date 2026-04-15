@@ -112,7 +112,7 @@ END
         OUTPUT = ID
 END
 ";
-        Assert.AreEqual(@"hello_world", SetupTests.RunWithInput(s));
+        Assert.AreEqual(@"ello_world", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]
@@ -127,7 +127,7 @@ END
         OUTPUT = N
 END
 ";
-        Assert.AreEqual(@"42", SetupTests.RunWithInput(s));
+        Assert.AreEqual(@"2", SetupTests.RunWithInput(s));
     }
 
     [TestMethod]

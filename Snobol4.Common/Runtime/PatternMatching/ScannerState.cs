@@ -42,4 +42,14 @@ internal class ScannerState
         _alternatePatternStack.Push(-1);
         _alternateCursorStack.Push(-1);
     }
+
+    // Seal: discard all alternates saved so far and push an abort sentinel (-2).
+    // Any subsequent backtrack will return ABORT, implementing FENCE(p) sealing.
+    public void SealAlternates()
+    {
+        _alternatePatternStack.Clear();
+        _alternateCursorStack.Clear();
+        _alternatePatternStack.Push(-2);
+        _alternateCursorStack.Push(CursorPosition);
+    }
 }

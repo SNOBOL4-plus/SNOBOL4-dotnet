@@ -56,6 +56,11 @@ public class Scanner
         _state?.SaveAlternate(node);
     }
 
+    internal void SealAlternates()
+    {
+        _state?.SealAlternates();
+    }
+
     private MatchResult Match(AbstractSyntaxTreeNode node)
     {
         _state!.ClearAlternates();
@@ -82,6 +87,8 @@ public class Scanner
                     if (!_state.HasAlternates())
                         return mr;
                     var (alternateIndex, _) = _state.RestoreAlternate();
+                    if (alternateIndex == -2)
+                        return MatchResult.Abort(_state);
                     node = _ast![alternateIndex];
                     break;
 
