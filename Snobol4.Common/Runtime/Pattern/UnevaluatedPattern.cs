@@ -45,6 +45,15 @@ internal class UnevaluatedPattern : TerminalPattern
             return MatchResult.Failure(scan);
 
         var evaluatedExpression = scan.Exec.SystemStack.Pop();
+        // If the deferred code pushed an ExpressionVar (e.g. *P where P is a plain
+        // variable), evaluate it one more level to get the actual value (PatternVar etc.).
+        if (evaluatedExpression is ExpressionVar exprVar)
+        {
+            exprVar.FunctionName(scan.Exec);
+            if (scan.Exec.Failure)
+                return MatchResult.Failure(scan);
+            evaluatedExpression = scan.Exec.SystemStack.Pop();
+        }
         if (!evaluatedExpression.Convert(Executive.VarType.PATTERN, out _, out var p, scan.Exec))
         {
             scan.Exec.LogRuntimeException(46);
