@@ -26,13 +26,7 @@ internal class UnevaluatedPattern : TerminalPattern
 
                         internal static Pattern Structure(Executive.DeferredCode functionName)
     {
-        var con2 = new ConcatenatePattern(
-            new NullPattern(), 
-            new UnevaluatedPattern(functionName, false));
-        var alt = new AlternatePattern(
-            new NullPattern(), 
-            new UnevaluatedPattern(functionName, true));
-        return new ConcatenatePattern(con2, alt);
+        return new UnevaluatedPattern(functionName, false);
     }
 
     internal override Pattern Clone()
@@ -57,20 +51,14 @@ internal class UnevaluatedPattern : TerminalPattern
             return MatchResult.Failure(scan);
         }
 
-        // Match the evaluated pattern against the remaining subject
+        // Graft the evaluated pattern's nodes into the running scanner's AST, wired
+        // so the last grafted node continues to whatever follows *X (node.Subsequent,
+        // or -1 if *X is the last thing in the pattern).  The Match loop jumps to the
+        // grafted start node via GOTO, keeping the same cursor and alternate stack —
+        // so ARBNO and other backtracking constructs inside *X work correctly.
         var pattern = (Pattern)p;
-        Scanner scanner = new(scan.Exec);
-        var mr = scanner.PatternMatch(scan.Subject[scan.CursorPosition..], pattern, 0, true);
-        scan.CursorPosition += mr.PostCursor;
-
-        // If rescan is enabled and match consumed non-zero chars, save alternate for
-        // backtracking. Guard against zero-length matches to prevent infinite retry:
-        // a deferred pattern that always matches empty (e.g. *Label on exhausted input)
-        // would otherwise SaveAlternate → re-evaluate → same match → SaveAlternate → loop.
-        if (_reScan && mr.Outcome == MatchResult.Status.SUCCESS && mr.PostCursor > 0)
-            scan.SaveAlternate(node);
-
-        return mr;
+        int graftedStart = scan.Graft(pattern, scan.GetNode(node).Subsequent);
+        return MatchResult.Goto(scan, graftedStart);
     }
 
     #endregion
