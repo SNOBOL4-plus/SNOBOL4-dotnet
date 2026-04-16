@@ -203,7 +203,14 @@ public partial class Executive
         {
             for (int g = 0; g < 8 && arg0 is NameVar nvX; g++)
                 arg0 = nvX.Dereference(this);
-            programDefinedDataVar = (ProgramDefinedDataVar)arg0;
+            if (arg0 is not ProgramDefinedDataVar pdFallback) {
+                // arg0 is not a DATA instance (e.g. PatternVar during build-time pattern
+                // construction). Signal FRETURN — caller must handle failure branch.
+                Failure = true;
+                SystemStack.Push(StringVar.Null());
+                return;
+            }
+            programDefinedDataVar = pdFallback;
         }
         object index = (long)programDefinedDataVar.Definition.FieldNames.IndexOf(fieldName);
         var raw = programDefinedDataVar.FieldValues.Data[(int)(long)index];
