@@ -65,6 +65,16 @@ public partial class Executive
         TraceFunctionCall(slot.Symbol);
         entry.Handler(_reusableArgList);
         TraceFunctionReturn(slot.Symbol);
+
+        // FRETURN propagation: if the handler set Failure=true, unwind the SystemStack
+        // back to the StatementSeparator so FinalizeStatementMsil can clean up correctly.
+        // This fires regardless of whether the call site is MSIL-compiled (earlyExit branch)
+        // or threaded — covering runtime-DEFINE'd functions absent from FunctionSlotIndex.
+        if (Failure)
+        {
+            while (SystemStack.Count > 0 && SystemStack.Peek() is not StatementSeparator)
+                SystemStack.Pop();
+        }
     }
 
     /// <summary>
