@@ -19,6 +19,7 @@ public sealed class ArrayVar : Var
     internal List<long> LowerBounds { get; } = [];
     internal List<long> Multipliers { get; } = [];
     internal List<long> UpperBounds { get; } = [];
+    internal List<bool> ExplicitLower { get; } = [];
 
     #endregion
 
@@ -67,6 +68,7 @@ public sealed class ArrayVar : Var
 
             LowerBounds.Insert(0, lower);
             UpperBounds.Insert(0, upper);
+            ExplicitLower.Insert(0, hasExplicitLower);
             Dimensions++;
             Sizes.Insert(0, dimensionSize);
         }
@@ -155,22 +157,23 @@ public sealed class ArrayVar : Var
     {
         var dimensions = (int)Dimensions;
 
-        // CSNOBOL4 prototype format:
-        //   lower==1 → emit just the upper bound (the size)
-        //   lower!=1 → emit "lower:upper"
-        static string FormatDim(long lower, long upper) =>
-            lower == 1 ? upper.ToString() : $"{lower}:{upper}";
+        // Emit "lower:upper" if explicit lo:hi was given, else just upper bound (the size)
+        string FormatDim(int d) {
+            var lower = LowerBounds[d];
+            var upper = UpperBounds[d];
+            return ExplicitLower[d] ? $"{lower}:{upper}" : upper.ToString();
+        }
 
         if (dimensions == 1)
         {
-            Prototype = FormatDim(LowerBounds[0], UpperBounds[0]);
+            Prototype = FormatDim(0);
             return;
         }
 
         var parts = new string[dimensions];
         for (var d = dimensions - 1; d >= 0; --d)
         {
-            parts[dimensions - 1 - d] = FormatDim(LowerBounds[d], UpperBounds[d]);
+            parts[dimensions - 1 - d] = FormatDim(d);
         }
         Prototype = string.Join(',', parts);
     }

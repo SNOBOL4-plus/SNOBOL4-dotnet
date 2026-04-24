@@ -13,7 +13,7 @@ internal class ScannerState
     {
         Subject = subject;
         PreviousCursorPosition = CursorPosition = startPosition;
-        
+
         // Initialize with sentinel values
         _alternatePatternStack.Push(-1);
         _alternateCursorStack.Push(-1);
@@ -41,5 +41,15 @@ internal class ScannerState
         _alternateCursorStack.Clear();
         _alternatePatternStack.Push(-1);
         _alternateCursorStack.Push(-1);
+    }
+
+    // SealAlternates: discard P's saved alternates, push -2 seal sentinel.
+    // On backtrack the Match loop returns FAILURE outward (not ABORT).
+    public void SealAlternates()
+    {
+        _alternatePatternStack.Clear();
+        _alternateCursorStack.Clear();
+        _alternatePatternStack.Push(-2);
+        _alternateCursorStack.Push(CursorPosition);
     }
 }

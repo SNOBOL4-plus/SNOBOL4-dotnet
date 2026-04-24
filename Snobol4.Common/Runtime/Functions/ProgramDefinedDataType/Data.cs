@@ -76,6 +76,14 @@ public partial class Executive
         var existingDataType = FunctionTable[dataName];
         if (existingDataType is not null && !existingDataType.IsProtected)
         {
+            // SPITBOL silently no-ops when DATA re-defines an already-registered DATA type
+            // (same constructor name). This happens when EVAL re-executes include-level
+            // initialization code (e.g. counter.sno DATA call from inside TX/EVAL chain).
+            if (existingDataType.Handler == CreateProgramDefinedDataInstance)
+            {
+                PredicateSuccess();
+                return;
+            }
             LogRuntimeException(248);
             return;
         }
@@ -157,7 +165,18 @@ public partial class Executive
 
         for (var i = 0; i < fieldsCount; i++)
         {
-            fieldValues[i] = arguments[i];
+            // Strip array/field lvalue bookkeeping (Key/Collection) before storing.
+            // AssignReplace stamps destination Key/Collection onto cloned values so
+            // they serve as lvalues; storing that into a DATA field causes an infinite
+            // dereference cycle in GetProgramDefinedDataField. NameVars are preserved.
+            var fv = arguments[i];
+            if (fv is not NameVar && fv.Collection != null)
+            {
+                fv = fv.Clone();
+                fv.Key        = null;
+                fv.Collection = null;
+            }
+            fieldValues[i] = fv;
         }
 
         SystemStack.Push(userDefinedDataVar);
@@ -166,9 +185,41 @@ public partial class Executive
     internal void GetProgramDefinedDataField(List<Var> arguments)
     {
         var fieldName = ((StringVar)arguments[1]).Data;
-        var programDefinedDataVar = (ProgramDefinedDataVar)arguments[0];
+        // Resolve argument to ProgramDefinedDataVar, handling the Top()/NRETURN NameVar chain.
+        // Top() returns .value($'@S') — a pointer NameVar. Deref gives value-field contents,
+        // which may itself be a collection-backed NameVar (Collection=tree ProgramDefinedDataVar,
+        // Key=field-index) when Push stored a name via NRETURN. In that case the Collection IS
+        // the node we want — reading through the field slot would give 'v's current value, not
+        // the node, and cycling back to another NameVar. Use Collection directly instead.
+        Var arg0 = arguments[0];
+        if (arg0 is NameVar nv0 && nv0.Collection is null)
+            arg0 = nv0.Dereference(this);
+        ProgramDefinedDataVar programDefinedDataVar;
+        if (arg0 is NameVar nv1 && nv1.Collection is ProgramDefinedDataVar pdFromCollection)
+            programDefinedDataVar = pdFromCollection;
+        else if (arg0 is ProgramDefinedDataVar pdDirect)
+            programDefinedDataVar = pdDirect;
+        else
+        {
+            for (int g = 0; g < 8 && arg0 is NameVar nvX; g++)
+                arg0 = nvX.Dereference(this);
+            if (arg0 is not ProgramDefinedDataVar pdFallback) {
+                // arg0 is not a DATA instance (e.g. PatternVar during build-time pattern
+                // construction). Signal FRETURN — caller must handle failure branch.
+                Failure = true;
+                SystemStack.Push(StringVar.Null());
+                return;
+            }
+            programDefinedDataVar = pdFallback;
+        }
         object index = (long)programDefinedDataVar.Definition.FieldNames.IndexOf(fieldName);
-        var v = programDefinedDataVar.FieldValues.Data[(int)(long)index];
+        var raw = programDefinedDataVar.FieldValues.Data[(int)(long)index];
+        // Clone the field-slot value before stamping lvalue bookkeeping (Key/Collection) onto
+        // it. Without this, the live field-slot object accumulates bookkeeping from each caller,
+        // which confuses subsequent reads and creates NameVar → ArrayVar → NameVar cycles when
+        // the bookmarked object is later stored back into another DATA field (ShiftReduce S-10).
+        // ArrayVar, TableVar, ProgramDefinedDataVar have reference semantics — do not clone them.
+        var v = raw is ArrayVar or TableVar or ProgramDefinedDataVar ? raw : raw.Clone();
         v.Key = index;
         v.Collection = programDefinedDataVar.FieldValues;
         SystemStack.Push(v);

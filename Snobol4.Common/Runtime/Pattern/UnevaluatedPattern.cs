@@ -26,13 +26,7 @@ internal class UnevaluatedPattern : TerminalPattern
 
                         internal static Pattern Structure(Executive.DeferredCode functionName)
     {
-        var con2 = new ConcatenatePattern(
-            new NullPattern(), 
-            new UnevaluatedPattern(functionName, false));
-        var alt = new AlternatePattern(
-            new NullPattern(), 
-            new UnevaluatedPattern(functionName, true));
-        return new ConcatenatePattern(con2, alt);
+        return new UnevaluatedPattern(functionName, false);
     }
 
     internal override Pattern Clone()
@@ -51,23 +45,29 @@ internal class UnevaluatedPattern : TerminalPattern
             return MatchResult.Failure(scan);
 
         var evaluatedExpression = scan.Exec.SystemStack.Pop();
+        // If the deferred code pushed an ExpressionVar (e.g. *P where P is a plain
+        // variable), evaluate it one more level to get the actual value (PatternVar etc.).
+        if (evaluatedExpression is ExpressionVar exprVar)
+        {
+            exprVar.FunctionName(scan.Exec);
+            if (scan.Exec.Failure)
+                return MatchResult.Failure(scan);
+            evaluatedExpression = scan.Exec.SystemStack.Pop();
+        }
         if (!evaluatedExpression.Convert(Executive.VarType.PATTERN, out _, out var p, scan.Exec))
         {
             scan.Exec.LogRuntimeException(46);
             return MatchResult.Failure(scan);
         }
 
-        // Match the evaluated pattern against the remaining subject
+        // Graft the evaluated pattern's nodes into the running scanner's AST, wired
+        // so the last grafted node continues to whatever follows *X (node.Subsequent,
+        // or -1 if *X is the last thing in the pattern).  The Match loop jumps to the
+        // grafted start node via GOTO, keeping the same cursor and alternate stack —
+        // so ARBNO and other backtracking constructs inside *X work correctly.
         var pattern = (Pattern)p;
-        Scanner scanner = new(scan.Exec);
-        var mr = scanner.PatternMatch(scan.Subject[scan.CursorPosition..], pattern, 0, true);
-        scan.CursorPosition += mr.PostCursor;
-
-        // If rescan is enabled and match succeeded, save alternate for backtracking
-        if (_reScan && mr.Outcome == MatchResult.Status.SUCCESS)
-            scan.SaveAlternate(node);
-
-        return mr;
+        int graftedStart = scan.Graft(pattern, scan.GetNode(node).Subsequent);
+        return MatchResult.Goto(scan, graftedStart);
     }
 
     #endregion

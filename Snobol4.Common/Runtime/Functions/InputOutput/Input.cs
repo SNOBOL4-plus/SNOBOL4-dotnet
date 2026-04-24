@@ -173,12 +173,11 @@ public partial class Executive
             StreamInputs[channel] = stream;
             IdentifierTable[symbol].InputChannel = channel;
         }
-        catch (Exception e)
+        catch (Exception)
         {
-            LogRuntimeException(117);
-            Console.Error.WriteLine(e.Message);
-            Console.Error.WriteLine();
-            Console.Error.WriteLine(e.StackTrace);
+            // SPITBOL silently takes :F on file-open failure; do not print error text
+            AmpErrorType = 117;
+            NonExceptionFailure();
             return;
         }
 

@@ -21,26 +21,17 @@ internal class AbstractSyntaxTree
 
     private void BuildFromPattern(Pattern rootPattern)
     {
-        if (rootPattern.Ast.Count != 0)
-        {
-            // Pattern already has AST, reuse it
-            _nodes.AddRange(rootPattern.Ast);
-            _startNode = rootPattern.StartNode;
-            return;
-        }
-
+        // Always rebuild fresh: do NOT reuse cached AST nodes.
+        // Cached AbstractSyntaxTreeNode objects hold a _tree reference to the list
+        // they were created in. If reused via AddRange into a new list (e.g. inside
+        // UnevaluatedPattern's child Scanner), GetSubsequent/GetAlternate follow
+        // _tree[index] back into the original list — not the new copy — causing the
+        // child scanner to jump to wrong nodes or fail entirely.
+        // Rebuilding is slightly more work but is correct and re-entrant safe.
         BuildNodeList(rootPattern);
         LinkParentChildren();
         ComputeSubsequentsAndAlternates();
         FindStartNode();
-
-        // Cache in pattern — guard: only set once, never overwrite
-        // (prevents NEXTH loop from poisoning StartNode on 2nd PatternMatch call)
-        if (rootPattern.StartNode == null)
-        {
-            rootPattern.Ast = _nodes;
-            rootPattern.StartNode = _startNode;
-        }
     }
 
     private void BuildNodeList(Pattern rootPattern)
@@ -135,6 +126,59 @@ internal class AbstractSyntaxTree
             currentNode2 = currentNode2.GetLeftChild()!;
 
         return currentNode2.SelfIndex;
+    }
+
+    /// <summary>
+    /// Graft a sub-pattern's nodes into this AST at runtime (used by UnevaluatedPattern).
+    /// Builds a fresh sub-AST for <paramref name="subPattern"/>, offsets all its node
+    /// indices by the current node count, patches terminal nodes whose Subsequent is -1
+    /// to point to <paramref name="successorNodeIndex"/> (the node that follows *X in the
+    /// outer pattern), then appends the new nodes to this AST's node list.
+    /// Returns the index of the grafted sub-tree's start node in the extended AST.
+    /// </summary>
+    internal int Graft(Pattern subPattern, int successorNodeIndex)
+    {
+        // Build a standalone sub-AST for the evaluated pattern
+        var subAst = new AbstractSyntaxTree();
+        subAst.BuildNodeList(subPattern);
+        subAst.LinkParentChildren();
+        subAst.ComputeSubsequentsAndAlternates();
+        subAst.FindStartNode();
+
+        int offset = _nodes.Count;
+
+        // Append sub-AST nodes, remapping all index references by offset
+        foreach (var n in subAst._nodes)
+        {
+            // Remap structural indices (parent, children) — these are intra-sub-AST
+            int newParent  = n.ParentIndex >= 0  ? n.ParentIndex  + offset : n.ParentIndex;
+            int newLeft    = n.LeftChild  >= 0   ? n.LeftChild    + offset : n.LeftChild;
+            int newRight   = n.RightChild >= 0   ? n.RightChild   + offset : n.RightChild;
+
+            // Remap traversal edges: Subsequent and Alternate.
+            // -1 on Subsequent means "end of pattern" → wire to successorNodeIndex.
+            // -1 on Alternate  means "no alternate in sub-pattern" → leave as -1
+            //   so the outer scanner's alternate stack handles backtracking.
+            int newSub  = n.Subsequent >= 0 ? n.Subsequent + offset : successorNodeIndex;
+            int newAlt  = n.Alternate  >= 0 ? n.Alternate  + offset : -1;
+
+            var grafted = new AbstractSyntaxTreeNode(
+                n.Self,
+                n.SelfIndex + offset,
+                n.ChildType,
+                newParent,
+                _nodes)
+            {
+                LeftChild  = newLeft,
+                RightChild = newRight,
+                Subsequent = newSub,
+                Alternate  = newAlt
+            };
+            _nodes.Add(grafted);
+        }
+
+        // Return index of the sub-AST's start node in the extended _nodes list
+        return subAst.StartNode.SelfIndex + offset;
     }
 
     public void Dump()

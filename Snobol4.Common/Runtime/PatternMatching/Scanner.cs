@@ -56,6 +56,20 @@ public class Scanner
         _state?.SaveAlternate(node);
     }
 
+    internal void SealAlternates()
+    {
+        _state?.SealAlternates();
+    }
+
+    // Graft the nodes of subPattern into this scanner's live AST, wiring the last
+    // node's Subsequent to successorNodeIndex (the node that follows *X in the outer
+    // pattern).  Returns the index of the grafted sub-tree's start node so the Match
+    // loop can jump there via MatchResult.Goto.
+    internal int Graft(Pattern subPattern, int successorNodeIndex)
+        => _ast!.Graft(subPattern, successorNodeIndex);
+
+    internal AbstractSyntaxTreeNode GetNode(int index) => _ast![index];
+
     private MatchResult Match(AbstractSyntaxTreeNode node)
     {
         _state!.ClearAlternates();
@@ -82,11 +96,17 @@ public class Scanner
                     if (!_state.HasAlternates())
                         return mr;
                     var (alternateIndex, _) = _state.RestoreAlternate();
+                    if (alternateIndex == -2)
+                        return MatchResult.Failure(_state);   // FNCD: seal hit, FAIL outward
                     node = _ast![alternateIndex];
                     break;
 
                 case MatchResult.Status.ABORT:
                     return mr;
+
+                case MatchResult.Status.GOTO:
+                    node = _ast![mr.GotoNode];
+                    break;
 
                 default:
                     throw new ArgumentOutOfRangeException();

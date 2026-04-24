@@ -9,9 +9,9 @@ namespace Snobol4.Common;
 /// </summary>
 public partial class Executive
 {
-    internal int ThreadedExecuteLoop(int startAt = 0, bool useFastPath = true)
+    internal int ThreadedExecuteLoop(int startAt = 0, bool useFastPath = true, Instruction[]? overrideThread = null)
     {
-        var thread    = Thread!;
+        var thread    = overrideThread ?? Thread!;
         var varSlots  = Parent.VariableSlots;
         var constPool = Parent.Constants.Pool;
         var funcSlots = Parent.FunctionSlots;
@@ -22,9 +22,13 @@ public partial class Executive
         var savedErrorJump  = OnErrorGoto;
         OnErrorGoto = 0;
 
-        // Set the instruction pointer for this call
+        // Set the instruction pointer for this call.
+        // When running a star sub-expression (overrideThread != null) the entry-label
+        // override must be suppressed: the sub-thread starts at index 0 of its own
+        // Instruction[], and redirecting IP into StatementInstructionStarts would run
+        // the wrong instructions and recurse infinitely via ExecuteProgramDefinedFunction.
         InstructionPointer = startAt;
-        if (startAt == 0)
+        if (startAt == 0 && overrideThread == null)
         {
             var entryKey = Parent.FoldCase(Parent.EntryLabel);
             if (!string.IsNullOrEmpty(entryKey))
@@ -129,6 +133,14 @@ public partial class Executive
                     // Function name StringVar was pushed before the args by PushConst.
                     // Function() pops args then the name.
                     Function(instr.IntOperand2);
+                    // FRETURN propagation: if function set Failure=true, skip the rest
+                    // of the statement body by jumping forward to the Finalize opcode.
+                    if (Failure)
+                    {
+                        while (InstructionPointer < thread.Length &&
+                               thread[InstructionPointer].Op != OpCode.Finalize)
+                            InstructionPointer++;
+                    }
                     break;
 
                 case OpCode.CallFuncIndirect:
@@ -138,6 +150,13 @@ public partial class Executive
                     // FunctionIndirect() pops args, then pops the name value and
                     // converts it to string for lookup.
                     FunctionIndirect(instr.IntOperand2);
+                    // FRETURN propagation: same as CallFunc.
+                    if (Failure)
+                    {
+                        while (InstructionPointer < thread.Length &&
+                               thread[InstructionPointer].Op != OpCode.Finalize)
+                            InstructionPointer++;
+                    }
                     break;
 
                 case OpCode.OpAdd:       OperatorFast(OpCode.OpAdd,       2); break;

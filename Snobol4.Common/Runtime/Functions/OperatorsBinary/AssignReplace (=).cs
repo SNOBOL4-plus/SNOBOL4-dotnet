@@ -118,9 +118,15 @@ public partial class Executive
         {
             case ArrayVar arrayVar:
             {
+                // Dereference NameVar rvalue before storing into the array slot.
+                // If rightVar is a NameVar (e.g. returned via NRETURN from Shift/Push),
+                // storing it directly and then stamping Key/Collection onto it creates a
+                // self-referential cycle: arrayVar.Data[i] → NameVar(Collection=arrayVar, Key=i)
+                // → arrayVar.Data[i] → ... indefinitely (ShiftReduce S-10 root cause).
+                var rval = rightVar is NameVar rvNv ? rvNv.Dereference(this) : rightVar;
                 // Clone rightVar before mutating Key/Collection so the source variable's
                 // VarSlotArray slot (if rightVar came from PushVar) is not contaminated.
-                var arrVal = rightVar is ArrayVar or TableVar ? rightVar : rightVar.Clone();
+                var arrVal = rval is ArrayVar or TableVar ? rval : rval.Clone();
                 arrVal.Key        = leftVar.Key;
                 arrVal.Collection = leftVar.Collection;
                 arrayVar.Data[(int)(long)leftVar.Key!] = arrVal;
@@ -130,7 +136,8 @@ public partial class Executive
 
             case TableVar tableVar:
             {
-                var tblVal = rightVar is ArrayVar or TableVar ? rightVar : rightVar.Clone();
+                var rval = rightVar is NameVar rvNv ? rvNv.Dereference(this) : rightVar;
+                var tblVal = rval is ArrayVar or TableVar ? rval : rval.Clone();
                 tblVal.Key        = leftVar.Key;
                 tblVal.Collection = leftVar.Collection;
                 tableVar.Data[leftVar.Key!] = tblVal;

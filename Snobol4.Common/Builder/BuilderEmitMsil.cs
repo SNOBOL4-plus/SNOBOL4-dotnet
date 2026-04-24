@@ -372,9 +372,13 @@ public partial class Builder
         var pendingFunctionNames = new Stack<string>();
         var choiceLabels         = new Stack<Label>();
 
+        // earlyExit: body delegates jump here when a function call sets Failure=true
+        // (FRETURN propagation). FinalizeStatementMsil will clean the stack.
+        Label? earlyExit = isBody ? il.DefineLabel() : (Label?)null;
+
         foreach (var t in tokens)
         {
-            if (!EmitSingleToken(il, t, pendingFunctionNames, choiceLabels))
+            if (!EmitSingleToken(il, t, pendingFunctionNames, choiceLabels, earlyExit))
                 return false;  // unhandled token → fall back to threaded path
             if (t.TokenType != Token.Type.IDENTIFIER_FUNCTION)  // IDENTIFIER_FUNCTION emits nothing
                 anyEmitted = true;
@@ -395,6 +399,11 @@ public partial class Builder
         // ── Body delegates: finalize + goto / fall-through return ─────────
         if (isBody)
         {
+            // Mark earlyExit: FRETURN branches land here, then fall through to
+            // FinalizeStatementMsil which pops the stack to the StatementSeparator.
+            if (earlyExit.HasValue)
+                il.MarkLabel(earlyExit.Value);
+
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Call, _finalizeStatementMsil);
 
@@ -730,7 +739,8 @@ public partial class Builder
 
     private bool EmitSingleToken(ILGenerator il, Token t,
                                   Stack<string> pendingFunctionNames,
-                                  Stack<Label>  choiceLabels)
+                                  Stack<Label>  choiceLabels,
+                                  Label?        earlyExit = null)
     {
         switch (t.TokenType)
         {
@@ -818,6 +828,14 @@ public partial class Builder
                 il.Emit(OpCodes.Ldc_I4, slotIdx);
                 il.Emit(OpCodes.Ldc_I4, argCount);
                 il.Emit(OpCodes.Call, _callFuncBySlot);
+                // FRETURN propagation: if function set Failure=true, skip the rest
+                // of the body expression and let FinalizeStatementMsil clean the stack.
+                if (earlyExit.HasValue)
+                {
+                    il.Emit(OpCodes.Ldarg_0);
+                    il.Emit(OpCodes.Ldfld, _failureField);
+                    il.Emit(OpCodes.Brtrue, earlyExit.Value);
+                }
                 return true;
             }
 
