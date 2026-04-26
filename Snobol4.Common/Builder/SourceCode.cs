@@ -320,11 +320,17 @@ public class SourceCode
         var m = CompiledRegex.EndPattern().Match(line);
         if (!m.Success)
             return false;
-        
+
+        // SNOBOL4 END statement keyword is always uppercase, regardless of
+        // -F (fold) / -f (no-fold). Per RULES.md "Always uppercase END":
+        // .sno files always write END in uppercase. Under fold mode the
+        // source is also uppered before comparison so OrdinalIgnoreCase is
+        // safe; under no-fold mode the source case is preserved and only
+        // exact "END" is the keyword.
         var trimmedValue = m.Value.TrimEnd();
-        return _parent.BuildOptions.CaseFolding 
-            ? trimmedValue.Equals("END", StringComparison.OrdinalIgnoreCase) 
-            : trimmedValue == "end";
+        return _parent.BuildOptions.CaseFolding
+            ? trimmedValue.Equals("END", StringComparison.OrdinalIgnoreCase)
+            : trimmedValue == "END";
     }
 
     /// <summary>

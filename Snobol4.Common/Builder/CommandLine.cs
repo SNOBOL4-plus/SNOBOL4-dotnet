@@ -3,7 +3,10 @@
 // Command Line Options
 // - Options are case-sensitive
 // - Options must precede file names
-// - Options cannot be concatenated (e.g. -lcx) [DIFFERS FROM ORIGINAL SPITBOL]
+// - Boolean (no-argument) options may be concatenated SPITBOL-style:
+//   -bf == -b -f, -lcx == -l -c -x. The first option that takes an
+//   argument ends the boolean run and is handled normally:
+//   -bm4m == -b -m4m. -cs is the only multi-character option.
 // - Parameters for command line options must follow the option without an
 //   intervening space (e.g. -o=filename or -o:filename) [DIFFERS FROM ORIGINAL SPITBOL]
 // - If the parameter has spaces, it must be enclosed in double quotes (e.g. -o="string data")
@@ -104,6 +107,47 @@ public partial class Builder
         var prefix3 = command.Length >= 3 ? command[..3] : "";
         if (prefix3 == "-cs") { BuildOptions.WriteCSharpCode = true; return; }
 
+        // SPITBOL-compatible boolean-flag concatenation: -bf -> -b -f, -bfc -> -b -f -c, etc.
+        // Only applies when every char after '-' is a boolean flag (not one that takes
+        // a numeric/string argument). The first arg-taking flag stops the unpack and is
+        // handled by the single-flag path below (e.g. -bm4m → unpack '-b' then dispatch '-m4m').
+        if (command.Length > 2 && command[0] == '-' && IsAllBooleanFlags(command[1..]))
+        {
+            for (var i = 1; i < command.Length; i++)
+                DispatchSingleFlag("-" + command[i]);
+            return;
+        }
+        if (command.Length > 2 && command[0] == '-' && IsBooleanFlag(command[1]))
+        {
+            // Mixed form like -bm4m: peel off boolean prefix, dispatch remainder.
+            var k = 1;
+            while (k < command.Length && IsBooleanFlag(command[k]))
+            {
+                DispatchSingleFlag("-" + command[k]);
+                k++;
+            }
+            if (k < command.Length)
+                DispatchSingleFlag("-" + command[k..]);
+            return;
+        }
+
+        DispatchSingleFlag(command);
+    }
+
+    // Boolean (no-argument) single-character flags. -cs is the only multi-char flag and is
+    // handled above. Order matches the dispatcher.
+    private static bool IsBooleanFlag(char c) =>
+        c is 'a' or 'b' or 'c' or 'e' or 'F' or 'f' or 'h' or 'k' or 'l'
+          or 'n' or 'p' or 'r' or 'v' or 'w' or 'x' or 'y' or 'z' or '?';
+
+    private static bool IsAllBooleanFlags(string s)
+    {
+        foreach (var c in s) if (!IsBooleanFlag(c)) return false;
+        return s.Length > 0;
+    }
+
+    private void DispatchSingleFlag(string command)
+    {
         var prefix2 = command.Length >= 2 ? command[..2] : command;
 
         switch (prefix2)

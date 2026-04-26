@@ -15,8 +15,6 @@ internal class MainConsole
             return Executive.AmpCode;
         }
 
-        Console.WriteLine(Environment.CurrentDirectory);
-
         Builder builder = new();
 
         // If the last argument is a DLL, run it
