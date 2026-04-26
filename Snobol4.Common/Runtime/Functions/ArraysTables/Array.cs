@@ -97,11 +97,13 @@ public partial class Executive
         }
 
         var arrayKey = arrayVar.Index(indices);
-        // Push a fresh clone carrying Collection/Key for the lvalue path (Assign
-        // checks leftVar.Collection to route array writes).  We clone the data
-        // element so that the object stored in Data[] is never aliased to what's
+        // Aggregate types (Array/Table) keep reference semantics so that
+        // chained-subscript writes — e.g. m<i><j> = 1 — modify the real
+        // inner aggregate, not a transient clone.  Scalars are cloned so
+        // that the object stored in Data[] is never aliased to what's
         // on the stack or in a scalar variable slot.
-        var v = arrayVar.Data[(int)arrayKey].Clone();
+        var stored = arrayVar.Data[(int)arrayKey];
+        var v = stored is ArrayVar or TableVar ? stored : stored.Clone();
         v.Key        = arrayKey;
         v.Collection = arrayVar;
         SystemStack.Push(v);

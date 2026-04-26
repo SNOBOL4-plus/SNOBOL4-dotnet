@@ -21,8 +21,21 @@ public partial class Executive
         }
 
         var key = varIndices[0].GetTableKey();
-        var stored = tableVar.Data.TryGetValue(key, out var value1) ? value1 : tableVar.Fill;
-        var value = stored.Clone();
+        Var value;
+        if (tableVar.Data.TryGetValue(key, out var stored))
+        {
+            // Aggregate types (Array/Table) keep reference semantics so that
+            // chained-subscript writes — e.g. mem['s']['w'] = 1 — modify the
+            // real inner aggregate, not a transient clone.  Scalars are cloned
+            // to avoid aliasing the data slot with a stack/variable copy.
+            value = stored is ArrayVar or TableVar ? stored : stored.Clone();
+        }
+        else
+        {
+            // Missing key: return a fresh clone of Fill so the lvalue path can
+            // safely stamp Key/Collection without mutating the shared default.
+            value = tableVar.Fill.Clone();
+        }
         value.Key = varIndices[0].GetTableKey();
         value.Collection = tableVar;
         SystemStack.Push(value);
