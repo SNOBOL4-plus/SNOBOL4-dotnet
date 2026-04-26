@@ -243,6 +243,21 @@ public abstract class Var : IEquatable<Var>
             varIn = exec.IdentifierTable[nameVar.Pointer];
         }
 
+        // Evaluate a deferred expression on demand — a *(...) star-expression
+        // arriving where a numeric value is needed evaluates now and uses
+        // the resulting top-of-stack value.  Mirrors SPITBOL semantics; see
+        // ExpressionConversionStrategy.TryConvert for the same on-demand rule
+        // applied to other target types.
+        if (varIn is ExpressionVar exprVar)
+        {
+            exprVar.FunctionName(exec);
+            if (exec.Failure)
+                return InitializeFailureValues(out isInteger, out l, out d);
+            varIn = exec.SystemStack.Pop();
+            if (varIn is NameVar nameAfterEval)
+                varIn = exec.IdentifierTable[nameAfterEval.Pointer];
+        }
+
         // Use pattern matching with type checks - optimized for common cases
         return varIn switch
         {

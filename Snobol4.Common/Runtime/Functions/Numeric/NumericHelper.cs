@@ -24,12 +24,16 @@ public partial class Executive
     {
         if (!Var.ToNumeric(arguments[0], out var isIntegerLeft, out var lLeft, out var dLeft, this))
         {
+            // Propagate deferred-expression failure as a SNOBOL match failure
+            // rather than a fatal "left operand is not numeric" error.
+            if (Failure) { NonExceptionFailure(); return; }
             LogRuntimeException(errorLeft);
             return;
         }
 
         if (!Var.ToNumeric(arguments[1], out var isIntegerRight, out var lRight, out var dRight, this))
         {
+            if (Failure) { NonExceptionFailure(); return; }
             LogRuntimeException(errorRight);
             return;
         }
