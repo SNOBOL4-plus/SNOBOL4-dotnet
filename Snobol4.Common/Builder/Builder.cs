@@ -226,6 +226,14 @@ public partial class Builder : IDisposable
 
         // -m: seed &MAXLNGTH from the command-line value before any user code runs
         exec.AmpMaxLength = BuildOptions.MaxObjectBytes;
+
+        // -f: CaseFolding OFF → seed &CASE=0 so EVAL/CODE compile with the same
+        // case-sensitivity setting as the main program.  Without this, EVAL would
+        // temporarily restore CaseFolding=true (because AmpCaseFolding defaults to 1),
+        // folding identifiers to UPPER and causing "undefined function" errors when the
+        // user-defined name was registered under its original mixed-case form.
+        if (!BuildOptions.CaseFolding)
+            exec.AmpCaseFolding = 0;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
