@@ -113,6 +113,12 @@ public partial class Executive
         BetaStack.Clear();
         SystemStack.Push(new StatementSeparator());
 
+        // Monitor bridge — LABEL event (SN-26-bridge-coverage-f).
+        // Wire payload: 1-based statement number (matches scrip's ++stno
+        // and the oracles' STNOCL/kvstn semantics).  stmtIdx in dotnet's
+        // MSIL path is 0-based, so emit stmtIdx+1.
+        MonitorIpc.EmitLabel((long)(stmtIdx + 1));
+
         if (AmpStatementLimit >= 0) AmpStatementCount++;
         if (AmpStatementLimit > 0 && AmpStatementCount >= AmpStatementLimit)
         {

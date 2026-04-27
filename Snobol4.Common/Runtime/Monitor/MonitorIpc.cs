@@ -1,21 +1,26 @@
 // MonitorIpc.cs — snobol4dotnet sync-step monitor bridge.
 //
 // Wire protocol: see one4all/scripts/monitor/monitor_wire.h.
-// Reference port: csnobol4/monitor_ipc_runtime.c.
+// Reference port: csnobol4/monitor_ipc_runtime.c, scrip src/runtime/x86/snobol4.c.
 //
 // Design (S-2-bridge-1, GOAL-NET-BEAUTY-SELF):
 //   - Statically linked into Snobol4.Common (no plugin).
 //   - No SNOBOL4 LOAD() involvement.  Runtime fire-points call
-//     EmitValue / EmitCall / EmitReturn directly.
+//     EmitValue / EmitCall / EmitReturn / EmitLabel directly.
 //   - Lazy init on first emit: reads MONITOR_READY_PIPE / MONITOR_GO_PIPE.
 //     If unset, all entry points become silent no-ops (single bool check
 //     after init — zero overhead on normal beauty 17/17 runs).
-//   - Auto-interns names into a growing in-memory dictionary.  At process
-//     exit (AppDomain.ProcessExit), the table is dumped to MONITOR_NAMES_OUT.
-//     We also flush the names file after every emit so partial state is
-//     recoverable if shutdown skips ProcessExit.
-//   - End record (MWK_END) emitted at exit before the names sidecar is
-//     written, so the controller sees a clean wire close.
+//   - SN-26-bridge-coverage-e: streaming intern on the wire.  When a
+//     fresh name_id is assigned, an MWK_NAME_DEF record is emitted on
+//     the wire BEFORE returning the new id.  No sidecar names file is
+//     read or written.  MONITOR_NAMES_OUT (legacy env var) is ignored.
+//   - SN-26-bridge-coverage-f: MWK_LABEL records emitted on every
+//     statement entry, carrying the SNOBOL4 source statement number
+//     (same value as &STNO).  Mirrors csn's STNOCL emit and spl's
+//     kvstn emit; lets the controller align participants by structural
+//     statement flow without needing a label-table reverse lookup.
+//   - End record (MWK_END) emitted at exit on the wire so the controller
+//     sees a clean termination.
 
 using System;
 using System.Collections.Generic;
@@ -28,10 +33,12 @@ namespace Snobol4.Common;
 public static class MonitorIpc
 {
     // --- Event kinds (record.kind) -----------------------------------------
-    private const uint MWK_VALUE  = 1u;
-    private const uint MWK_CALL   = 2u;
-    private const uint MWK_RETURN = 3u;
-    private const uint MWK_END    = 4u;
+    private const uint MWK_VALUE    = 1u;
+    private const uint MWK_CALL     = 2u;
+    private const uint MWK_RETURN   = 3u;
+    private const uint MWK_END      = 4u;
+    private const uint MWK_LABEL    = 5u;   // SN-26-bridge-coverage-f: stmt entry
+    private const uint MWK_NAME_DEF = 6u;   // SN-26-bridge-coverage-e: streaming intern
 
     // --- SNOBOL4 datatype codes (record.type) ------------------------------
     private const byte MWT_NULL       = 0;
@@ -57,7 +64,6 @@ public static class MonitorIpc
     private static bool        _initAttempted;
     private static bool        _initOk;
     private static bool        _atexitDone;
-    private static string?     _namesOutPath;
     private static readonly object _lock = new();
 
     // Auto-interning name table.  Linear-scan-on-miss via Dictionary.
@@ -90,7 +96,6 @@ public static class MonitorIpc
 
             string? readyPath = Environment.GetEnvironmentVariable("MONITOR_READY_PIPE");
             string? goPath    = Environment.GetEnvironmentVariable("MONITOR_GO_PIPE");
-            string? namesPath = Environment.GetEnvironmentVariable("MONITOR_NAMES_OUT");
             if (string.IsNullOrEmpty(readyPath) || string.IsNullOrEmpty(goPath))
                 return;
 
@@ -112,7 +117,9 @@ public static class MonitorIpc
                 return;
             }
 
-            _namesOutPath = string.IsNullOrEmpty(namesPath) ? null : namesPath;
+            // SN-26-bridge-coverage-e: MONITOR_NAMES_OUT is intentionally
+            // ignored.  Names are announced inline on the wire via
+            // MWK_NAME_DEF records (see InternName below).  No sidecar.
             _initOk = true;
             AppDomain.CurrentDomain.ProcessExit += (_, _) => OnAtExit();
         }
@@ -121,6 +128,15 @@ public static class MonitorIpc
     // ------------------------------------------------------------------
     // Name interning — append on miss.  Returns name_id (>= 0) or
     // MW_NAME_ID_NONE on failure.
+    //
+    // SN-26-bridge-coverage-e (streaming intern): when a fresh id is
+    // assigned and the wire is live, an MWK_NAME_DEF record is emitted
+    // BEFORE returning the new id, binding (id -> name bytes) for the
+    // controller's per-participant intern table.  No sidecar file.
+    //
+    // The NAME_DEF emit calls EmitRecordRaw, which itself acquires no
+    // additional lock — every public entry point already holds _lock,
+    // so this nests cleanly without deadlock.
     // ------------------------------------------------------------------
     private static uint InternName(string s)
     {
@@ -129,6 +145,13 @@ public static class MonitorIpc
         id = (uint)_names.Count;
         _names.Add(s);
         _nameToId[s] = id;
+        // Announce the new binding on the wire BEFORE any record using
+        // this id flows.  Silent no-op if the wire is closed.
+        if (_readyFs is not null)
+        {
+            byte[] nameBytes = Encoding.UTF8.GetBytes(s);
+            EmitRecordRaw(MWK_NAME_DEF, id, MWT_STRING, nameBytes, (uint)nameBytes.Length);
+        }
         return id;
     }
 
@@ -310,8 +333,33 @@ public static class MonitorIpc
         }
     }
 
+    /// <summary>LABEL event — statement entry (SN-26-bridge-coverage-f).
+    /// Fired on every statement entry (one per source statement, regardless
+    /// of GOTO / fall-through).  Wire payload mirrors the oracles:
+    ///   name_id = MW_NAME_ID_NONE
+    ///   type    = MWT_INTEGER
+    ///   value   = 8-byte LE STNO of the statement being entered
+    /// Caller should pass the resolved source statement number — for dot,
+    /// that is <c>SourceLineNumbers[AmpCurrentLineNumber - 1]</c>, which is
+    /// the same value <c>&amp;STNO</c> evaluates to.
+    /// </summary>
+    public static void EmitLabel(long stno)
+    {
+        if (!Enabled) return;
+        lock (_lock)
+        {
+            if (!_initOk) return;
+            var b = new byte[8];
+            for (int k = 0; k < 8; k++) b[k] = (byte)((stno >> (k * 8)) & 0xff);
+            EmitRecordRaw(MWK_LABEL, MW_NAME_ID_NONE, MWT_INTEGER, b, 8);
+        }
+    }
+
     // ------------------------------------------------------------------
-    // ProcessExit: emit MWK_END and dump names sidecar.
+    // ProcessExit: emit MWK_END.
+    //
+    // SN-26-bridge-coverage-e: no sidecar dump.  Names already announced
+    // inline via MWK_NAME_DEF records as they were interned.
     // ------------------------------------------------------------------
     private static void OnAtExit()
     {
@@ -324,29 +372,8 @@ public static class MonitorIpc
             {
                 EmitRecordRaw(MWK_END, MW_NAME_ID_NONE, MWT_NULL, null, 0);
             }
-            FlushNamesSidecar();
             try { _readyFs?.Dispose(); } catch { } _readyFs = null;
             try { _goFs?.Dispose();    } catch { } _goFs    = null;
         }
-    }
-
-    private static void FlushNamesSidecar()
-    {
-        if (string.IsNullOrEmpty(_namesOutPath)) return;
-        try
-        {
-            // No-BOM UTF-8 + explicit LF line ending to match csn/spl sidecar
-            // byte format exactly (controller compares names byte-for-byte
-            // across participants).  WriteLine respects NewLine which we set
-            // to "\n" so this is portable to Windows too.
-            var noBomUtf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
-            using var w = new StreamWriter(_namesOutPath!, append: false, noBomUtf8);
-            w.NewLine = "\n";
-            foreach (var s in _names)
-            {
-                w.WriteLine(s);
-            }
-        }
-        catch { /* swallow — we tried */ }
     }
 }

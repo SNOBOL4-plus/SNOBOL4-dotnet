@@ -20,6 +20,10 @@ public partial class Executive
         AlphaStack.Clear(); // Used for conditional variable association
         BetaStack.Clear();  // Used for conditional variable association
         SystemStack.Push(new StatementSeparator());
+
+        // Monitor bridge — LABEL event (SN-26-bridge-coverage-f).
+        // 1-based statement number on the wire (matches scrip / csn / spl).
+        MonitorIpc.EmitLabel((long)(lineNumber + 1));
     }
 
     // ReSharper disable once UnusedMember.Global

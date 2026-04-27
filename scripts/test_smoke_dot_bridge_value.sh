@@ -4,18 +4,23 @@
 # Validates the assignment chokepoint VALUE fire-point in
 # Executive.Assign emits exactly:
 #
-#   #0  kind=VALUE name_id=0 STRING(5)=b'hello'
-#   #1  kind=END   name_id=0xffffffff NULL(empty)
+#   #0  kind=LABEL name_id=0xffffffff INTEGER(1)             (stmt 1 entry)
+#   #1  kind=VALUE name_id=0 STRING(5)=b'hello'              (S = 'hello')
+#   #2  kind=LABEL name_id=0xffffffff INTEGER(2)             (END entry)
+#   #3  kind=END   name_id=0xffffffff NULL(empty)
 #
 # for the canonical hello probe:
 #
 #       S = 'hello'
 #   END
 #
-# Plus the names sidecar contains exactly "S\n" (no BOM, LF terminator)
-# at id=0 — byte-identical to what csn's lvalue_name_id would intern.
+# Names sidecar contains exactly "S\n" (no BOM, LF terminator) at id=0 —
+# byte-identical to what csn's lvalue_name_id would intern.  Note: this
+# names file is now WRITTEN by read_one_wire.py from MWK_NAME_DEF wire
+# records (SN-26-bridge-coverage-e); the runtime no longer writes it.
 #
 # Sat Apr 27 2026 — landed with S-2-bridge-2.
+# Updated 2026-04-27 — LABEL records added per SN-26-bridge-coverage-f.
 
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -62,12 +67,12 @@ PASS=0; FAIL=0
 # Check 1: dot exited cleanly
 if [ $DOT_RC -eq 0 ]; then PASS=$((PASS+1)); else echo "FAIL dot exit=$DOT_RC"; FAIL=$((FAIL+1)); fi
 
-# Check 2: exactly 2 records
+# Check 2: exactly 4 records (LABEL VALUE LABEL END)
 N=$(grep -cE "kind=" "$TD/ctrl.err" || true)
-if [ "$N" = "2" ]; then PASS=$((PASS+1)); else echo "FAIL record count: got $N expected 2"; cat "$TD/ctrl.err"; FAIL=$((FAIL+1)); fi
+if [ "$N" = "4" ]; then PASS=$((PASS+1)); else echo "FAIL record count: got $N expected 4"; cat "$TD/ctrl.err"; FAIL=$((FAIL+1)); fi
 
-# Check 3: VALUE record carries name_id=0 STRING(5)='hello'
-if grep -qE "#0+0 kind=VALUE name_id=0 STRING\(5\)=b['\"]hello['\"]" "$TD/ctrl.err"; then
+# Check 3: VALUE record carries name_id=0 STRING(5)='hello' (now at #1, after LABEL(1))
+if grep -qE "#0+1 kind=VALUE name_id=0 STRING\(5\)=b['\"]hello['\"]" "$TD/ctrl.err"; then
     PASS=$((PASS+1))
 else echo "FAIL VALUE record shape"; cat "$TD/ctrl.err"; FAIL=$((FAIL+1)); fi
 

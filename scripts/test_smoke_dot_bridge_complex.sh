@@ -74,9 +74,10 @@ PASS=0; FAIL=0
 # Check 1: clean exit
 if [ $DOT_RC -eq 0 ]; then PASS=$((PASS+1)); else echo "FAIL exit=$DOT_RC"; FAIL=$((FAIL+1)); fi
 
-# Check 2: exactly 10 records (9 VALUE + 1 END)
+# Check 2: exactly 20 records (10 LABEL + 9 VALUE + 1 END)
+# 10 statements (9 assignments + END), each preceded by a LABEL.
 N=$(grep -cE "kind=" "$TD/ctrl.err" || true)
-if [ "$N" = "10" ]; then PASS=$((PASS+1)); else echo "FAIL count: $N != 10"; cat "$TD/ctrl.err"; FAIL=$((FAIL+1)); fi
+if [ "$N" = "20" ]; then PASS=$((PASS+1)); else echo "FAIL count: $N != 20"; cat "$TD/ctrl.err"; FAIL=$((FAIL+1)); fi
 
 # Check 3: scalar plain assignment
 grep -qE "VALUE name_id=0 STRING\(5\)=b['\"]unset['\"]" "$TD/ctrl.err" \

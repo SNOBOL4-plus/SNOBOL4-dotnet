@@ -92,6 +92,11 @@ public partial class Executive
                     AlphaStack.Clear();
                     BetaStack.Clear();
                     SystemStack.Push(new StatementSeparator());
+                    // Monitor bridge — LABEL event (SN-26-bridge-coverage-f).
+                    // 1-based statement number on the wire to match scrip / csn / spl.
+                    // The threaded loop's IntOperand may be the same 0-based index used
+                    // by InitStatementMsil; normalize by adding 1.
+                    MonitorIpc.EmitLabel((long)(instr.IntOperand + 1));
                     if (AmpStatementLimit >= 0) AmpStatementCount++;
                     if (AmpStatementLimit > 0 && AmpStatementCount >= AmpStatementLimit)
                     {
