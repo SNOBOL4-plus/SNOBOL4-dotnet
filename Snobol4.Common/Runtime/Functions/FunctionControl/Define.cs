@@ -220,6 +220,9 @@ public partial class Executive
             FunctionTraceEntry(arguments, functionName);
         }
 
+        // Monitor bridge — CALL event (mirrors csn DEFF18 / spl bpf09 predecessor).
+        MonitorIpc.EmitCall(functionName);
+
         // Run function by transferring to the entry label.
         // Save caller's Failure state: ThreadedExecuteLoop restores it internally,
         // but we must not let RETURN unconditionally force Failure=false and clobber
@@ -228,25 +231,38 @@ public partial class Executive
         var nextIndex = ExecuteLoop(LabelTable[definition.EntryLabel]);
         var returnVar = IdentifierTable[returnVarName];
 
+        string rtnTypeStr;
         switch (nextIndex)
         {
             case -2:
                 AmpReturnType = "RETURN";
+                rtnTypeStr = "RETURN";
                 returnVar.Succeeded = true;
                 Failure = callerFailure;   // preserve caller's Failure; UDF success doesn't clear it
                 break;
 
             case -3:
                 AmpReturnType = "FRETURN";
+                rtnTypeStr = "FRETURN";
                 returnVar = StringVar.Null(returnVarName);
                 Failure = true;            // FRETURN explicitly signals failure
                 break;
 
             case -4:
+            default:
                 AmpReturnType = "NRETURN";
+                rtnTypeStr = "NRETURN";
                 Failure = callerFailure;   // NRETURN is neutral — restore caller's state
                 break;
         }
+
+        // Monitor bridge — VALUE event for the return-value slot (mirrors csn DEFF20 path).
+        // Emitted before RETURN so the controller sees: VALUE then RETURN, matching csn/spl order.
+        // FRETURN has no meaningful return value (returnVar is an empty null); emit it anyway so
+        // the record sequence stays symmetric across all three return types.
+        MonitorIpc.EmitValue(returnVarName, returnVar);
+        // Monitor bridge — RETURN event (mirrors csn DEFF20 / spl retrn body).
+        MonitorIpc.EmitReturn(functionName, rtnTypeStr);
 
         SystemStack.Push(returnVar);
         IdentifierTable[returnVarName] = StringVar.Null(returnVarName); // Clear function name variable
