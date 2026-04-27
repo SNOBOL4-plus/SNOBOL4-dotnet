@@ -114,10 +114,16 @@ public partial class Executive
         SystemStack.Push(new StatementSeparator());
 
         // Monitor bridge — LABEL event (SN-26-bridge-coverage-f).
-        // Wire payload: 1-based statement number (matches scrip's ++stno
-        // and the oracles' STNOCL/kvstn semantics).  stmtIdx in dotnet's
-        // MSIL path is 0-based, so emit stmtIdx+1.
-        MonitorIpc.EmitLabel((long)(stmtIdx + 1));
+        // Wire payload: 1-based statement number aligned with SPITBOL's
+        // &STNO convention, which counts blank lines as consuming an stno
+        // slot (the compiler assigns them a slot; runtime skips emit).
+        // stmtIdx is dotnet's 0-based SourceLine index (executable lines
+        // only — blanks/comments/-CMD already filtered).  Add the per-line
+        // running BlankLineCount to recover the spl-equivalent stno.
+        // S-2-bridge-7 (stno alignment), Mon Apr 28 2026.
+        var srcLines = Parent.Code.SourceLines;
+        int blanks = (stmtIdx >= 0 && stmtIdx < srcLines.Count) ? srcLines[stmtIdx].BlankLineCount : 0;
+        MonitorIpc.EmitLabel((long)(stmtIdx + 1 + blanks));
 
         if (AmpStatementLimit >= 0) AmpStatementCount++;
         if (AmpStatementLimit > 0 && AmpStatementCount >= AmpStatementLimit)

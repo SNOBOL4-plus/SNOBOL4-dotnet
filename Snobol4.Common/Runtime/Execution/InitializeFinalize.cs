@@ -22,8 +22,14 @@ public partial class Executive
         SystemStack.Push(new StatementSeparator());
 
         // Monitor bridge — LABEL event (SN-26-bridge-coverage-f).
-        // 1-based statement number on the wire (matches scrip / csn / spl).
-        MonitorIpc.EmitLabel((long)(lineNumber + 1));
+        // Aligned with SPITBOL's &STNO convention: count blank lines as
+        // consuming an stno slot.  See MsilHelpers.cs InitStatementMsil.
+        // S-2-bridge-7 (stno alignment), Mon Apr 28 2026.
+        {
+            var srcLines = Parent.Code.SourceLines;
+            int blanks = (lineNumber >= 0 && lineNumber < srcLines.Count) ? srcLines[lineNumber].BlankLineCount : 0;
+            MonitorIpc.EmitLabel((long)(lineNumber + 1 + blanks));
+        }
     }
 
     // ReSharper disable once UnusedMember.Global

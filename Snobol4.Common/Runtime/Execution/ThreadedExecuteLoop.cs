@@ -93,10 +93,16 @@ public partial class Executive
                     BetaStack.Clear();
                     SystemStack.Push(new StatementSeparator());
                     // Monitor bridge — LABEL event (SN-26-bridge-coverage-f).
-                    // 1-based statement number on the wire to match scrip / csn / spl.
-                    // The threaded loop's IntOperand may be the same 0-based index used
-                    // by InitStatementMsil; normalize by adding 1.
-                    MonitorIpc.EmitLabel((long)(instr.IntOperand + 1));
+                    // Aligned with SPITBOL's &STNO convention: count blank
+                    // lines as consuming an stno slot.  See MsilHelpers.cs
+                    // InitStatementMsil for the rationale.
+                    // S-2-bridge-7 (stno alignment), Mon Apr 28 2026.
+                    {
+                        var srcLines = Parent.Code.SourceLines;
+                        int idx = instr.IntOperand;
+                        int blanks = (idx >= 0 && idx < srcLines.Count) ? srcLines[idx].BlankLineCount : 0;
+                        MonitorIpc.EmitLabel((long)(idx + 1 + blanks));
+                    }
                     if (AmpStatementLimit >= 0) AmpStatementCount++;
                     if (AmpStatementLimit > 0 && AmpStatementCount >= AmpStatementLimit)
                     {
