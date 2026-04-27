@@ -95,19 +95,28 @@ grep -qE "VALUE name_id=4 STRING\(1\)=b['\"]A['\"]" "$TD/ctrl.err" \
 grep -qE "VALUE name_id=5 ARRAY" "$TD/ctrl.err" \
     && PASS=$((PASS+1)) || { echo "FAIL array creation"; FAIL=$((FAIL+1)); }
 
-# Check 7: array element store routes to <lval>
-grep -qE "VALUE name_id=6 STRING\(10\)=b['\"]array_elem['\"]" "$TD/ctrl.err" \
-    && PASS=$((PASS+1)) || { echo "FAIL array element"; FAIL=$((FAIL+1)); }
+# Check 7: array element store routes to the underlying array name 'a' (not <lval>).
+# S-2-bridge-7-lval landed Mon Apr 28 2026: aggregate-element stores now emit the
+# collection's symbol, so a<2>='array_elem' shows name_id=5 (= 'a', shared with
+# the array creation record above).
+grep -qE "VALUE name_id=5 STRING\(10\)=b['\"]array_elem['\"]" "$TD/ctrl.err" \
+    && PASS=$((PASS+1)) || { echo "FAIL array element name attribution"; FAIL=$((FAIL+1)); }
 
-# Check 8: table slot store routes to <lval> (reused)
+# Check 8: table slot store routes to the underlying table name 'd' (not <lval>).
+# Same rationale as Check 7.
 grep -qE "VALUE name_id=6 STRING\(8\)=b['\"]tbl_elem['\"]" "$TD/ctrl.err" \
-    && PASS=$((PASS+1)) || { echo "FAIL table slot"; FAIL=$((FAIL+1)); }
+    && PASS=$((PASS+1)) || { echo "FAIL table slot name attribution"; FAIL=$((FAIL+1)); }
 
-# Check 9: <lval> sentinel present in names sidecar at id=6
-SENTINEL_LINE=$(sed -n '7p' "$TD/names.txt" 2>/dev/null)
-if [ "$SENTINEL_LINE" = "<lval>" ]; then
+# Check 9: names sidecar has exactly 7 names (no <lval> sentinel since
+# every aggregate-element store resolves to its collection's symbol).
+LINE_COUNT=$(wc -l < "$TD/names.txt" 2>/dev/null || echo 0)
+if [ "$LINE_COUNT" = "7" ] && ! grep -q "<lval>" "$TD/names.txt"; then
     PASS=$((PASS+1))
-else echo "FAIL sentinel: line 7 was '$SENTINEL_LINE' expected '<lval>'"; cat -n "$TD/names.txt"; FAIL=$((FAIL+1)); fi
+else
+    echo "FAIL names sidecar: $LINE_COUNT lines, contains <lval>=$(grep -c '<lval>' "$TD/names.txt")"
+    cat -n "$TD/names.txt"
+    FAIL=$((FAIL+1))
+fi
 
 echo "PASS=$PASS FAIL=$FAIL"
 [ $FAIL -eq 0 ]

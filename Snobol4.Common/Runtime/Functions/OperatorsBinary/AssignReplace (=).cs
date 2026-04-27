@@ -179,9 +179,23 @@ public partial class Executive
         if (MonitorIpc.Enabled)
         {
             var stored = SystemStack.Peek();
-            // Lvalue name: scalar => stored.Symbol; array/table element => empty,
-            // routed to "<lval>" sentinel by MonitorIpc.LvalueNameId.
-            MonitorIpc.EmitValue(stored.Symbol ?? "", stored);
+            // Lvalue name extraction:
+            //   * Scalar              → stored.Symbol (e.g. "S" for S = ...)
+            //   * Array element a<i>  → stored.Symbol is empty, but stored.Collection
+            //                            points at the ArrayVar; use its Symbol ("a").
+            //   * Table slot d<'k'>   → same, use the TableVar's Symbol ("d").
+            //   * Truly anonymous     → fall through to MonitorIpc.LvalueNameId's
+            //                            <lval> sentinel.
+            // S-2-bridge-7-lval (Mon Apr 28 2026) — this gives semantically-meaningful
+            // names for aggregate-element stores so the wire identifies WHICH table or
+            // array was written.  Both csn and spl bridges use <lval> here today; the
+            // dot wire is strictly more informative.  See GOAL-NET-BEAUTY-SELF.
+            string lvalueName = stored.Symbol ?? "";
+            if (string.IsNullOrEmpty(lvalueName) && stored.Collection?.Symbol is { Length: > 0 } collSym)
+            {
+                lvalueName = collSym;
+            }
+            MonitorIpc.EmitValue(lvalueName, stored);
         }
 
         if (SystemStack.Peek().OutputChannel == "")
