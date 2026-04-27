@@ -110,6 +110,9 @@ public partial class Executive
             if (KeywordTable.TryGetValue(leftVar.Symbol, out var handler))
             {
                 handler(rightVar, true);
+                // Sync-step monitor fire-point for keyword assignment.
+                if (MonitorIpc.Enabled)
+                    MonitorIpc.EmitValue(leftVar.Symbol ?? "", rightVar);
                 return;
             }
         }
@@ -170,8 +173,21 @@ public partial class Executive
                 break;
         }
 
+        // Sync-step monitor fire-point: emit VALUE record on the just-stored value.
+        // Mirrors csn ASGNVV (v311.sil:5938) and spl asign:asg01 (sbl.min:17596).
+        // No-op when MonitorIpc is dormant.  See GOAL-NET-BEAUTY-SELF S-2-bridge-2.
+        if (MonitorIpc.Enabled)
+        {
+            var stored = SystemStack.Peek();
+            // Lvalue name: scalar => stored.Symbol; array/table element => empty,
+            // routed to "<lval>" sentinel by MonitorIpc.LvalueNameId.
+            MonitorIpc.EmitValue(stored.Symbol ?? "", stored);
+        }
+
         if (SystemStack.Peek().OutputChannel == "")
+        {
             return;
+        }
 
         // Call output function
         var outputVar = SystemStack.Peek();

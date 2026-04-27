@@ -335,7 +335,13 @@ public static class MonitorIpc
         if (string.IsNullOrEmpty(_namesOutPath)) return;
         try
         {
-            using var w = new StreamWriter(_namesOutPath!, append: false, Encoding.UTF8);
+            // No-BOM UTF-8 + explicit LF line ending to match csn/spl sidecar
+            // byte format exactly (controller compares names byte-for-byte
+            // across participants).  WriteLine respects NewLine which we set
+            // to "\n" so this is portable to Windows too.
+            var noBomUtf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+            using var w = new StreamWriter(_namesOutPath!, append: false, noBomUtf8);
+            w.NewLine = "\n";
             foreach (var s in _names)
             {
                 w.WriteLine(s);
