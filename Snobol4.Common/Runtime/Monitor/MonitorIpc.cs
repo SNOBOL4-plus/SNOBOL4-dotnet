@@ -250,7 +250,10 @@ public static class MonitorIpc
                 return (MWT_NULL, null, 0);
             case StringVar sv:
             {
-                byte[] b = Encoding.UTF8.GetBytes(sv.Data ?? "");
+                // SNOBOL4 strings are 8-bit byte buffers smuggled in C# strings.
+                // Use Latin-1 (ISO-8859-1) to preserve bytes 0x80–0xFF verbatim.
+                // UTF-8 would double-encode non-ASCII bytes (e.g. 0x80 → 0xC2 0x80).
+                byte[] b = Encoding.Latin1.GetBytes(sv.Data ?? "");
                 return (MWT_STRING, b, (uint)b.Length);
             }
             case IntegerVar iv:
