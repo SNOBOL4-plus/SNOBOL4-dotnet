@@ -195,7 +195,16 @@ public partial class Executive
             {
                 lvalueName = collSym;
             }
-            MonitorIpc.EmitValue(lvalueName, stored);
+            // Suppress VALUE emission when the lvalue is the current function's return
+            // variable slot (i.e. "fnName = value" inside the function body).
+            // Define.cs ExecuteProgramDefinedFunction already emits VALUE for the
+            // return slot after the function exits (mirrors csn DEFF20 / spl retrn).
+            // Emitting here too produces a duplicate VALUE before the RETURN event,
+            // which diverges from csn/spl wire order.  See GOAL-NET-BEAUTY-SELF S-2-bridge-7-fullscan.
+            bool isReturnSlot = ProgramDefinedFunctionStack.TryPeek(out var callerFn)
+                                && callerFn == lvalueName;
+            if (!isReturnSlot)
+                MonitorIpc.EmitValue(lvalueName, stored);
         }
 
         if (SystemStack.Peek().OutputChannel == "")

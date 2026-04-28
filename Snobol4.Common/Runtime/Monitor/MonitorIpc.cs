@@ -329,10 +329,13 @@ public static class MonitorIpc
             if (!_initOk) return;
             uint nameId = InternName(fnName ?? "");
             if (nameId == MW_NAME_ID_NONE) return;
-            // Encode rtnType as a NAME-typed value so the wire matches csn's
-            // shape: emit_descr_value(MWK_RETURN, name_id, &rtntype_descr).
+            // Encode rtnType as a STRING-typed value to match spl's wire encoding.
+            // spl's zysrt emits the rtntype scblk (e.g. "RETURN") via spl_block_to_wire
+            // which returns MWT_STRING for string blocks.  Using MWT_NAME here caused
+            // a type-byte mismatch (STRING vs NAME) that stopped the monitor at every
+            // function return.  See GOAL-NET-BEAUTY-SELF S-2-bridge-7-fullscan.
             byte[] b = Encoding.UTF8.GetBytes(rtnType ?? "RETURN");
-            EmitRecordRaw(MWK_RETURN, nameId, MWT_NAME, b, (uint)b.Length);
+            EmitRecordRaw(MWK_RETURN, nameId, MWT_STRING, b, (uint)b.Length);
         }
     }
 

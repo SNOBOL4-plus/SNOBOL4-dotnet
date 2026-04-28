@@ -31,8 +31,18 @@ public partial class Executive
                     public void IndexCollection()
     {
         // Do not delete. Used by DLL
+        // When already in failed state, we must push a failure sentinel before
+        // returning so that the stack stays balanced.  Without the sentinel,
+        // the operands that were pushed for this subscript expression (the
+        // collection var plus each index) remain on the stack and are later
+        // mis-consumed by BinaryEquals as if they were a legitimate lvalue/rvalue
+        // pair, producing a spurious VALUE monitor event and a wrong assignment.
+        // Mirrors the contract of NonExceptionFailure(): Failure=true + sentinel pushed.
         if (Failure)
+        {
+            SystemStack.Push(new StringVar(false) { Succeeded = false });
             return;
+        }
         if (Parent.BuildOptions.TraceStatements)
             Console.Error.WriteLine(@"IndexCollection");
 
