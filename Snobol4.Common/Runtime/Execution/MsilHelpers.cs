@@ -66,15 +66,20 @@ public partial class Executive
         entry.Handler(_reusableArgList);
         TraceFunctionReturn(slot.Symbol);
 
-        // FRETURN propagation: if the handler set Failure=true, unwind the SystemStack
-        // back to the StatementSeparator so FinalizeStatementMsil can clean up correctly.
-        // This fires regardless of whether the call site is MSIL-compiled (earlyExit branch)
-        // or threaded — covering runtime-DEFINE'd functions absent from FunctionSlotIndex.
-        if (Failure)
-        {
-            while (SystemStack.Count > 0 && SystemStack.Peek() is not StatementSeparator)
-                SystemStack.Pop();
-        }
+        // FRETURN propagation: the handler signals failure by pushing a failure
+        // sentinel (NonExceptionFailure) and setting Failure=true. The downstream
+        // operators in the body propagate this correctly:
+        //   * OperatorFast drains arithmetic/concat operands on Failure (BUG-4).
+        //   * ExtractArguments returns true for any op whose operand has
+        //     Succeeded=false, halting that op before it touches the failed value.
+        //   * BinaryEquals / Assign bail at ExtractArguments rather than running.
+        //   * Unary predicates `~` and `?` (OpNegation/OpInterrogation) consume
+        //     the sentinel themselves (Peek+flip / Pop+rewrap).
+        // The MSIL body's `Brtrue earlyExit` after this call jumps past everything
+        // to FinalizeStatementMsil, which drains stack to StatementSeparator.
+        // The earlier explicit drain here was redundant on the earlyExit path and
+        // *destructive* on the predicate path (it removed the sentinel that `~` /
+        // `?` need to consume). Removed. See GOAL-NET-BEAUTY-SELF S-2-bridge-7.
     }
 
     /// <summary>

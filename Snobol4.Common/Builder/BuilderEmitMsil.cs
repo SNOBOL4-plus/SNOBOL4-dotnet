@@ -376,9 +376,11 @@ public partial class Builder
         // (FRETURN propagation). FinalizeStatementMsil will clean the stack.
         Label? earlyExit = isBody ? il.DefineLabel() : (Label?)null;
 
-        foreach (var t in tokens)
+        for (int ti = 0; ti < tokens.Count; ++ti)
         {
-            if (!EmitSingleToken(il, t, pendingFunctionNames, choiceLabels, earlyExit))
+            var t        = tokens[ti];
+            var nextTok  = ti + 1 < tokens.Count ? tokens[ti + 1] : (Token?)null;
+            if (!EmitSingleToken(il, t, pendingFunctionNames, choiceLabels, earlyExit, nextTok))
                 return false;  // unhandled token → fall back to threaded path
             if (t.TokenType != Token.Type.IDENTIFIER_FUNCTION)  // IDENTIFIER_FUNCTION emits nothing
                 anyEmitted = true;
@@ -740,7 +742,8 @@ public partial class Builder
     private bool EmitSingleToken(ILGenerator il, Token t,
                                   Stack<string> pendingFunctionNames,
                                   Stack<Label>  choiceLabels,
-                                  Label?        earlyExit = null)
+                                  Label?        earlyExit = null,
+                                  Token?        nextToken = null)
     {
         switch (t.TokenType)
         {
@@ -828,14 +831,19 @@ public partial class Builder
                 il.Emit(OpCodes.Ldc_I4, slotIdx);
                 il.Emit(OpCodes.Ldc_I4, argCount);
                 il.Emit(OpCodes.Call, _callFuncBySlot);
-                // FRETURN propagation: if function set Failure=true, skip the rest
-                // of the body expression and let FinalizeStatementMsil clean the stack.
-                if (earlyExit.HasValue)
-                {
-                    il.Emit(OpCodes.Ldarg_0);
-                    il.Emit(OpCodes.Ldfld, _failureField);
-                    il.Emit(OpCodes.Brtrue, earlyExit.Value);
-                }
+                // FRETURN propagation: the called function pushes a failure sentinel
+                // and sets Failure=true on FRETURN. Downstream operator dispatch
+                // handles propagation:
+                //   * OperatorFast drains arithmetic/concat operands on Failure (BUG-4).
+                //   * Unary predicates `~` (OpNegation) and `?` (OpInterrogation)
+                //     consume the sentinel themselves and (for `~`) flip Failure.
+                //   * ExtractArguments propagates failure for everything else.
+                //   * COMMA_CHOICE clears Failure between alternatives.
+                // The earlier `Brtrue earlyExit` jumped past all of this — that was
+                // over-broad: it bypassed COMMA_CHOICE (breaking choice expressions)
+                // and skipped predicates (breaking `~f()` and `?f()`). Removed in
+                // S-2-bridge-7 along with the matching drain in CallFuncBySlot.
+                // See GOAL-NET-BEAUTY-SELF.
                 return true;
             }
 

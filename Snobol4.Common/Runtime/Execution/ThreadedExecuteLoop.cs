@@ -142,16 +142,14 @@ public partial class Executive
 
                 case OpCode.CallFunc:
                     // Function name StringVar was pushed before the args by PushConst.
-                    // Function() pops args then the name.
+                    // Function() pops args then the name. On FRETURN, the function
+                    // handler sets Failure=true and pushes a sentinel; downstream
+                    // operators propagate this correctly via OperatorFast (drain on
+                    // failure for arithmetic/concat, ExtractArguments propagation
+                    // elsewhere) and ChoiceStart (clears between alternatives).
+                    // No skip-to-Finalize: it bypasses unary predicates and choice.
+                    // See GOAL-NET-BEAUTY-SELF S-2-bridge-7.
                     Function(instr.IntOperand2);
-                    // FRETURN propagation: if function set Failure=true, skip the rest
-                    // of the statement body by jumping forward to the Finalize opcode.
-                    if (Failure)
-                    {
-                        while (InstructionPointer < thread.Length &&
-                               thread[InstructionPointer].Op != OpCode.Finalize)
-                            InstructionPointer++;
-                    }
                     break;
 
                 case OpCode.CallFuncIndirect:
@@ -159,15 +157,9 @@ public partial class Executive
                     // The stack has: [fn-name-string] [arg0] ... [argN-1]
                     // OpIndirection already ran and pushed the resolved name value.
                     // FunctionIndirect() pops args, then pops the name value and
-                    // converts it to string for lookup.
+                    // converts it to string for lookup.  FRETURN handling: same as
+                    // CallFunc — operator-level propagation, no skip-to-Finalize.
                     FunctionIndirect(instr.IntOperand2);
-                    // FRETURN propagation: same as CallFunc.
-                    if (Failure)
-                    {
-                        while (InstructionPointer < thread.Length &&
-                               thread[InstructionPointer].Op != OpCode.Finalize)
-                            InstructionPointer++;
-                    }
                     break;
 
                 case OpCode.OpAdd:       OperatorFast(OpCode.OpAdd,       2); break;
