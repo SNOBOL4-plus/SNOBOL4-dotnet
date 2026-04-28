@@ -120,15 +120,16 @@ public partial class Executive
 
         // Monitor bridge — LABEL event (SN-26-bridge-coverage-f).
         // Wire payload: 1-based statement number aligned with SPITBOL's
-        // &STNO convention, which counts blank lines as consuming an stno
-        // slot (the compiler assigns them a slot; runtime skips emit).
-        // stmtIdx is dotnet's 0-based SourceLine index (executable lines
-        // only — blanks/comments/-CMD already filtered).  Add the per-line
-        // running BlankLineCount to recover the spl-equivalent stno.
-        // S-2-bridge-7 (stno alignment), Mon Apr 28 2026.
-        var srcLines = Parent.Code.SourceLines;
-        int blanks = (stmtIdx >= 0 && stmtIdx < srcLines.Count) ? srcLines[stmtIdx].BlankLineCount : 0;
-        MonitorIpc.EmitLabel((long)(stmtIdx + 1 + blanks));
+        // &STNO convention.  Use the precomputed Execute.SourceStno —
+        // Parent.Code is mutable (EVAL/CODE replace it with a fresh
+        // SourceCode), so a runtime BlankLineCount lookup against
+        // Parent.Code.SourceLines silently fails after the first EVAL,
+        // emitting a wrong stno on the wire.  See GOAL-NET-BEAUTY-SELF
+        // S-2-bridge-7-fullscan, session #58.
+        long stno = (stmtIdx >= 0 && stmtIdx < SourceStno.Count)
+            ? SourceStno[stmtIdx]
+            : (stmtIdx + 1);  // fall-back if metadata absent (only on tests)
+        MonitorIpc.EmitLabel(stno);
 
         if (AmpStatementLimit >= 0) AmpStatementCount++;
         if (AmpStatementLimit > 0 && AmpStatementCount >= AmpStatementLimit)

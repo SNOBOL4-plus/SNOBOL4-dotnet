@@ -93,15 +93,18 @@ public partial class Executive
                     BetaStack.Clear();
                     SystemStack.Push(new StatementSeparator());
                     // Monitor bridge — LABEL event (SN-26-bridge-coverage-f).
-                    // Aligned with SPITBOL's &STNO convention: count blank
-                    // lines as consuming an stno slot.  See MsilHelpers.cs
-                    // InitStatementMsil for the rationale.
-                    // S-2-bridge-7 (stno alignment), Mon Apr 28 2026.
+                    // Use precomputed Execute.SourceStno — Parent.Code is
+                    // replaced by EVAL/CODE at runtime; a BlankLineCount
+                    // lookup against the swapped SourceLines silently
+                    // returns 0 and emits a wrong stno.  See
+                    // GOAL-NET-BEAUTY-SELF S-2-bridge-7-fullscan, session
+                    // #58.
                     {
-                        var srcLines = Parent.Code.SourceLines;
                         int idx = instr.IntOperand;
-                        int blanks = (idx >= 0 && idx < srcLines.Count) ? srcLines[idx].BlankLineCount : 0;
-                        MonitorIpc.EmitLabel((long)(idx + 1 + blanks));
+                        long stno = (idx >= 0 && idx < SourceStno.Count)
+                            ? SourceStno[idx]
+                            : (idx + 1);
+                        MonitorIpc.EmitLabel(stno);
                     }
                     if (AmpStatementLimit >= 0) AmpStatementCount++;
                     if (AmpStatementLimit > 0 && AmpStatementCount >= AmpStatementLimit)

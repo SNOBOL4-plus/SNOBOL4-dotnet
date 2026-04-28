@@ -274,6 +274,13 @@ public partial class Builder : IDisposable
                 Execute.SourceFiles.Add(line.PathName);
                 Execute.SourceLineNumbers.Add(line.LineCountFile);
                 Execute.SourceStatementNumbers.Add(stmtNumber + 1);
+                // Pre-bake the wire-emission STNO so runtime LABEL emit doesn't
+                // depend on Parent.Code at execution time. See SourceStno
+                // docstring on Executive — EVAL/CODE swap out Parent.Code,
+                // and a runtime BlankLineCount lookup against the swapped
+                // SourceLines silently returns 0, producing wrong stno on
+                // the wire.  GOAL-NET-BEAUTY-SELF session #58.
+                Execute.SourceStno.Add((long)(stmtNumber + 1 + line.BlankLineCount));
             }
             stmtNumber++;
         }
@@ -316,6 +323,7 @@ public partial class Builder : IDisposable
                 Execute.SourceFiles.Add(line.PathName);
                 Execute.SourceLineNumbers.Add(line.LineCountFile);
                 Execute.SourceStatementNumbers.Add(stmtNumber + 1);
+                Execute.SourceStno.Add((long)(stmtNumber + 1 + line.BlankLineCount));
                 if (line.Label.Length > 0)
                 {
                     var folded = BuildOptions.CaseFolding ? line.Label.ToUpper() : line.Label;

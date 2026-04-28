@@ -17,6 +17,16 @@ public partial class Executive
     public List<long> SourceStatementNumbers;
     public List<string> SourceCode;
     public List<string> SourceFiles;
+    /// <summary>
+    /// Per-statement precomputed wire-emission STNO, parallel to SourceCode.
+    /// Indexed by global stmtIdx (the same index baked into MSIL InitStatement
+    /// calls and OpCode.Init operands). Computed once at build time as
+    /// (stmtIdx + 1 + BlankLineCount-at-build-time) and never mutated, so
+    /// runtime EVAL/CODE swapping out Parent.Code cannot corrupt the
+    /// LABEL stno emitted by EmitLabel — see GOAL-NET-BEAUTY-SELF
+    /// S-2-bridge-7-fullscan, session #58.
+    /// </summary>
+    public List<long> SourceStno;
     public SystemStack SystemStack;
     public List<DeferredCode> StarFunctionList;
     public int PreviousStarFunctionCount;
@@ -88,6 +98,7 @@ public partial class Executive
         SourceLineNumbers = [];
         SourceListingNumbers = [];
         SourceStatementNumbers = [];
+        SourceStno = [];
         SystemStack = [];
         StarFunctionList = [];
         StreamReadersBySymbol = [];  // Dictionary associating labels to line numbers
