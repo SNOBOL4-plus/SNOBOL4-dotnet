@@ -52,6 +52,18 @@ public partial class Executive
         var resultsVar = subjectVar.MatchReplace((string)subject);
         var v = IdentifierTable[resultsVar.Symbol] = resultsVar;
         SystemStack.Push(v);
+
+        // Sync-step monitor fire-point: emit VALUE record on the destructive
+        // subject rebind.  Mirrors csn ASGNVV (v311.sil:5938) and spl asign:asg01
+        // (sbl.min:17596) — both fire on the chokepoint that handles
+        // BOTH plain assignment AND destructive pattern-match replacement.
+        // dot's two paths (Assign / ReplaceMatch) are split by the SubjectVar
+        // dispatch in _BinaryEquals, so each must fire its own EmitValue.
+        // Without this, beauty self-host wire diverges at case.inc:22 step 1497:
+        // spl emits VALUE str='ND' after the destructive `=`; dot did not.
+        // See GOAL-NET-BEAUTY-SELF S-2-bridge-7-fullscan.
+        if (MonitorIpc.Enabled)
+            MonitorIpc.EmitValue(v.Symbol ?? "", v);
     }
 
     internal void Assign(List<Var> arguments)
@@ -207,15 +219,26 @@ public partial class Executive
             {
                 lvalueName = collSym;
             }
-            // Suppress VALUE emission when the lvalue is the current function's return
-            // variable slot (i.e. "fnName = value" inside the function body).
-            // Define.cs ExecuteProgramDefinedFunction already emits VALUE for the
-            // return slot after the function exits (mirrors csn DEFF20 / spl retrn).
-            // Emitting here too produces a duplicate VALUE before the RETURN event,
-            // which diverges from csn/spl wire order.  See GOAL-NET-BEAUTY-SELF S-2-bridge-7-fullscan.
-            bool isReturnSlot = ProgramDefinedFunctionStack.TryPeek(out var callerFn)
-                                && callerFn == lvalueName;
-            if (!isReturnSlot)
+            // Skip emission for I/O channel writes (OUTPUT, PUNCH, etc.).
+            // spl's asign routes these through the trap chain (asg02/asg14)
+            // rather than the natural-variable store path that fires sysmv,
+            // so spl emits no VALUE record for `OUTPUT = expr`.  csn behaves
+            // the same way: ASGNVV is bypassed for trapped variables.
+            // Without this skip, dot emits a VALUE record at every OUTPUT
+            // assignment and the wire diverges from spl on every line of
+            // output-driving code (e.g. beauty.sno main loop step 1565).
+            //
+            // The body-assign emission used to be conditionally suppressed
+            // when the lvalue matched the current function's return slot
+            // (paired with a VALUE emit in Define.cs at RETURN time).  That
+            // convention diverged from spl/csn on multiple body-assigns to
+            // fn-name (e.g. icase loop) and on bare returns (e.g.
+            // IDENT(str) :S(RETURN)).  Aligned to spl/csn convention:
+            // VALUE fires at every body-assign chokepoint; RETURN carries
+            // only the return type.  See spl runtime comment at
+            // monitor_ipc_runtime.c:449-452 and
+            // GOAL-NET-BEAUTY-SELF S-2-bridge-7-fullscan.
+            if (string.IsNullOrEmpty(stored.OutputChannel))
                 MonitorIpc.EmitValue(lvalueName, stored);
         }
 

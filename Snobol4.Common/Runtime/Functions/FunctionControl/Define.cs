@@ -256,12 +256,14 @@ public partial class Executive
                 break;
         }
 
-        // Monitor bridge — VALUE event for the return-value slot (mirrors csn DEFF20 path).
-        // Emitted before RETURN so the controller sees: VALUE then RETURN, matching csn/spl order.
-        // FRETURN has no meaningful return value (returnVar is an empty null); emit it anyway so
-        // the record sequence stays symmetric across all three return types.
-        MonitorIpc.EmitValue(returnVarName, returnVar);
         // Monitor bridge — RETURN event (mirrors csn DEFF20 / spl retrn body).
+        // Per spl/csn convention, RETURN payload carries only the return type
+        // (RETURN/FRETURN/NRETURN); the function's actual return value was
+        // already emitted as a VALUE record when the body assigned to the
+        // function-name variable (e.g. "foo = expr").  Bare returns (no
+        // body-assign to fn-name) emit no VALUE here, matching spl.
+        // See spl runtime comment at monitor_ipc_runtime.c:449-452 and
+        // GOAL-NET-BEAUTY-SELF S-2-bridge-7-fullscan.
         MonitorIpc.EmitReturn(functionName, rtnTypeStr);
 
         SystemStack.Push(returnVar);
@@ -281,6 +283,12 @@ public partial class Executive
         {
             IdentifierTable[saveVar.Symbol] = saveVar;
         }
+
+        // Pop ProgramDefinedFunctionStack — balances the Push at the top of this method.
+        // Without this Pop, Peek() returns stale data after the function returns,
+        // breaking the body-assign isReturnSlot suppression in nested-call scenarios.
+        // See GOAL-NET-BEAUTY-SELF S-2-bridge-7-fullscan.
+        ProgramDefinedFunctionStack.Pop();
     }
 
     private void FunctionTraceEntry(List<Var> arguments, string functionName)
