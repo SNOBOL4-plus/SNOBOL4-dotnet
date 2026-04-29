@@ -79,6 +79,18 @@ internal class ImmediateVariableAssociation2 : NullPattern
         // Perform the immediate assignment
         scan.Exec.Assign(arguments);
 
+        // If Assignee evaluation (for deferred forms like *fn(...)) caused a
+        // FRETURN failure during Assign, this $-association must fail so the
+        // outer scanner backtracks to any saved alternate.  Without this check,
+        // a `pat $ *fn(...)` in an alternation reports false success here even
+        // when fn() FRETURNed, breaking alternation backtracking.
+        // Minimal repro:
+        //   patA = SPAN(&UCASE &LCASE) $ tx $ *match(listA, lstPat)
+        //   patB = SPAN(&UCASE &LCASE) $ tx $ *match(listB, lstPat)
+        //   'FULLSCAN' (patA | patB)  ; SPITBOL: PASS, dot pre-fix: FAIL.
+        if (scan.Exec.Failure)
+            return MatchResult.Failure(scan);
+
         // Return success without advancing cursor
         var mr = MatchResult.Success(scan);
 

@@ -59,6 +59,18 @@ public partial class Executive
         while (arguments[0] is ExpressionVar expressionVar1)
         {
             expressionVar1.FunctionName(this);
+            // If the deferred Assignee evaluation FRETURNed (e.g. *match(...)
+            // used as the right-hand side of `$`), the function pushed a null
+            // StringVar carrying the function's own name as Symbol.  Continuing
+            // here would silently overwrite that variable with the captured
+            // substring.  Bail out so the caller (typically
+            // ImmediateVariableAssociation2.Scan) can propagate the failure to
+            // the pattern matcher and trigger alternation backtracking.
+            if (Failure)
+            {
+                SystemStack.Pop();
+                return;
+            }
             arguments[0] = SystemStack.Pop();
         }
 
