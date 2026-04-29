@@ -61,6 +61,11 @@ public class Scanner
         _state?.SealAlternates();
     }
 
+    internal void MarkAlternates()
+    {
+        _state?.MarkAlternates();
+    }
+
     // Graft the nodes of subPattern into this scanner's live AST, wiring the last
     // node's Subsequent to successorNodeIndex (the node that follows *X in the outer
     // pattern).  Returns the index of the grafted sub-tree's start node so the Match
@@ -97,7 +102,7 @@ public class Scanner
                         return mr;
                     var (alternateIndex, _) = _state.RestoreAlternate();
                     if (alternateIndex == -2)
-                        return MatchResult.Failure(_state);   // FNCD: seal hit, FAIL outward
+                        return MatchResult.Abort(_state);   // FNCD: seal hit on backtrack → entire match fails (no cursor retry)
                     node = _ast![alternateIndex];
                     break;
 

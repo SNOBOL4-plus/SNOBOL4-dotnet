@@ -136,18 +136,20 @@ public partial class Executive
             return;
         }
 
-        // FENCE(p): try p; if p fails → ABORT (no position retry); if p succeeds → seal.
-        // AlternatePattern left=ConcatenatePattern(p, SealPattern()), right=AbortPattern():
-        //   - p matches: SealPattern wipes p's saved alternates and pushes abort sentinel;
-        //     any later backtrack through FENCE hits ABORT.
-        //   - p fails: backtrack fires AbortPattern → ABORT immediately.
-        // FENCE(P) structure: ConcatenatePattern(p, SealPattern())
-        // SealPattern.Scan calls SealAlternates() which clears P's saved alternates
-        // and pushes sentinel -2. On backtrack through the seal, Match returns FAILURE
-        // outward (not ABORT) — outer pattern can still retry positions.
-        // P failure: p simply fails, no alternates saved, Match fails normally —
-        // outer alternates (e.g. FENCE('A') | 'B') still fire correctly.
-        SystemStack.Push(new PatternVar(new ConcatenatePattern((Pattern)p, new SealPattern())));
+        // FENCE(p): try p; if p fails → backtrack normally (no abort here);
+        // if p succeeds → seal pops alternates down to the entry mark.
+        // FENCE(P) structure: ConcatenatePattern(Mark, ConcatenatePattern(p, Seal))
+        // MarkPattern.Scan pushes a -3 sentinel at FENCE entry to capture the
+        // outer alt-stack depth.  SealPattern.Scan pops back down through the
+        // mark, then pushes -2.  On backtrack through -2, Match returns ABORT
+        // outward — the entire match terminates without cursor-position retry,
+        // matching Gimpel 1973 §"Pattern Theory": FENCE = NULL | ABORT.
+        // P failure: p simply fails; alternates p saved are popped; mark is
+        // skipped transparently by RestoreAlternate; outer alternates fire.
+        SystemStack.Push(new PatternVar(
+            new ConcatenatePattern(
+                new MarkPattern(),
+                new ConcatenatePattern((Pattern)p, new SealPattern()))));
     }
 
     #endregion

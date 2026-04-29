@@ -3,10 +3,13 @@ using System.Diagnostics;
 namespace Snobol4.Common;
 
 /// <summary>
-/// SealPattern — always succeeds, but first clears P's saved alternates and pushes
-/// sentinel -2. On subsequent backtrack through this point, Match returns FAILURE
-/// (not ABORT) outward — matching SIL FNCD which propagates FAIL, not ABORT.
-/// Used by FENCE(p): structure is ConcatenatePattern(p, SealPattern()).
+/// SealPattern — always succeeds, but first pops the alt stack down to (and
+/// through) the most recent -3 mark from a paired MarkPattern, then pushes
+/// sentinel -2.  On subsequent backtrack through this point, Match returns
+/// ABORT outward — the entire match terminates without cursor-position retry,
+/// matching Gimpel 1973: FENCE = NULL | ABORT.
+/// Used by FENCE(p): structure is ConcatenatePattern(Mark, ConcatenatePattern(p, Seal)).
+/// Outer alternates that were saved BEFORE the paired Mark remain live.
 /// </summary>
 [DebuggerDisplay("{DebugPattern()}")]
 internal class SealPattern : TerminalPattern
