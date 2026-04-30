@@ -1,11 +1,11 @@
-﻿namespace Snobol4.Common;
+namespace Snobol4.Common;
 
 //"pattern match right operand is not pattern" /* 240 */,
 //"pattern match left operand is not a string" /* 241 */,
 
 public partial class Executive
 {
-                        public void PatternMatch(List<Var> arguments)
+                    public void PatternMatch(List<Var> arguments)
     {
         // arguments[0]: Subject and left operand
         // arguments[1]: Pattern and right operand
@@ -34,19 +34,32 @@ public partial class Executive
         // So preserve it here.
         subject.Symbol = arguments[0].Symbol;
 
-        // Try the match
+        // Try the match.
+        // Save and temporarily replace BetaStack so that any nested PatternMatch invoked
+        // during the match (e.g. via `$ *fn(...)` immediate-assignment side effects calling
+        // a user function that itself runs a nested `?`) does not see -- or commit -- the
+        // outer PatternMatch's own conditional-assignment accumulations.
+        // Without this isolation, the inner PatternMatch's BetaStack.Reverse() commit loop
+        // walks the outer BetaStack and causes spurious extra function calls.
+        // Found via beauty self-host sync-step monitor: divergence at step #2839 --
+        // spl emits RETURN match (NRETURN) while dot emits a 19th CALL upr because
+        // the outer BetaStack's `.`-captures were being committed by the inner PatternMatch.
+        // See GOAL-NET-BEAUTY-SELF S-2-bridge-7-fullscan session #71.
         var anchor = AmpAnchor;
+        var savedBetaStack = BetaStack;
+        BetaStack = [];
         Scanner scanner = new(this);
 
         var mr = scanner.PatternMatch((string)subjectValue, (Pattern)patternValue, 0, anchor != 0);
 
         if (mr.Outcome != MatchResult.Status.SUCCESS)
         {
+            BetaStack = savedBetaStack;
             NonExceptionFailure();
             return;
         }
 
-        // Perform conditional assignments
+        // Perform conditional assignments from this PatternMatch's own BetaStack.
         foreach (var nameListEntry in BetaStack.Reverse())
         {
             List<Var> assignment =
@@ -59,17 +72,20 @@ public partial class Executive
             SystemStack.Pop();
         }
 
+        // Restore the caller's BetaStack now that this PatternMatch has committed its own.
+        BetaStack = savedBetaStack;
+
         // After a successful pattern match, the statement-level Failure flag must
         // reflect the match outcome (SUCCESS), not the side-effect outcome of any
         // deferred conditional-assignment commits in BetaStack.  Without this clear,
         // a deferred `*fn() . cap`-style assignee whose underlying fn() returns
         // FRETURN sets Failure=true on the way out, and the SUCCESSFUL match is
-        // misreported as a failure to the statement engine — taking :F when the
+        // misreported as a failure to the statement engine -- taking :F when the
         // match clearly succeeded.  Found via beauty self-host: `&FULLSCAN = 1`
         // parsed correctly but mainErr1 still fired.  See GOAL-NET-BEAUTY-SELF
         // S-2-bridge-7-betastack-failure-leak.
         Failure = false;
-        
+
         // Store object reference to save SubjectVar in a symbol table
         var subjectVar = new SubjectVar((string)subjectValue, mr)
         {
