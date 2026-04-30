@@ -70,6 +70,34 @@ public static class MonitorIpc
     private static readonly List<string>             _names      = new();
     private static readonly Dictionary<string, uint> _nameToId   = new();
 
+    // --- Event-bombs (S-2-bridge-event-bombs) ------------------------------
+    // _emitCount increments on every wire record emitted (any kind).
+    // BREAK_AT  : when _emitCount == BREAK_AT (just before the Nth emit goes
+    //             out), dump the managed stack to stderr and call
+    //             Debugger.Break() if a debugger is attached.  Lets a session
+    //             that has identified a DIVERGE row at event N pinpoint the
+    //             dot-side call stack at the last-agreed event (N-1) and the
+    //             first-diverge event (N).
+    // TRACE_FROM/TO : while _emitCount is in [TRACE_FROM, TRACE_TO), set the
+    //             public TraceEnabled flag.  Other dot-side instrumentation
+    //             (ScannerState alt-stack trace, AST dumps, etc.) reads this
+    //             single flag to scope their output to the gap between
+    //             last-agreed and first-diverge.
+    private static long _emitCount;
+    private static long _breakAt        = -1;        // -1 = disabled
+    private static long _traceFrom      = long.MaxValue;
+    private static long _traceTo        = long.MinValue;
+
+    /// <summary>
+    /// True while the running emit count is inside the
+    /// [MONITOR_TRACE_FROM_EVENT, MONITOR_TRACE_TO_EVENT) interval.
+    /// Read by other dot diagnostic instrumentation to scope its output.
+    /// </summary>
+    public static bool TraceEnabled => _emitCount >= _traceFrom && _emitCount < _traceTo;
+
+    /// <summary>Current zero-based emit count (number of wire records sent).</summary>
+    public static long EmitCount => _emitCount;
+
     /// <summary>
     /// Returns true if monitoring is active (MONITOR_READY_PIPE was set
     /// at first-emit time and FIFOs opened successfully).  Cheap after
@@ -121,6 +149,18 @@ public static class MonitorIpc
             // ignored.  Names are announced inline on the wire via
             // MWK_NAME_DEF records (see InternName below).  No sidecar.
             _initOk = true;
+
+            // S-2-bridge-event-bombs: MONITOR_BREAK_AT_EVENT=N (single int)
+            // and MONITOR_TRACE_FROM_EVENT=N / MONITOR_TRACE_TO_EVENT=M
+            // (half-open interval).  All optional; silently ignored if unset
+            // or unparseable.
+            string? breakAt   = Environment.GetEnvironmentVariable("MONITOR_BREAK_AT_EVENT");
+            string? traceFrom = Environment.GetEnvironmentVariable("MONITOR_TRACE_FROM_EVENT");
+            string? traceTo   = Environment.GetEnvironmentVariable("MONITOR_TRACE_TO_EVENT");
+            if (long.TryParse(breakAt,   out var n)) _breakAt   = n;
+            if (long.TryParse(traceFrom, out var f)) _traceFrom = f;
+            if (long.TryParse(traceTo,   out var t)) _traceTo   = t;
+
             AppDomain.CurrentDomain.ProcessExit += (_, _) => OnAtExit();
         }
     }
@@ -222,6 +262,29 @@ public static class MonitorIpc
                                       byte[]? value, uint valueLen)
     {
         if (_readyFs is null) return;
+
+        // S-2-bridge-event-bombs: pre-emit count.  _emitCount is the
+        // 1-based ordinal of the record about to be sent.  NAME_DEF records
+        // are excluded so the count matches the controller's wire-log
+        // numbering (which lists only CALL/VALUE/RETURN/LABEL/END events).
+        if (kind != MWK_NAME_DEF) _emitCount++;
+
+        // Break-at-event: dump managed stack to stderr and (if attached)
+        // signal the debugger.  The break fires BEFORE the record is sent
+        // so a stopped session sees the stack that produced the event.
+        if (_breakAt >= 0 && _emitCount == _breakAt)
+        {
+            try
+            {
+                Console.Error.WriteLine(
+                    $"[MonitorIpc] BREAK_AT_EVENT fired at #{_emitCount} kind={kind} type={type} valueLen={valueLen}");
+                Console.Error.WriteLine(Environment.StackTrace);
+                Console.Error.Flush();
+            }
+            catch { /* swallow */ }
+            if (System.Diagnostics.Debugger.IsAttached)
+                System.Diagnostics.Debugger.Break();
+        }
 
         var hdr = new byte[MW_HDR_BYTES];
         PackHeader(hdr, kind, nameId, type, valueLen);
