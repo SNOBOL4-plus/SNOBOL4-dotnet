@@ -58,6 +58,17 @@ public partial class Executive
             Assign(assignment);
             SystemStack.Pop();
         }
+
+        // After a successful pattern match, the statement-level Failure flag must
+        // reflect the match outcome (SUCCESS), not the side-effect outcome of any
+        // deferred conditional-assignment commits in BetaStack.  Without this clear,
+        // a deferred `*fn() . cap`-style assignee whose underlying fn() returns
+        // FRETURN sets Failure=true on the way out, and the SUCCESSFUL match is
+        // misreported as a failure to the statement engine — taking :F when the
+        // match clearly succeeded.  Found via beauty self-host: `&FULLSCAN = 1`
+        // parsed correctly but mainErr1 still fired.  See GOAL-NET-BEAUTY-SELF
+        // S-2-bridge-7-betastack-failure-leak.
+        Failure = false;
         
         // Store object reference to save SubjectVar in a symbol table
         var subjectVar = new SubjectVar((string)subjectValue, mr)
