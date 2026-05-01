@@ -75,6 +75,17 @@ public class Scanner
 
     internal AbstractSyntaxTreeNode GetNode(int index) => _ast![index];
 
+    // S-2-bridge-7-byrd-pattern: tag a pattern node for the wire trace.
+    // UnevaluatedPattern reports its function name (e.g. "*snoString").
+    // LiteralPattern reports its literal in single-quotes (e.g. 'h', '"').
+    // Other terminal patterns report their type name (BreakPattern, SpanPattern, ...).
+    private static string NodeTag(AbstractSyntaxTreeNode node)
+    {
+        if (node.Self is UnevaluatedPattern up) return up.MethodName;
+        if (node.Self is LiteralPattern lp)     return "'" + lp.Literal + "'";
+        return node.Self.GetType().Name;
+    }
+
     private MatchResult Match(AbstractSyntaxTreeNode node)
     {
         _state!.ClearAlternates();
@@ -86,12 +97,17 @@ public class Scanner
                 _state.SaveAlternate(node.Alternate);
             }
 
+            // S-2-bridge-7-byrd-pattern: PM_CALL — entering a node match.
+            MonitorIpc.EmitPmCall(NodeTag(node), _state.CursorPosition);
+
             Exec.Failure = false;
             var mr = ((TerminalPattern)node.Self).Scan(node.SelfIndex, this);
 
             switch (mr.Outcome)
             {
                 case MatchResult.Status.SUCCESS:
+                    // PM_EXIT — node Scan succeeded; advancing cursor reflected.
+                    MonitorIpc.EmitPmExit(NodeTag(node), _state.CursorPosition);
                     if (!node.HasSubsequent())
                         return MatchResult.Success(_state);
                     node = node.GetSubsequent()!;
@@ -99,7 +115,11 @@ public class Scanner
 
                 case MatchResult.Status.FAILURE:
                     if (!_state.HasAlternates())
+                    {
+                        // PM_FAIL — propagate FAILURE outward (no live alt).
+                        MonitorIpc.EmitPmFail(NodeTag(node), _state.CursorPosition);
                         return mr;
+                    }
                     var (alternateIndex, _) = _state.RestoreAlternate();
                     // Seal hit on backtrack: per Gimpel 1973 FENCE = NULL | ABORT,
                     // backtrack INTO the sealed region is blocked.  But OUTER
@@ -114,13 +134,21 @@ public class Scanner
                     while (alternateIndex == -2)
                     {
                         if (!_state.HasAlternates())
+                        {
+                            // PM_FAIL — seal-only stack, ABORT propagates outward.
+                            MonitorIpc.EmitPmFail(NodeTag(node), _state.CursorPosition);
                             return MatchResult.Abort(_state);
+                        }
                         (alternateIndex, _) = _state.RestoreAlternate();
                     }
                     node = _ast![alternateIndex];
+                    // PM_REDO — backtracked into restored node at restored cursor.
+                    MonitorIpc.EmitPmRedo(NodeTag(node), _state.CursorPosition);
                     break;
 
                 case MatchResult.Status.ABORT:
+                    // PM_FAIL — explicit ABORT from a Scan() (e.g. AbortPattern, seal).
+                    MonitorIpc.EmitPmFail(NodeTag(node), _state.CursorPosition);
                     return mr;
 
                 case MatchResult.Status.GOTO:

@@ -34,6 +34,17 @@ internal class UnevaluatedPattern : TerminalPattern
         return new UnevaluatedPattern(_functionName, _reScan);
     }
 
+    // S-2-bridge-7-byrd-pattern: tag for wire trace (e.g. "*snoString").
+    // Uses the delegate's Method.Name when available; otherwise "*?".
+    internal string MethodName
+    {
+        get
+        {
+            try { return "*" + (_functionName?.Method?.Name ?? "?"); }
+            catch { return "*?"; }
+        }
+    }
+
                                         internal override MatchResult Scan(int node, Scanner scan)
     {
         using var profile1 = Profiler.Start4("*", scan.Exec);

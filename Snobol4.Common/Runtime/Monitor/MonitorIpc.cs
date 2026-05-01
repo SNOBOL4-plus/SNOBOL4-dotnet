@@ -39,6 +39,12 @@ public static class MonitorIpc
     private const uint MWK_END      = 4u;
     private const uint MWK_LABEL    = 5u;   // SN-26-bridge-coverage-f: stmt entry
     private const uint MWK_NAME_DEF = 6u;   // SN-26-bridge-coverage-e: streaming intern
+    // S-2-bridge-7-byrd-pattern: Byrd-box pattern-match traversal events.
+    // Per AST-node Match attempt: CALL (enter), EXIT (succeed), REDO (backtrack-restore), FAIL (no alt).
+    private const uint MWK_PM_CALL  = 7u;
+    private const uint MWK_PM_EXIT  = 8u;
+    private const uint MWK_PM_REDO  = 9u;
+    private const uint MWK_PM_FAIL  = 10u;
 
     // --- SNOBOL4 datatype codes (record.type) ------------------------------
     private const byte MWT_NULL       = 0;
@@ -422,6 +428,80 @@ public static class MonitorIpc
             for (int k = 0; k < 8; k++) b[k] = (byte)((stno >> (k * 8)) & 0xff);
             EmitRecordRaw(MWK_LABEL, MW_NAME_ID_NONE, MWT_INTEGER, b, 8);
         }
+    }
+
+    // ------------------------------------------------------------------
+    // S-2-bridge-7-byrd-pattern — Byrd-box pattern-match wire events.
+    //
+    // Off by default; opt in by setting MONITOR_PM_TRACE=1 in the
+    // environment.  When on, every AST-node Match attempt fires four
+    // ports as it executes:
+    //
+    //   PM_CALL  enter Match() for node                (forward, new attempt)
+    //   PM_EXIT  node Scan returned SUCCESS            (forward, advance to subsequent)
+    //   PM_REDO  RestoreAlternate popped this node     (backward, retry from saved cursor)
+    //   PM_FAIL  node FAILED, no alternate restored    (backward, propagate FAILURE/ABORT)
+    //
+    // Wire encoding: name_id = node-tag (e.g. *snoString, BREAK, LITERAL),
+    // type = MWT_INTEGER, value = 8-byte LE cursor position.
+    //
+    // Comparison key: (kind, name, cursor).  Adjacent ports bracket
+    // exactly one Scan() call — a C# trace between adjacent sync events
+    // lands inside one node's match logic, surfacing the structural bug
+    // directly (alternate-link wiring, scan outcome).
+    // ------------------------------------------------------------------
+    private static bool _pmTraceInitDone;
+    private static bool _pmTraceOn;
+
+    public static bool PmTraceEnabled
+    {
+        get
+        {
+            if (!_pmTraceInitDone)
+            {
+                _pmTraceInitDone = true;
+                _pmTraceOn = Environment.GetEnvironmentVariable("MONITOR_PM_TRACE") == "1";
+            }
+            return _pmTraceOn;
+        }
+    }
+
+    private static void EmitPmRecord(uint kind, string nodeTag, long cursor)
+    {
+        if (!Enabled) return;
+        lock (_lock)
+        {
+            if (!_initOk) return;
+            uint nameId = InternName(nodeTag ?? "");
+            if (nameId == MW_NAME_ID_NONE) return;
+            var b = new byte[8];
+            for (int k = 0; k < 8; k++) b[k] = (byte)((cursor >> (k * 8)) & 0xff);
+            EmitRecordRaw(kind, nameId, MWT_INTEGER, b, 8);
+        }
+    }
+
+    public static void EmitPmCall(string nodeTag, long cursor)
+    {
+        if (!PmTraceEnabled) return;
+        EmitPmRecord(MWK_PM_CALL, nodeTag, cursor);
+    }
+
+    public static void EmitPmExit(string nodeTag, long cursor)
+    {
+        if (!PmTraceEnabled) return;
+        EmitPmRecord(MWK_PM_EXIT, nodeTag, cursor);
+    }
+
+    public static void EmitPmRedo(string nodeTag, long cursor)
+    {
+        if (!PmTraceEnabled) return;
+        EmitPmRecord(MWK_PM_REDO, nodeTag, cursor);
+    }
+
+    public static void EmitPmFail(string nodeTag, long cursor)
+    {
+        if (!PmTraceEnabled) return;
+        EmitPmRecord(MWK_PM_FAIL, nodeTag, cursor);
     }
 
     // ------------------------------------------------------------------
