@@ -58,7 +58,10 @@ internal class ConditionalVariableAssociationBackup1 : NullPattern
                                                                         internal override MatchResult Scan(int node, Scanner scan)
     {
         using var profile1 = Profiler.Start4(".2", scan.Exec);
-        Exec.AlphaStack.Pop();
+        // Guard: AlphaStack may be empty if PatternMatch isolation (save/restore)
+        // discarded the entry pushed by CVA1 in a prior cursor-retry iteration.
+        if (Exec.AlphaStack.Count > 0)
+            Exec.AlphaStack.Pop();
         return MatchResult.Failure(scan);
     }
 }

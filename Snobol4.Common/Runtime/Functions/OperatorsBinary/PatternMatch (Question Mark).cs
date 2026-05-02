@@ -10,10 +10,22 @@ public partial class Executive
         // arguments[0]: Subject and left operand
         // arguments[1]: Pattern and right operand
 
+        // Save arguments[0] (subject) before evaluating any ExpressionVar in arguments[1].
+        // _reusableArgList is shared: inner Function() calls (e.g. from RunExpressionThread
+        // when evaluating *fn()) will Clear() and refill it, clobbering arguments[0] with
+        // the inner call's argument (e.g. the IntegerVar(5) arg to LEN inside *mypat()).
+        // Saving to a local Var is zero-allocation and survives the inner call.
+        // Found: GOAL-NET-BEAUTY-SELF session #81 — *mypat() returning LEN(5) matched
+        // subject "5" (= coerced IntegerVar from LEN's arg) instead of "hello".
+        var savedSubject = arguments[0];
         while (arguments[1] is ExpressionVar expressionVar1)
         {
             expressionVar1.FunctionName(this);
+            if (Failure) { Failure = false; NonExceptionFailure(); return; }
+            if (SystemStack.Count == 0) { NonExceptionFailure(); return; }
             arguments[1] = SystemStack.Pop();
+            // Restore subject — inner Function() calls clobber _reusableArgList[0]
+            arguments[0] = savedSubject;
         }
 
         // Right argument must resolve to a pattern
@@ -48,6 +60,14 @@ public partial class Executive
         var anchor = AmpAnchor;
         var savedBetaStack = BetaStack;
         BetaStack = [];
+        // AlphaStack also needs isolation: CVA1 (.1) pushes entries during match;
+        // CVABackup1 (.2) pops them on backtrack.  Without save/restore, an unanchored
+        // retry loop leaves stale AlphaStack entries from previous cursor positions,
+        // and the next CVABackup1.Scan throws InvalidOperationException on the empty
+        // stack.  Mirror the BetaStack isolation pattern exactly.
+        // Found: beauty self-host S-2-bridge-7-fullscan session #81.
+        var savedAlphaStack = AlphaStack;
+        AlphaStack = [];
         Scanner scanner = new(this);
 
         var mr = scanner.PatternMatch((string)subjectValue, (Pattern)patternValue, 0, anchor != 0);
@@ -55,6 +75,7 @@ public partial class Executive
         if (mr.Outcome != MatchResult.Status.SUCCESS)
         {
             BetaStack = savedBetaStack;
+            AlphaStack = savedAlphaStack;
             NonExceptionFailure();
             return;
         }
@@ -72,8 +93,9 @@ public partial class Executive
             SystemStack.Pop();
         }
 
-        // Restore the caller's BetaStack now that this PatternMatch has committed its own.
+        // Restore the caller's BetaStack and AlphaStack now that this PatternMatch has committed its own.
         BetaStack = savedBetaStack;
+        AlphaStack = savedAlphaStack;
 
         // After a successful pattern match, the statement-level Failure flag must
         // reflect the match outcome (SUCCESS), not the side-effect outcome of any
