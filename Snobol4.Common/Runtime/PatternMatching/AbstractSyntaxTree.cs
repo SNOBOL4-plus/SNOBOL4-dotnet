@@ -5,6 +5,18 @@ internal class AbstractSyntaxTree
     private readonly List<AbstractSyntaxTreeNode> _nodes = [];
     private AbstractSyntaxTreeNode? _startNode;
 
+    // S-2-bridge-7-byrd-pattern: cache repeated grafts of the same (caller-node,
+    // evaluated-sub-pattern) pair.  When *X re-fires inside an unanchored cursor
+    // loop, evaluating to the same Pattern instance, return the previously
+    // grafted start-node index instead of appending another copy of the sub-AST.
+    // Without this cache, beauty self-host appends ~750k nodes for ~120k Graft
+    // calls — the cumulative cost is what kept dot from reaching the byte-
+    // identical milestone within reasonable time.
+    //
+    // Key: (caller_node_index, sub_pattern_reference_identity).
+    // Value: graftedStart (offset into _nodes where the cached sub-AST begins).
+    private Dictionary<(int caller, Pattern sub), int>? _graftCache;
+
     public AbstractSyntaxTreeNode StartNode => _startNode 
         ?? throw new InvalidOperationException("AST not built");
 
@@ -138,6 +150,15 @@ internal class AbstractSyntaxTree
     /// </summary>
     internal int Graft(Pattern subPattern, int successorNodeIndex)
     {
+        // S-2-bridge-7-byrd-pattern: cache repeated grafts.
+        // Cache key: (successor edge, evaluated sub-pattern).  When the same
+        // *X node re-evaluates to the same Pattern instance (very common in
+        // unanchored cursor scans of `(POS(0)|' ') *upr(tx) (' '|RPOS(0))`),
+        // skip the AST rebuild and return the previous graftedStart.
+        if (_graftCache != null &&
+            _graftCache.TryGetValue((successorNodeIndex, subPattern), out var cached))
+            return cached;
+
         // Build a standalone sub-AST for the evaluated pattern
         var subAst = new AbstractSyntaxTree();
         subAst.BuildNodeList(subPattern);
@@ -178,7 +199,15 @@ internal class AbstractSyntaxTree
         }
 
         // Return index of the sub-AST's start node in the extended _nodes list
-        return subAst.StartNode.SelfIndex + offset;
+        var graftedStart = subAst.StartNode.SelfIndex + offset;
+
+        // S-2-bridge-7-byrd-pattern: populate the graft cache so subsequent
+        // re-entries of the same *X node with the same evaluated pattern
+        // reuse this graft instead of appending another copy.
+        _graftCache ??= new Dictionary<(int, Pattern), int>();
+        _graftCache[(successorNodeIndex, subPattern)] = graftedStart;
+
+        return graftedStart;
     }
 
     public void Dump()
