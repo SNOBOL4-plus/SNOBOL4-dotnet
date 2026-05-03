@@ -120,6 +120,12 @@ public static class MonitorIpc
 
     // ------------------------------------------------------------------
     // Lazy init — read env vars on first emit.
+    //
+    // S-2-bridge-event-bombs-coverage: MONITOR_BREAK_AT_EVENT,
+    // MONITOR_TRACE_FROM_EVENT, and MONITOR_TRACE_TO_EVENT are read
+    // BEFORE the pipe check so standalone tracing works without a
+    // controller (pipes unset).  Set FROM/TO without pipes to gate
+    // TraceEnabled-guarded diagnostic output to the [from,to) window.
     // ------------------------------------------------------------------
     private static void Init()
     {
@@ -127,6 +133,15 @@ public static class MonitorIpc
         {
             if (_initAttempted) return;
             _initAttempted = true;
+
+            // Read event-bomb env vars first — needed for standalone tracing
+            // even when MONITOR_READY_PIPE / MONITOR_GO_PIPE are unset.
+            string? breakAt   = Environment.GetEnvironmentVariable("MONITOR_BREAK_AT_EVENT");
+            string? traceFrom = Environment.GetEnvironmentVariable("MONITOR_TRACE_FROM_EVENT");
+            string? traceTo   = Environment.GetEnvironmentVariable("MONITOR_TRACE_TO_EVENT");
+            if (long.TryParse(breakAt,   out var n)) _breakAt   = n;
+            if (long.TryParse(traceFrom, out var f)) _traceFrom = f;
+            if (long.TryParse(traceTo,   out var t)) _traceTo   = t;
 
             string? readyPath = Environment.GetEnvironmentVariable("MONITOR_READY_PIPE");
             string? goPath    = Environment.GetEnvironmentVariable("MONITOR_GO_PIPE");
@@ -156,19 +171,23 @@ public static class MonitorIpc
             // MWK_NAME_DEF records (see InternName below).  No sidecar.
             _initOk = true;
 
-            // S-2-bridge-event-bombs: MONITOR_BREAK_AT_EVENT=N (single int)
-            // and MONITOR_TRACE_FROM_EVENT=N / MONITOR_TRACE_TO_EVENT=M
-            // (half-open interval).  All optional; silently ignored if unset
-            // or unparseable.
-            string? breakAt   = Environment.GetEnvironmentVariable("MONITOR_BREAK_AT_EVENT");
-            string? traceFrom = Environment.GetEnvironmentVariable("MONITOR_TRACE_FROM_EVENT");
-            string? traceTo   = Environment.GetEnvironmentVariable("MONITOR_TRACE_TO_EVENT");
-            if (long.TryParse(breakAt,   out var n)) _breakAt   = n;
-            if (long.TryParse(traceFrom, out var f)) _traceFrom = f;
-            if (long.TryParse(traceTo,   out var t)) _traceTo   = t;
-
             AppDomain.CurrentDomain.ProcessExit += (_, _) => OnAtExit();
         }
+    }
+
+    /// <summary>
+    /// Increment _emitCount without sending a wire record.
+    /// Used by emit-method early returns when the monitor is disabled
+    /// (pipes not connected) but standalone tracing is active via
+    /// MONITOR_TRACE_FROM/TO_EVENT.  This keeps TraceEnabled aligned
+    /// with the event numbering from a prior live-wire run.
+    /// </summary>
+    public static void TickStandalone()
+    {
+        // Only tick if standalone trace is configured but pipes are off.
+        // (When Enabled=true, EmitRecordRaw increments _emitCount itself.)
+        if (!_initOk && (_traceFrom != long.MaxValue || _traceTo != long.MinValue))
+            Interlocked.Increment(ref _emitCount);
     }
 
     // ------------------------------------------------------------------
@@ -362,7 +381,7 @@ public static class MonitorIpc
     /// <summary>VALUE event — variable assignment / .-capture commit.</summary>
     public static void EmitValue(string lvalueName, Var? value)
     {
-        if (!Enabled) return;
+        if (!Enabled) { TickStandalone(); return; }
         lock (_lock)
         {
             if (!_initOk) return;
@@ -376,7 +395,7 @@ public static class MonitorIpc
     /// <summary>CALL event — user-defined function entry.</summary>
     public static void EmitCall(string fnName)
     {
-        if (!Enabled) return;
+        if (!Enabled) { TickStandalone(); return; }
         lock (_lock)
         {
             if (!_initOk) return;
@@ -392,7 +411,7 @@ public static class MonitorIpc
     /// a preceding EmitValue(fnName, result) on the function-name slot.</summary>
     public static void EmitReturn(string fnName, string rtnType)
     {
-        if (!Enabled) return;
+        if (!Enabled) { TickStandalone(); return; }
         lock (_lock)
         {
             if (!_initOk) return;
@@ -420,7 +439,7 @@ public static class MonitorIpc
     /// </summary>
     public static void EmitLabel(long stno)
     {
-        if (!Enabled) return;
+        if (!Enabled) { TickStandalone(); return; }
         lock (_lock)
         {
             if (!_initOk) return;
