@@ -1,4 +1,6 @@
-﻿namespace Snobol4.Common;
+﻿using System.Collections.Generic;
+
+namespace Snobol4.Common;
 
 public class Scanner
 {
@@ -28,6 +30,32 @@ public class Scanner
     private ScannerState? _state;
     private AbstractSyntaxTree? _ast;
 
+    // S-2-bridge-7-fullscan: terminal-failure memoization cache.
+    //
+    // Per SNOBOL4 semantics, side-effect-free terminal patterns are
+    // purely deterministic: same (node-index, cursor) always produces
+    // the same outcome against the same subject.  When the alt-stack
+    // accumulates many restore-points all leading back to the same
+    // terminal at the same cursor (catastrophic backtracking in nested
+    // alternations like beauty.sno's Function|BuiltinVar|SpecialNm
+    // arms), memoizing FAILURE eliminates exponential retry.
+    //
+    // SPITBOL does not retry a terminal at the same cursor once it has
+    // failed — this cache makes dot match that behavior.
+    //
+    // Only PURE terminals are memoized (no side effects):
+    //   SpanPattern (static char list only), LiteralPattern, AnyPattern,
+    //   BreakPattern, PosPattern, RPosPattern, LenPattern, NullPattern,
+    //   TabPattern, RTabPattern, FailPattern, AbortPattern.
+    //
+    // Terminals with side effects are NOT cached:
+    //   SpanPattern with _functionName (dynamic char list via deferred code),
+    //   ArbNoPattern, UnevaluatedPattern, ImmediateVariableAssociation*,
+    //   ConditionalVariableAssociation*, CursorAssignmentPattern.
+    //
+    // Cache is cleared at the start of every PatternMatch call.
+    private readonly HashSet<(int node, int cursor)> _terminalFailCache = new();
+
     internal Scanner(Executive exec)
     {
         Exec = exec;
@@ -37,6 +65,7 @@ public class Scanner
     {
         _ast = AbstractSyntaxTree.Build(pattern);
         _state = new ScannerState(subject, startPosition);
+        _terminalFailCache.Clear(); // S-2-bridge-7-fullscan: reset per-match memoization
 
         var length = anchor ? 0 : subject.Length;
 
@@ -86,6 +115,37 @@ public class Scanner
         return node.Self.GetType().Name;
     }
 
+    // Returns true if this terminal pattern is side-effect-free and its
+    // outcome at a given (node, cursor) is fully determined by the cursor
+    // position and subject — safe to memoize.
+    //
+    // IMPORTANT: NullPattern and LiteralPattern have subclasses with
+    // side-effects (ConditionalVariableAssociation*, ImmediateVariableAssociation*).
+    // Use GetType() exact-type check for LiteralPattern/NullPattern to
+    // avoid memoizing those subclasses.
+    private static bool IsPureTerminal(Pattern p)
+    {
+        // Use GetType() for NullPattern and LiteralPattern because their
+        // subclasses (CVA*, IVA*) have side effects and must NOT be memoized.
+        var t = p.GetType();
+        if (t == typeof(NullPattern))    return true;
+        if (t == typeof(LiteralPattern)) return true;
+        return p switch
+        {
+            SpanPattern sp        => sp.IsStaticCharList,   // static char list only
+            AnyPattern            => true,
+            BreakPattern bp       => bp.IsStaticCharList,   // static char list only
+            LenPattern            => true,
+            FailPattern           => true,
+            AbortPattern          => true,
+            PosPattern            => true,
+            RPosPattern           => true,
+            TabPattern            => true,
+            RTabPattern           => true,
+            _                     => false,
+        };
+    }
+
     private MatchResult Match(AbstractSyntaxTreeNode node)
     {
         _state!.ClearAlternates();
@@ -100,8 +160,25 @@ public class Scanner
             // S-2-bridge-7-byrd-pattern: PM_CALL — entering a node match.
             MonitorIpc.EmitPmCall(NodeTag(node), _state.CursorPosition);
 
-            Exec.Failure = false;
-            var mr = ((TerminalPattern)node.Self).Scan(node.SelfIndex, this);
+            // S-2-bridge-7-fullscan: terminal-failure memoization.
+            // If this is a pure terminal that already failed at this cursor
+            // in this PatternMatch invocation, fail immediately without
+            // re-invoking Scan.  Same semantics as SPITBOL, which does not
+            // retry a deterministic terminal at the same cursor.
+            MatchResult mr;
+            if (IsPureTerminal(node.Self) && _terminalFailCache.Contains((node.SelfIndex, _state.CursorPosition)))
+            {
+                mr = MatchResult.Failure(_state);
+            }
+            else
+            {
+                Exec.Failure = false;
+                mr = ((TerminalPattern)node.Self).Scan(node.SelfIndex, this);
+
+                // Record failure of pure terminals for subsequent alt-stack restores.
+                if (mr.Outcome == MatchResult.Status.FAILURE && IsPureTerminal(node.Self))
+                    _terminalFailCache.Add((node.SelfIndex, _state.CursorPosition));
+            }
 
             switch (mr.Outcome)
             {

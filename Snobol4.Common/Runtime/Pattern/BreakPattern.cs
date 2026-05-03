@@ -29,6 +29,12 @@ internal class BreakPattern : TerminalPattern
         _error = error;
     }
 
+    /// <summary>
+    /// True when the char list is a static string (no deferred-code evaluation).
+    /// Used by Scanner.IsPureTerminal to decide whether failure can be memoized.
+    /// </summary>
+    internal bool IsStaticCharList => _functionName is null;
+
     #endregion
 
     #region Methods
